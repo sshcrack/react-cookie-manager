@@ -42,15 +42,15 @@ The component requires its CSS file to be imported in your application. Add the 
 import "react-cookie-manager/style.css";
 ```
 
-![React Cookie Manager Modal](https://raw.githubusercontent.com/hypershiphq/hypership/main/packages/components/react-cookie-manager/assets/modal.png)
+![React Cookie Manager Modal](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/modal.png?raw=true)
 
-![React Cookie Manager Modal](https://raw.githubusercontent.com/hypershiphq/hypership/main/packages/components/react-cookie-manager/assets/popup.png)
+![React Cookie Manager Popup](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/popup.png?raw=true)
 
-![React Cookie Manager Modal](https://raw.githubusercontent.com/hypershiphq/hypership/main/packages/components/react-cookie-manager/assets/popup-dark.png)
+![React Cookie Manager Popup Dark](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/popup-dark.png?raw=true)
 
-![React Cookie Manager Modal](https://raw.githubusercontent.com/hypershiphq/hypership/main/packages/components/react-cookie-manager/assets/banner.png)
+![React Cookie Manager Banner](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/banner.png?raw=true)
 
-![React Cookie Manager Modal](https://raw.githubusercontent.com/hypershiphq/hypership/main/packages/components/react-cookie-manager/assets/manage-cookies.png)
+![React Cookie Manager Manage Cookies](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/manage-cookies.png?raw=true)
 
 ## Basic Usage
 
