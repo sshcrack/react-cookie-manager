@@ -112,10 +112,11 @@ const CookieManagerContext = createContext<CookieConsentContextValue | null>(
 export interface CookieManagerProps
   extends Omit<CookieConsenterProps, "onAccept" | "onDecline" | "forceShow"> {
   children: React.ReactNode;
-  cookieName?: string;
+  localStorageKey?: string;
   onManage?: (preferences?: CookieCategories) => void;
   disableAutomaticBlocking?: boolean;
   blockedDomains?: string[];
+  expirationDays?: number;
 }
 
 const createConsentStatus = (consented: boolean) => ({
@@ -131,20 +132,40 @@ const createDetailedConsent = (consented: boolean): DetailedCookieConsent => ({
 
 export const CookieManager: React.FC<CookieManagerProps> = ({
   children,
-  cookieName = "cookie-consent",
+  localStorageKey = "cookie-consent",
   onManage,
   disableAutomaticBlocking = false,
   blockedDomains = [],
+  expirationDays = 365,
   ...props
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [showManageConsent, setShowManageConsent] = useState(false);
   const [detailedConsent, setDetailedConsent] =
     useState<DetailedCookieConsent | null>(() => {
-      const storedConsent = localStorage.getItem(cookieName);
+      const storedConsent = localStorage.getItem(localStorageKey);
       if (storedConsent) {
         try {
-          return JSON.parse(storedConsent);
+          const parsedConsent = JSON.parse(
+            storedConsent
+          ) as DetailedCookieConsent;
+
+          // Check if consent has expired
+          const oldestTimestamp = Math.min(
+            ...Object.values(parsedConsent).map((status) =>
+              new Date(status.timestamp).getTime()
+            )
+          );
+
+          const expirationTime =
+            oldestTimestamp + expirationDays * 24 * 60 * 60 * 1000;
+
+          if (Date.now() > expirationTime) {
+            localStorage.removeItem(localStorageKey);
+            return null;
+          }
+
+          return parsedConsent;
         } catch (e) {
           return null;
         }
@@ -221,14 +242,14 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
   const acceptCookies = () => {
     const newConsent = createDetailedConsent(true);
-    localStorage.setItem(cookieName, JSON.stringify(newConsent));
+    localStorage.setItem(localStorageKey, JSON.stringify(newConsent));
     setDetailedConsent(newConsent);
     setIsVisible(false);
   };
 
   const declineCookies = () => {
     const newConsent = createDetailedConsent(false);
-    localStorage.setItem(cookieName, JSON.stringify(newConsent));
+    localStorage.setItem(localStorageKey, JSON.stringify(newConsent));
     setDetailedConsent(newConsent);
     setIsVisible(false);
   };
@@ -240,7 +261,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       Social: { consented: preferences.Social, timestamp },
       Advertising: { consented: preferences.Advertising, timestamp },
     };
-    localStorage.setItem(cookieName, JSON.stringify(newConsent));
+    localStorage.setItem(localStorageKey, JSON.stringify(newConsent));
     setDetailedConsent(newConsent);
     setShowManageConsent(false);
     if (onManage) {
@@ -274,7 +295,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       {isVisible && (
         <CookieConsenter
           {...props}
-          cookieName={cookieName}
+          localStorageKey={localStorageKey}
           onAccept={acceptCookies}
           onDecline={declineCookies}
           onManage={handleManage}
@@ -293,7 +314,11 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       {showManageConsent && (
         <div className="fixed inset-0 z-[99999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div
-            className={`w-full max-w-lg rounded-xl p-6 ${props.theme === "light" ? "bg-white/95 ring-1 ring-black/10" : "bg-black/95 ring-1 ring-white/10"}`}
+            className={`w-full max-w-lg rounded-xl p-6 ${
+              props.theme === "light"
+                ? "bg-white/95 ring-1 ring-black/10"
+                : "bg-black/95 ring-1 ring-white/10"
+            }`}
           >
             <ManageConsent
               theme={props.theme}
