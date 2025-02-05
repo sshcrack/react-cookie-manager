@@ -142,7 +142,7 @@ function CookieSettings() {
 | `showManageButton`         | boolean                                  | false                          | Whether to show the manage cookies button |
 | `privacyPolicyText`        | string                                   | 'Privacy Policy'               | Text for the privacy policy link          |
 | `privacyPolicyUrl`         | string                                   | -                              | URL for the privacy policy                |
-| `cookieName`               | string                                   | 'cookie-consent'               | Name of the cookie to store consent       |
+| `localStorageKey`          | string                                   | 'cookie-consent'               | Name of the key to store consent          |
 | `cookieExpiration`         | number                                   | 365                            | Days until cookie expires                 |
 | `displayType`              | 'banner' \| 'popup' \| 'modal'           | 'banner'                       | How the consent UI is displayed           |
 | `position`                 | 'top' \| 'bottom'                        | 'bottom'                       | Position of the banner                    |
