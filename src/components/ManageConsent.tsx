@@ -54,7 +54,9 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
     const status = detailedConsent[category];
     return (
       <p
-        className={`text-xs mt-1 ${theme === "light" ? "text-gray-500" : "text-gray-500"}`}
+        className={`text-xs mt-1 text-left ${
+          theme === "light" ? "text-gray-500" : "text-gray-500"
+        }`}
       >
         Status: {status.consented ? "Consented" : "Declined"} on{" "}
         {formatDate(status.timestamp)}
@@ -66,12 +68,16 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
     <div className="flex flex-col gap-6">
       <div>
         <h3
-          className={`text-sm font-semibold mb-2 ${theme === "light" ? "text-gray-900" : "text-white"}`}
+          className={`text-sm font-semibold mb-2 ${
+            theme === "light" ? "text-gray-900" : "text-white"
+          }`}
         >
           Cookie Preferences
         </h3>
         <p
-          className={`text-xs ${theme === "light" ? "text-gray-700" : "text-gray-200"}`}
+          className={`text-xs ${
+            theme === "light" ? "text-gray-700" : "text-gray-200"
+          }`}
         >
           Manage your cookie preferences below. Essential cookies are always
           enabled as they are necessary for the website to function properly.
@@ -80,41 +86,55 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
 
       <div className="flex flex-col gap-4">
         {/* Essential Cookies - Always enabled */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
             <h4
-              className={`text-xs font-medium ${theme === "light" ? "text-gray-900" : "text-white"}`}
+              className={`text-xs font-medium text-left ${
+                theme === "light" ? "text-gray-900" : "text-white"
+              }`}
             >
               Essential
             </h4>
             <p
-              className={`text-xs ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}
+              className={`text-xs text-left ${
+                theme === "light" ? "text-gray-600" : "text-gray-400"
+              }`}
             >
               Required for the website to function properly
             </p>
             <p
-              className={`text-xs mt-1 ${theme === "light" ? "text-gray-500" : "text-gray-500"}`}
+              className={`text-xs mt-1 text-left ${
+                theme === "light" ? "text-gray-500" : "text-gray-500"
+              }`}
             >
               Status: Always enabled
             </p>
           </div>
           <div
-            className={`px-3 py-1 text-xs text-center font-medium rounded-full ${theme === "light" ? "bg-gray-200 text-gray-600" : "bg-gray-800 text-gray-300"}`}
+            className={`px-3 py-1 text-xs text-center font-medium rounded-full ${
+              theme === "light"
+                ? "bg-gray-200 text-gray-600"
+                : "bg-gray-800 text-gray-300"
+            }`}
           >
             Always On
           </div>
         </div>
 
         {/* Analytics Cookies */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
             <h4
-              className={`text-xs font-medium ${theme === "light" ? "text-gray-900" : "text-white"}`}
+              className={`text-xs font-medium text-left ${
+                theme === "light" ? "text-gray-900" : "text-white"
+              }`}
             >
               Analytics
             </h4>
             <p
-              className={`text-xs ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}
+              className={`text-xs text-left ${
+                theme === "light" ? "text-gray-600" : "text-gray-400"
+              }`}
             >
               Help us understand how visitors interact with our website
             </p>
@@ -142,15 +162,19 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
         </div>
 
         {/* Social Cookies */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
             <h4
-              className={`text-xs font-medium ${theme === "light" ? "text-gray-900" : "text-white"}`}
+              className={`text-xs font-medium text-left ${
+                theme === "light" ? "text-gray-900" : "text-white"
+              }`}
             >
               Social
             </h4>
             <p
-              className={`text-xs ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}
+              className={`text-xs text-left ${
+                theme === "light" ? "text-gray-600" : "text-gray-400"
+              }`}
             >
               Enable social media features and sharing
             </p>
@@ -178,15 +202,19 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
         </div>
 
         {/* Advertising Cookies */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
             <h4
-              className={`text-xs font-medium ${theme === "light" ? "text-gray-900" : "text-white"}`}
+              className={`text-xs font-medium text-left ${
+                theme === "light" ? "text-gray-900" : "text-white"
+              }`}
             >
               Advertising
             </h4>
             <p
-              className={`text-xs ${theme === "light" ? "text-gray-600" : "text-gray-400"}`}
+              className={`text-xs text-left ${
+                theme === "light" ? "text-gray-600" : "text-gray-400"
+              }`}
             >
               Personalize advertisements and measure their performance
             </p>
@@ -214,11 +242,11 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
         </div>
       </div>
 
-      <div className="flex gap-3 mt-2">
+      <div className="flex flex-col sm:flex-row gap-3 mt-2">
         {onCancel && (
           <button
             onClick={onCancel}
-            className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105 ${
+            className={`w-full sm:flex-1 px-3 py-2 sm:py-1.5 text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105 ${
               theme === "light"
                 ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
                 : "bg-gray-800 hover:bg-gray-700 text-gray-300"
@@ -229,7 +257,7 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
         )}
         <button
           onClick={handleSave}
-          className="flex-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105"
+          className="w-full sm:flex-1 px-3 py-2 sm:py-1.5 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105"
         >
           Save Preferences
         </button>
