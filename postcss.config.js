@@ -1,5 +1,12 @@
 export default {
   plugins: {
+    "postcss-prefix-selector": {
+      prefix: ".cookie-manager", // We need to scope all our styles with our own class
+      transform(prefix, selector) {
+        if (selector.startsWith("html")) return prefix;
+        return `${prefix} ${selector}`;
+      },
+    },
     "tailwindcss/nesting": {},
     tailwindcss: {},
     autoprefixer: {

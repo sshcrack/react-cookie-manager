@@ -312,29 +312,31 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
         />
       )}
       {showManageConsent && (
-        <div className="fixed inset-0 z-[99999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div
-            className={`w-full max-w-lg rounded-xl p-6 ${
-              props.theme === "light"
-                ? "bg-white/95 ring-1 ring-black/10"
-                : "bg-black/95 ring-1 ring-white/10"
-            }`}
-          >
-            <ManageConsent
-              theme={props.theme}
-              onSave={updateDetailedConsent}
-              onCancel={handleCancelManage}
-              initialPreferences={
-                detailedConsent
-                  ? {
-                      Analytics: detailedConsent.Analytics.consented,
-                      Social: detailedConsent.Social.consented,
-                      Advertising: detailedConsent.Advertising.consented,
-                    }
-                  : undefined
-              }
-              detailedConsent={detailedConsent}
-            />
+        <div className="cookie-manager">
+          <div className="fixed inset-0 z-[99999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div
+              className={`w-full max-w-lg rounded-xl p-6 ${
+                props.theme === "light"
+                  ? "bg-white/95 ring-1 ring-black/10"
+                  : "bg-black/95 ring-1 ring-white/10"
+              }`}
+            >
+              <ManageConsent
+                theme={props.theme}
+                onSave={updateDetailedConsent}
+                onCancel={handleCancelManage}
+                initialPreferences={
+                  detailedConsent
+                    ? {
+                        Analytics: detailedConsent.Analytics.consented,
+                        Social: detailedConsent.Social.consented,
+                        Advertising: detailedConsent.Advertising.consented,
+                      }
+                    : undefined
+                }
+                detailedConsent={detailedConsent}
+              />
+            </div>
           </div>
         </div>
       )}

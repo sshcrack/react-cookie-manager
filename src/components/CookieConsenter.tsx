@@ -59,7 +59,7 @@ const MobileModal: React.FC<
   detailedConsent,
 }) => {
   return (
-    <>
+    <div className="cookie-manager">
       {displayType === "modal" && (
         <div className="fixed inset-0 z-[99999] bg-black/40 backdrop-blur-sm" />
       )}
@@ -150,7 +150,7 @@ const MobileModal: React.FC<
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
@@ -598,7 +598,7 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
   };
 
   const content = (
-    <>
+    <div className="cookie-manager">
       <div className={getBaseClasses().trim()}>
         {displayType === "modal" ? (
           <div className={getContentClasses().trim()}>
@@ -612,7 +612,7 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 
   return createPortal(content, document.body);
