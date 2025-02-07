@@ -24,9 +24,6 @@ function App() {
       <div className="card">
         <button onClick={showConsentBanner}>Show Cookie Consent Banner</button>
       </div>
-      <p className="read-the-docs">
-        Click on the logo to learn more about React Cookie Manager
-      </p>
     </>
   );
 }
