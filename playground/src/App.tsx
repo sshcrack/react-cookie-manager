@@ -1,30 +1,31 @@
 import { useCookieConsent } from "../../dist";
 import "./App.css";
 import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 
 function App() {
   const { showConsentBanner } = useCookieConsent();
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: "2rem",
+        }}
+      >
         <a href="https://react.dev" target="_blank">
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
+        <span style={{ fontSize: "6rem" }}>🍪</span>
       </div>
-      <h1>Vite + React</h1>
+      <h1>React Cookie Manager Playground</h1>
       <div className="card">
-        <button onClick={showConsentBanner}>show consent</button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <button onClick={showConsentBanner}>Show Cookie Consent Banner</button>
       </div>
       <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+        Click on the logo to learn more about React Cookie Manager
       </p>
     </>
   );
