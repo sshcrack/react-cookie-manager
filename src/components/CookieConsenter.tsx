@@ -5,6 +5,7 @@ import {
   CookieCategories,
   DetailedCookieConsent,
 } from "../types/types";
+import { TFunction } from "../utils/translations";
 import { ManageConsent } from "./ManageConsent";
 
 const useIsMobile = () => {
@@ -24,7 +25,8 @@ const useIsMobile = () => {
 };
 
 const MobileModal: React.FC<
-  CookieConsenterProps & {
+  Omit<CookieConsenterProps, "translations" | "translationI18NextPrefix"> & {
+    tFunction: TFunction;
     handleAccept: (e: React.MouseEvent<HTMLButtonElement>) => void;
     handleDecline: (e: React.MouseEvent<HTMLButtonElement>) => void;
     handleManage: (e: React.MouseEvent<HTMLButtonElement>) => void;
@@ -37,15 +39,10 @@ const MobileModal: React.FC<
     detailedConsent?: DetailedCookieConsent | null;
   }
 > = ({
-  buttonText,
-  declineButtonText,
-  manageButtonText,
   showManageButton,
-  privacyPolicyText,
   privacyPolicyUrl,
-  title,
-  message,
   theme,
+  tFunction,
   handleAccept,
   handleDecline,
   handleManage,
@@ -58,6 +55,7 @@ const MobileModal: React.FC<
   initialPreferences,
   detailedConsent,
 }) => {
+  const title = tFunction("title");
   return (
     <div className="cookie-manager">
       {displayType === "modal" && (
@@ -90,6 +88,7 @@ const MobileModal: React.FC<
           {isManaging ? (
             <ManageConsent
               theme={theme}
+              tFunction={tFunction}
               onSave={handleSavePreferences}
               onCancel={handleCancelManage}
               initialPreferences={initialPreferences}
@@ -107,14 +106,14 @@ const MobileModal: React.FC<
               <p
                 className={`text-sm ${theme === "light" ? "text-gray-700" : "text-gray-200"}`}
               >
-                {message}
+                {tFunction("message")}
               </p>
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleAccept}
                   className="w-full px-3 py-2.5 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus-visible:outline-none focus:outline-none focus-visible:outline-transparent focus:outline-transparent"
                 >
-                  {buttonText}
+                  {tFunction("buttonText")}
                 </button>
                 <button
                   onClick={handleDecline}
@@ -125,14 +124,14 @@ const MobileModal: React.FC<
                         : "bg-gray-800 hover:bg-gray-700 text-gray-300"
                     }`}
                 >
-                  {declineButtonText}
+                  {tFunction("declineButtonText")}
                 </button>
                 {showManageButton && (
                   <button
                     onClick={handleManage}
                     className="w-full px-3 py-2.5 text-sm font-medium bg-transparent text-blue-500 border border-blue-500 rounded-lg hover:text-blue-400 hover:border-blue-400 focus-visible:outline-none focus:outline-none focus-visible:outline-transparent focus:outline-transparent"
                   >
-                    {manageButtonText}
+                    {tFunction("manageButtonText")}
                   </button>
                 )}
               </div>
@@ -143,7 +142,7 @@ const MobileModal: React.FC<
                   rel="noopener noreferrer"
                   className={`text-xs ${theme === "light" ? "text-gray-500 hover:text-gray-700" : "text-gray-400 hover:text-gray-200"}`}
                 >
-                  {privacyPolicyText}
+                  {tFunction("privacyPolicyText")}
                 </a>
               )}
             </div>
@@ -154,17 +153,14 @@ const MobileModal: React.FC<
   );
 };
 
-const CookieConsenter: React.FC<CookieConsenterProps> = ({
-  buttonText = "Accept",
-  declineButtonText = "Decline",
-  manageButtonText = "Manage Cookies",
+const CookieConsenter: React.FC<
+  CookieConsenterProps & { tFunction: TFunction }
+> = ({
   showManageButton = false,
-  privacyPolicyText = "Privacy Policy",
   privacyPolicyUrl,
-  title = "",
-  message = "This website uses cookies to enhance your experience.",
   displayType = "banner",
   theme = "light",
+  tFunction,
   onAccept,
   onDecline,
   onManage,
@@ -245,15 +241,10 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
     return createPortal(
       <MobileModal
         {...{
-          buttonText,
-          declineButtonText,
-          manageButtonText,
           showManageButton,
-          privacyPolicyText,
           privacyPolicyUrl,
-          title,
-          message,
           theme,
+          tFunction,
           handleAccept: handleAcceptClick,
           handleDecline: handleDeclineClick,
           handleManage: handleManageClick,
@@ -459,12 +450,13 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
   };
 
   const renderContent = () => {
+    const title = tFunction("title");
     if (displayType === "banner") {
       return (
         <div className="flex flex-col gap-4">
           <div>
             {title && <p className={getTitleClasses().trim()}>{title}</p>}
-            <p className={getMessageClasses().trim()}>{message}</p>
+            <p className={getMessageClasses().trim()}>{tFunction("message")}</p>
           </div>
           <div className="flex items-center justify-between w-full">
             {privacyPolicyUrl && (
@@ -474,7 +466,7 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
                 rel="noopener noreferrer"
                 className={privacyLinkClasses.trim()}
               >
-                {privacyPolicyText}
+                {tFunction("privacyPolicyText")}
               </a>
             )}
             <div className="flex items-center gap-3">
@@ -483,20 +475,20 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
                   onClick={handleManageClick}
                   className={manageButtonClasses.trim()}
                 >
-                  {manageButtonText}
+                  {tFunction("manageButtonText")}
                 </button>
               )}
               <button
                 onClick={handleDeclineClick}
                 className={declineButtonClasses.trim()}
               >
-                {declineButtonText}
+                {tFunction("declineButtonText")}
               </button>
               <button
                 onClick={handleAcceptClick}
                 className={acceptButtonClasses.trim()}
               >
-                {buttonText}
+                {tFunction("buttonText")}
               </button>
             </div>
           </div>
@@ -506,7 +498,7 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
     return (
       <div className="flex flex-col">
         {title && <p className={getTitleClasses().trim()}>{title}</p>}
-        <p className={getMessageClasses().trim()}>{message}</p>
+        <p className={getMessageClasses().trim()}>{tFunction("message")}</p>
       </div>
     );
   };
@@ -520,13 +512,13 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
               onClick={handleDeclineClick}
               className={declineButtonClasses.trim()}
             >
-              {declineButtonText}
+              {tFunction("declineButtonText")}
             </button>
             <button
               onClick={handleAcceptClick}
               className={acceptButtonClasses.trim()}
             >
-              {buttonText}
+              {tFunction("buttonText")}
             </button>
           </div>
           <div className="flex flex-col gap-2 w-full">
@@ -535,7 +527,7 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
                 onClick={handleManageClick}
                 className={`${manageButtonClasses.trim()} w-full justify-center`}
               >
-                {manageButtonText}
+                {tFunction("manageButtonText")}
               </button>
             )}
             {privacyPolicyUrl && (
@@ -545,7 +537,7 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
                 rel="noopener noreferrer"
                 className={privacyLinkClasses.trim()}
               >
-                {privacyPolicyText}
+                {tFunction("privacyPolicyText")}
               </a>
             )}
           </div>
@@ -564,7 +556,7 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
                 rel="noopener noreferrer"
                 className={privacyLinkClasses.trim()}
               >
-                {privacyPolicyText}
+                {tFunction("privacyPolicyText")}
               </a>
             )}
             <div className="flex items-center gap-3">
@@ -573,20 +565,20 @@ const CookieConsenter: React.FC<CookieConsenterProps> = ({
                   onClick={handleManageClick}
                   className={manageButtonClasses.trim()}
                 >
-                  {manageButtonText}
+                  {tFunction("manageButtonText")}
                 </button>
               )}
               <button
                 onClick={handleDeclineClick}
                 className={declineButtonClasses.trim()}
               >
-                {declineButtonText}
+                {tFunction("declineButtonText")}
               </button>
               <button
                 onClick={handleAcceptClick}
                 className={acceptButtonClasses.trim()}
               >
-                {buttonText}
+                {tFunction("buttonText")}
               </button>
             </div>
           </div>

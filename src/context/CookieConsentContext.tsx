@@ -3,16 +3,20 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useMemo,
   useRef,
 } from "react";
 import CookieConsenter from "../components/CookieConsenter";
 import type {
+  CookieCategories,
   CookieConsenterProps,
   DetailedCookieConsent,
-  CookieCategories,
+  TranslationObject,
+  TranslationFunction,
 } from "../types/types";
 import { ManageConsent } from "../components/ManageConsent";
 import { getBlockedHosts, getBlockedKeywords } from "../utils/tracker-utils";
+import { createTFunction } from "../utils/translations";
 
 // Store original functions
 let originalXhrOpen: typeof XMLHttpRequest.prototype.open | null = null;
@@ -117,6 +121,43 @@ export interface CookieManagerProps
   disableAutomaticBlocking?: boolean;
   blockedDomains?: string[];
   expirationDays?: number;
+  /**
+   * Translations that will be used in the consent UI. It can be one of:
+   * 1. **TranslationObject**: An object with keys for each TranslationKey, e.g.:
+   *    ```
+   *    {
+   *      title: 'My own consent title',
+   *      message: 'My own consent message',
+   *      // other keys if needed
+   *    }
+   *    ```
+   * 2. **TranslationFunction**: A function that takes a key with params and returns a string. Useful for i18n libraries where TFunction can be passed like follows:
+   *    ```ts
+   *    const { t } = useTranslation();
+   *    return <CookieConsenter translations={t} />
+   *    ```
+   *
+   * By default it uses English translations specified in TranslationKey defaults.
+   */
+  translations?: TranslationObject | TranslationFunction<any, any>;
+  /**
+   * Prefix for translation keys when using i18next, e.g.
+   * ```ts
+   * // typescript file
+   * const { t } = useTranslation();
+   * <CookieConsenter translations={t} translationI18NextPrefix="cookieConsent" />
+   * ```
+   * ```json
+   * // {lng}.json
+   * {
+   *  "cookieConsent": {
+   *    "title": "My own consent title",
+   *    "message": "My own consent message"
+   *  }
+   * }
+   * ```
+   */
+  translationI18NextPrefix?: string;
 }
 
 const createConsentStatus = (consented: boolean) => ({
@@ -133,6 +174,8 @@ const createDetailedConsent = (consented: boolean): DetailedCookieConsent => ({
 export const CookieManager: React.FC<CookieManagerProps> = ({
   children,
   localStorageKey = "cookie-consent",
+  translations,
+  translationI18NextPrefix,
   onManage,
   disableAutomaticBlocking = false,
   blockedDomains = [],
@@ -141,6 +184,11 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [showManageConsent, setShowManageConsent] = useState(false);
+  const tFunction = useMemo(
+    () => createTFunction(translations, translationI18NextPrefix),
+    [translations, translationI18NextPrefix]
+  );
+
   const [detailedConsent, setDetailedConsent] =
     useState<DetailedCookieConsent | null>(() => {
       const storedConsent = localStorage.getItem(localStorageKey);
@@ -295,6 +343,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       {isVisible && (
         <CookieConsenter
           {...props}
+          tFunction={tFunction}
           localStorageKey={localStorageKey}
           onAccept={acceptCookies}
           onDecline={declineCookies}
@@ -322,6 +371,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
               }`}
             >
               <ManageConsent
+                tFunction={tFunction}
                 theme={props.theme}
                 onSave={updateDetailedConsent}
                 onCancel={handleCancelManage}

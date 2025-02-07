@@ -61,8 +61,10 @@ import "react-cookie-manager/style.css";
 function App() {
   return (
     <CookieManager
-      title="Cookie Preferences"
-      message="We use cookies to improve your experience."
+      translations={{
+        title: "Cookie Preferences",
+        message: "We use cookies to improve your experience."
+      }}
       onManage={(preferences) =>
         console.log("Cookie preferences:", preferences)
       }
@@ -82,14 +84,16 @@ import "react-cookie-manager/style.css";
 function App() {
   return (
     <CookieManager
-      title="Would You Like A Cookie? 🍪"
-      message="We value your privacy. Choose which cookies you want to allow. Essential cookies are always enabled as they are necessary for the website to function properly."
-      buttonText="Accept All"
-      declineButtonText="Decline All"
+      translations={{
+        title: "Would You Like A Cookie? 🍪",
+        message: "We value your privacy. Choose which cookies you want to allow. Essential cookies are always enabled as they are necessary for the website to function properly.",
+        buttonText: "Accept All",
+        declineButtonText: "Decline All",
+        manageButtonText: "Manage Cookies",
+        privacyPolicyText: "Privacy Policy"
+      }}
       showManageButton={true}
-      manageButtonText="Manage Cookies"
       privacyPolicyUrl="https://example.com/privacy"
-      privacyPolicyText="Privacy Policy"
       theme="light"
       displayType="popup"
       onManage={(preferences) => {
@@ -134,13 +138,9 @@ function CookieSettings() {
 | Prop                       | Type                                     | Default                        | Description                               |
 | -------------------------- | ---------------------------------------- | ------------------------------ | ----------------------------------------- |
 | `children`                 | React.ReactNode                          | -                              | Your app components                       |
-| `title`                    | string                                   | -                              | Title of the consent banner               |
-| `message`                  | string                                   | 'This website uses cookies...' | Main consent message                      |
-| `buttonText`               | string                                   | 'Accept'                       | Text for the accept button                |
-| `declineButtonText`        | string                                   | 'Decline'                      | Text for the decline button               |
-| `manageButtonText`         | string                                   | 'Manage Cookies'               | Text for the manage button                |
+| `translations`             | TranslationObject \| TranslationFunction | -                              | Translation object or i18n TFunction      |
+| `translationI18NextPrefix` | string                                   | -                              | i18next key prefix, e.g. "cookies."       |
 | `showManageButton`         | boolean                                  | false                          | Whether to show the manage cookies button |
-| `privacyPolicyText`        | string                                   | 'Privacy Policy'               | Text for the privacy policy link          |
 | `privacyPolicyUrl`         | string                                   | -                              | URL for the privacy policy                |
 | `localStorageKey`          | string                                   | 'cookie-consent'               | Name of the key to store consent          |
 | `cookieExpiration`         | number                                   | 365                            | Days until cookie expires                 |
@@ -176,6 +176,37 @@ interface CookieConsentHook {
   acceptCookies: () => void;
   declineCookies: () => void;
   updateDetailedConsent: (preferences: CookieCategories) => void;
+}
+```
+
+## i18next support
+
+```typescript
+import { default as i18next } from "i18next";
+
+function App() {
+  return (
+    <CookieManager
+      translations={i18next.t}
+      translationI18NextPrefix="cookies."
+      ...
+      />
+  )
+}
+```
+
+```json
+// en.json
+{
+  "cookies": {
+    "title": "Would You Like A Cookie? 🍪",
+    "message": "We value your privacy. Choose which cookies you want to allow. Essential cookies are always enabled as they are necessary for the website to function properly.",
+    "buttonText": "Accept All",
+    "declineButtonText": "Decline All",
+    "manageButtonText": "Manage Cookies",
+    "privacyPolicyText": "Privacy Policy"
+  }
+  //...
 }
 ```
 
