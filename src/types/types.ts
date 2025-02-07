@@ -15,25 +15,132 @@ export interface DetailedCookieConsent {
   Advertising: ConsentStatus;
 }
 
-export interface CookieConsenterProps {
+export type TranslationKey =
   /**
    * Text for the accept button
    * @default 'Accept'
    */
-  buttonText?: string;
-
+  | "buttonText"
   /**
    * Text for the decline button
    * @default 'Decline'
    */
-  declineButtonText?: string;
-
+  | "declineButtonText"
   /**
    * Text for the manage cookies button
    * @default 'Manage Cookies'
    */
-  manageButtonText?: string;
+  | "manageButtonText"
+  /**
+   * Text for the privacy policy link
+   * @default 'Privacy Policy'
+   */
+  | "privacyPolicyText"
+  /**
+   * Optional title for the cookie consent
+   * @default ''
+   */
+  | "title"
+  /**
+   * The message to display in the cookie consent banner
+   * @default 'This website uses cookies to enhance your experience.'
+   */
+  | "message"
+  /**
+   * The message to display in the manage cookies view
+   * @default 'Cookie Preferences'
+   */
+  | "manageTitle"
+  /**
+   * The message to display in the manage cookies view
+   * @default 'Manage your cookie preferences below. Essential cookies are always enabled as they are necessary for the website to function properly.'
+   */
+  | "manageMessage"
+  /**
+   * Title for essential cookies in manage cookies view
+   * @default 'Essential'
+   */
+  | "manageEssentialTitle"
+  /**
+   * Subtitle for essential cookies in manage cookies view
+   * @default 'Required for the website to function properly'
+   */
+  | "manageEssentialSubtitle"
+  /**
+   * Status for essential cookies in manage cookies view
+   * @default 'Status: Always enabled'
+   */
+  | "manageEssentialStatus"
+  /**
+   * Status for cookies that are always enabled
+   * @default 'Always On'
+   */
+  | "manageEssentialStatusButtonText"
+  /**
+   * Title for analytics cookies in manage cookies view
+   * @default 'Analytics'
+   */
+  | "manageAnalyticsTitle"
+  /**
+   * Subtitle for analytics cookies in manage cookies view
+   * @default 'Help us understand how visitors interact with our website'
+   */
+  | "manageAnalyticsSubtitle"
+  /**
+   * Title for social cookies in manage cookies view
+   * @default 'Social'
+   */
+  | "manageSocialTitle"
+  /**
+   * Subtitle for social cookies in manage cookies view
+   * @default 'Enable social media features and sharing'
+   */
+  | "manageSocialSubtitle"
+  /**
+   * Title for advertising cookies in manage cookies view
+   * @default 'Advertising'
+   */
+  | "manageAdvertTitle"
+  /**
+   * Subtitle for advertising cookies in manage cookies view
+   * @default 'Personalize advertisements and measure their performance'
+   */
+  | "manageAdvertSubtitle"
+  /**
+   * Status text for cookies (after they have been declined or approved) in maange cookies view
+   * @default 'Status: {{status}} on {{date}}'
+   */
+  | "manageCookiesStatus"
+  /**
+   * Status text for consented cookies in manage cookies view
+   * @default 'Consented'
+   */
+  | "manageCookiesStatusConsented"
+  /**
+   * Status text for declined cookies in manage cookies view
+   * @default 'Declined'
+   */
+  | "manageCookiesStatusDeclined"
+  /**
+   * Text for cancel button in manage cookies view
+   * @default 'Cancel'
+   */
+  | "manageCancelButtonText"
+  /**
+   * Text for save button in manage cookies view
+   * @default 'Save Preferences'
+   */
+  | "manageSaveButtonText";
 
+export type FullTranslationObject = Record<TranslationKey, string>;
+
+export type TranslationObject = Partial<FullTranslationObject>;
+
+export type TranslationFunction<K, O> = (
+  ...args: [key: K, options?: O] | [key: K, defaultValue: any, options?: O]
+) => any;
+
+export interface CookieConsenterProps {
   /**
    * Whether to show the manage cookies button
    * @default false
@@ -41,28 +148,10 @@ export interface CookieConsenterProps {
   showManageButton?: boolean;
 
   /**
-   * Text for the privacy policy link
-   * @default 'Privacy Policy'
-   */
-  privacyPolicyText?: string;
-
-  /**
    * URL for the privacy policy
    * If not provided, privacy policy link won't be shown
    */
   privacyPolicyUrl?: string;
-
-  /**
-   * Optional title for the cookie consent
-   * @default ''
-   */
-  title?: string;
-
-  /**
-   * The message to display in the cookie consent banner
-   * @default 'This website uses cookies to enhance your experience.'
-   */
-  message?: string;
 
   /**
    * Name of the cookie to store the consent

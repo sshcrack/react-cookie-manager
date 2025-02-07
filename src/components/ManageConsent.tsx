@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { CookieCategories, DetailedCookieConsent } from "../types/types";
+import { TFunction } from "../utils/translations";
 
 interface ManageConsentProps {
   theme?: "light" | "dark";
+  tFunction: TFunction;
   onSave: (categories: CookieCategories) => void;
   onCancel?: () => void;
   initialPreferences?: CookieCategories;
@@ -11,6 +13,7 @@ interface ManageConsentProps {
 
 export const ManageConsent: React.FC<ManageConsentProps> = ({
   theme = "light",
+  tFunction,
   onSave,
   onCancel,
   initialPreferences = {
@@ -58,8 +61,12 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
           theme === "light" ? "text-gray-500" : "text-gray-500"
         }`}
       >
-        Status: {status.consented ? "Consented" : "Declined"} on{" "}
-        {formatDate(status.timestamp)}
+        {tFunction("manageCookiesStatus", {
+          status: status.consented
+            ? tFunction("manageCookiesStatusConsented")
+            : tFunction("manageCookiesStatusDeclined"),
+          date: formatDate(status.timestamp),
+        })}
       </p>
     );
   };
@@ -72,15 +79,14 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
             theme === "light" ? "text-gray-900" : "text-white"
           }`}
         >
-          Cookie Preferences
+          {tFunction("manageTitle")}
         </h3>
         <p
           className={`text-xs ${
             theme === "light" ? "text-gray-700" : "text-gray-200"
           }`}
         >
-          Manage your cookie preferences below. Essential cookies are always
-          enabled as they are necessary for the website to function properly.
+          {tFunction("manageMessage")}
         </p>
       </div>
 
@@ -93,21 +99,21 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
                 theme === "light" ? "text-gray-900" : "text-white"
               }`}
             >
-              Essential
+              {tFunction("manageEssentialTitle")}
             </h4>
             <p
               className={`text-xs text-left ${
                 theme === "light" ? "text-gray-600" : "text-gray-400"
               }`}
             >
-              Required for the website to function properly
+              {tFunction("manageEssentialSubtitle")}
             </p>
             <p
               className={`text-xs mt-1 text-left ${
                 theme === "light" ? "text-gray-500" : "text-gray-500"
               }`}
             >
-              Status: Always enabled
+              {tFunction("manageEssentialStatus")}
             </p>
           </div>
           <div
@@ -117,7 +123,7 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
                 : "bg-gray-800 text-gray-300"
             }`}
           >
-            Always On
+            {tFunction("manageEssentialStatusButtonText")}
           </div>
         </div>
 
@@ -129,14 +135,14 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
                 theme === "light" ? "text-gray-900" : "text-white"
               }`}
             >
-              Analytics
+              {tFunction("manageAnalyticsTitle")}
             </h4>
             <p
               className={`text-xs text-left ${
                 theme === "light" ? "text-gray-600" : "text-gray-400"
               }`}
             >
-              Help us understand how visitors interact with our website
+              {tFunction("manageAnalyticsSubtitle")}
             </p>
             {renderConsentStatus("Analytics")}
           </div>
@@ -169,14 +175,14 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
                 theme === "light" ? "text-gray-900" : "text-white"
               }`}
             >
-              Social
+              {tFunction("manageSocialTitle")}
             </h4>
             <p
               className={`text-xs text-left ${
                 theme === "light" ? "text-gray-600" : "text-gray-400"
               }`}
             >
-              Enable social media features and sharing
+              {tFunction("manageSocialSubtitle")}
             </p>
             {renderConsentStatus("Social")}
           </div>
@@ -209,14 +215,14 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
                 theme === "light" ? "text-gray-900" : "text-white"
               }`}
             >
-              Advertising
+              {tFunction("manageAdvertTitle")}
             </h4>
             <p
               className={`text-xs text-left ${
                 theme === "light" ? "text-gray-600" : "text-gray-400"
               }`}
             >
-              Personalize advertisements and measure their performance
+              {tFunction("manageAdvertSubtitle")}
             </p>
             {renderConsentStatus("Advertising")}
           </div>
@@ -252,14 +258,14 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
                 : "bg-gray-800 hover:bg-gray-700 text-gray-300"
             }`}
           >
-            Cancel
+            {tFunction("manageCancelButtonText")}
           </button>
         )}
         <button
           onClick={handleSave}
           className="w-full sm:flex-1 px-3 py-2 sm:py-1.5 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105"
         >
-          Save Preferences
+          {tFunction("manageSaveButtonText")}
         </button>
       </div>
     </div>
