@@ -63,7 +63,7 @@ function App() {
     <CookieManager
       translations={{
         title: "Cookie Preferences",
-        message: "We use cookies to improve your experience."
+        message: "We use cookies to improve your experience.",
       }}
       onManage={(preferences) =>
         console.log("Cookie preferences:", preferences)
@@ -86,11 +86,12 @@ function App() {
     <CookieManager
       translations={{
         title: "Would You Like A Cookie? 🍪",
-        message: "We value your privacy. Choose which cookies you want to allow. Essential cookies are always enabled as they are necessary for the website to function properly.",
+        message:
+          "We value your privacy. Choose which cookies you want to allow. Essential cookies are always enabled as they are necessary for the website to function properly.",
         buttonText: "Accept All",
         declineButtonText: "Decline All",
         manageButtonText: "Manage Cookies",
-        privacyPolicyText: "Privacy Policy"
+        privacyPolicyText: "Privacy Policy",
       }}
       showManageButton={true}
       privacyPolicyUrl="https://example.com/privacy"
@@ -135,21 +136,21 @@ function CookieSettings() {
 
 ## Props
 
-| Prop                       | Type                                     | Default                        | Description                               |
-| -------------------------- | ---------------------------------------- | ------------------------------ | ----------------------------------------- |
-| `children`                 | React.ReactNode                          | -                              | Your app components                       |
-| `translations`             | TranslationObject \| TranslationFunction | -                              | Translation object or i18n TFunction      |
-| `translationI18NextPrefix` | string                                   | -                              | i18next key prefix, e.g. "cookies."       |
-| `showManageButton`         | boolean                                  | false                          | Whether to show the manage cookies button |
-| `privacyPolicyUrl`         | string                                   | -                              | URL for the privacy policy                |
-| `localStorageKey`          | string                                   | 'cookie-consent'               | Name of the key to store consent          |
-| `cookieExpiration`         | number                                   | 365                            | Days until cookie expires                 |
-| `displayType`              | 'banner' \| 'popup' \| 'modal'           | 'banner'                       | How the consent UI is displayed           |
-| `position`                 | 'top' \| 'bottom'                        | 'bottom'                       | Position of the banner                    |
-| `theme`                    | 'light' \| 'dark'                        | 'light'                        | Color theme                               |
-| `disableAutomaticBlocking` | boolean                                  | false                          | Disable automatic tracking prevention     |
-| `blockedDomains`           | string[]                                 | []                             | Additional domains to block               |
-| `onManage`                 | (preferences?: CookieCategories) => void | -                              | Callback when preferences are updated     |
+| Prop                       | Type                                     | Default          | Description                               |
+| -------------------------- | ---------------------------------------- | ---------------- | ----------------------------------------- |
+| `children`                 | React.ReactNode                          | -                | Your app components                       |
+| `translations`             | TranslationObject \| TranslationFunction | -                | Translation object or i18n TFunction      |
+| `translationI18NextPrefix` | string                                   | -                | i18next key prefix, e.g. "cookies."       |
+| `showManageButton`         | boolean                                  | false            | Whether to show the manage cookies button |
+| `privacyPolicyUrl`         | string                                   | -                | URL for the privacy policy                |
+| `localStorageKey`          | string                                   | 'cookie-consent' | Name of the key to store consent          |
+| `cookieExpiration`         | number                                   | 365              | Days until cookie expires                 |
+| `displayType`              | 'banner' \| 'popup' \| 'modal'           | 'banner'         | How the consent UI is displayed           |
+| `position`                 | 'top' \| 'bottom'                        | 'bottom'         | Position of the banner                    |
+| `theme`                    | 'light' \| 'dark'                        | 'light'          | Color theme                               |
+| `disableAutomaticBlocking` | boolean                                  | false            | Disable automatic tracking prevention     |
+| `blockedDomains`           | string[]                                 | []               | Additional domains to block               |
+| `onManage`                 | (preferences?: CookieCategories) => void | -                | Callback when preferences are updated     |
 
 ## Cookie Categories
 
@@ -207,6 +208,106 @@ function App() {
     "privacyPolicyText": "Privacy Policy"
   }
   //...
+}
+```
+
+## Translation Options
+
+All available translation keys and their default values:
+
+```typescript
+{
+  // Main consent banner/popup/modal
+  title: "",  // Optional title
+  message: "This website uses cookies to enhance your experience.",
+  buttonText: "Accept",
+  declineButtonText: "Decline",
+  manageButtonText: "Manage Cookies",
+  privacyPolicyText: "Privacy Policy",
+
+  // Manage consent modal
+  manageTitle: "Cookie Preferences",
+  manageMessage: "Manage your cookie preferences below. Essential cookies are always enabled as they are necessary for the website to function properly.",
+
+  // Essential cookies section
+  manageEssentialTitle: "Essential",
+  manageEssentialSubtitle: "Required for the website to function properly",
+  manageEssentialStatus: "Status: Always enabled",
+  manageEssentialStatusButtonText: "Always On",
+
+  // Analytics cookies section
+  manageAnalyticsTitle: "Analytics",
+  manageAnalyticsSubtitle: "Help us understand how visitors interact with our website",
+
+  // Social cookies section
+  manageSocialTitle: "Social",
+  manageSocialSubtitle: "Enable social media features and sharing",
+
+  // Advertising cookies section
+  manageAdvertTitle: "Advertising",
+  manageAdvertSubtitle: "Personalize advertisements and measure their performance",
+
+  // Status messages
+  manageCookiesStatus: "Status: {{status}} on {{date}}", // Supports variables
+  manageCookiesStatusConsented: "Consented",
+  manageCookiesStatusDeclined: "Declined",
+
+  // Buttons in manage modal
+  manageCancelButtonText: "Cancel",
+  manageSaveButtonText: "Save Preferences"
+}
+```
+
+You can override any of these translations by passing them in the `translations` prop:
+
+```jsx
+<CookieManager
+  translations={{
+    title: "Cookie Settings 🍪",
+    message: "We use cookies to improve your experience.",
+    buttonText: "Allow All",
+    manageButtonText: "Customize",
+    // ... override any other translations
+  }}
+>
+  <App />
+</CookieManager>
+```
+
+### i18next Integration
+
+When using i18next, make sure your translation files include all the keys under your chosen prefix:
+
+```json
+{
+  "cookies": {
+    "title": "Cookie Settings 🍪",
+    "message": "We use cookies to improve your experience.",
+    "buttonText": "Allow All",
+    "declineButtonText": "Decline All",
+    "manageButtonText": "Customize",
+    "privacyPolicyText": "Privacy Policy",
+    "manageTitle": "Cookie Preferences",
+    "manageMessage": "Customize your cookie preferences below...",
+    "manageEssentialTitle": "Essential Cookies"
+    // ... include all other translation keys
+  }
+}
+```
+
+Then use it with the i18next translation function:
+
+```jsx
+import { useTranslation } from "react-i18next";
+
+function App() {
+  const { t } = useTranslation();
+
+  return (
+    <CookieManager translations={t} translationI18NextPrefix="cookies.">
+      <YourApp />
+    </CookieManager>
+  );
 }
 ```
 
