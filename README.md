@@ -4,6 +4,25 @@ A powerful, customizable React component for cookie consent management with buil
 
 ![React Cookie Manager](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/react-cookie-manager.gif?raw=true)
 
+## Contents
+
+- [Features](#features)
+- [Try it out](#-try-it-out)
+- [Automatically Disable Tracking](#automatically-disable-tracking)
+- [Installation](#installation)
+- [Importing Styles](#importing-styles)
+- [Basic Usage](#basic-usage)
+- [Next.js Usage](#nextjs-usage)
+- [Full Usage](#full-usage)
+- [Advanced Usage with Hook](#advanced-usage-with-hook)
+- [Props](#props)
+- [Cookie Categories](#cookie-categories)
+- [Hook API](#hook-api)
+- [i18next support](#i18next-support)
+- [Translation Options](#translation-options)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Features
 
 - 🌐 Multiple display types (banner, popup, modal)
@@ -42,13 +61,11 @@ The component requires its CSS file to be imported in your application. Add the 
 import "react-cookie-manager/style.css";
 ```
 
-![React Cookie Manager Modal](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/modal.png?raw=true)
-
-![React Cookie Manager Popup](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/popup.png?raw=true)
-
 ![React Cookie Manager Popup Dark](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/popup-dark.png?raw=true)
 
 ![React Cookie Manager Banner](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/banner.png?raw=true)
+
+![React Cookie Manager Modal](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/modal.png?raw=true)
 
 ![React Cookie Manager Manage Cookies](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/manage-cookies.png?raw=true)
 
@@ -71,6 +88,60 @@ function App() {
     >
       <YourApp />
     </CookieManager>
+  );
+}
+```
+
+## Next.js Usage
+
+For Next.js applications, you'll need to use dynamic imports to prevent SSR of the cookie manager:
+
+```tsx
+"use client";
+
+import dynamic from "next/dynamic";
+
+const CookieManager = dynamic(
+  () => import("react-cookie-manager").then((mod) => mod.CookieManager),
+  { ssr: false, loading: () => null }
+);
+
+// In your Providers component or layout
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <CookieManager
+      showManageButton={true}
+      translations={{
+        title: "Cookie Preferences",
+        message: "We use cookies to improve your experience.",
+      }}
+      displayType="banner"
+      theme="light"
+    >
+      {children}
+    </CookieManager>
+  );
+}
+
+// In your page component
+import { useCookieConsent } from "react-cookie-manager";
+
+export default function Home() {
+  const { showConsentBanner, detailedConsent } = useCookieConsent();
+
+  return (
+    <div>
+      <button onClick={showConsentBanner}>Manage Cookie Settings</button>
+      {detailedConsent && (
+        <div>
+          Analytics:{" "}
+          {detailedConsent.Analytics.consented ? "Enabled" : "Disabled"}
+          Social: {detailedConsent.Social.consented ? "Enabled" : "Disabled"}
+          Advertising:{" "}
+          {detailedConsent.Advertising.consented ? "Enabled" : "Disabled"}
+        </div>
+      )}
+    </div>
   );
 }
 ```
