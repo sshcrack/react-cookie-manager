@@ -17,6 +17,7 @@ import type {
 import { ManageConsent } from "../components/ManageConsent";
 import { getBlockedHosts, getBlockedKeywords } from "../utils/tracker-utils";
 import { createTFunction } from "../utils/translations";
+import { timezoneToCountryCodeMap } from "../utils/timeZoneMap";
 
 // Cookie utility functions
 const setCookie = (name: string, value: string, days: number) => {
@@ -186,13 +187,50 @@ const generateSessionId = async (kitId: string): Promise<string> => {
   return `${kitId}_${timestamp}_${uniqueId}_${randomPart}`;
 };
 
+const resolveCountryFromTimezone = (timeZone: string): string => {
+  const entry = timezoneToCountryCodeMap[timeZone]?.a
+    ? timezoneToCountryCodeMap[timezoneToCountryCodeMap[timeZone].a]
+    : timezoneToCountryCodeMap[timeZone];
+
+  return entry?.c?.[0] ?? "Unknown";
+};
+
 const postSessionToAnalytics = async (
   kitId: string,
   sessionId: string,
   action?: string,
-  preferences?: CookieCategories
+  preferences?: CookieCategories,
+  userId?: string
 ) => {
   try {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const country = resolveCountryFromTimezone(timeZone);
+
+    // Get IP address locally using WebRTC
+    let anonymizedIp = "0.0";
+    try {
+      const rtcPeerConnection = new RTCPeerConnection({ iceServers: [] });
+      rtcPeerConnection.createDataChannel("");
+      const offer = await rtcPeerConnection.createOffer();
+      await rtcPeerConnection.setLocalDescription(offer);
+
+      const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
+      const sdpMatch = offer.sdp?.match(ipRegex);
+
+      if (sdpMatch && sdpMatch[1]) {
+        const ipParts = sdpMatch[1].split(".");
+        if (ipParts.length >= 2) {
+          anonymizedIp = `${ipParts[0]}.${ipParts[1]}`;
+          console.log("Found IP address:", sdpMatch[1]); // Log full IP for testing
+          console.log("Anonymized IP:", anonymizedIp);
+        }
+      }
+
+      rtcPeerConnection.close();
+    } catch (ipError) {
+      console.warn("Could not get local IP address:", ipError);
+    }
+
     const response = await fetch(
       "https://cookie-kit.hypership.dev/api/consents",
       {
@@ -203,13 +241,15 @@ const postSessionToAnalytics = async (
         body: JSON.stringify({
           website_id: kitId,
           session_id: sessionId,
+          user_id: userId,
           analytics: preferences?.Analytics ?? false,
           social: preferences?.Social ?? false,
           advertising: preferences?.Advertising ?? false,
           consent_method: action || "init",
           consent_version: "1.0",
           user_agent: navigator.userAgent,
-          location: navigator.language,
+          location: country,
+          anonymised_ip: anonymizedIp,
         }),
       }
     );
@@ -241,6 +281,7 @@ export interface CookieManagerProps
   children: React.ReactNode;
   cookieKey?: string;
   cookieKitId?: string;
+  userId?: string;
   onManage?: (preferences?: CookieCategories) => void;
   disableAutomaticBlocking?: boolean;
   blockedDomains?: string[];
@@ -299,6 +340,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
   children,
   cookieKey = "cookie-consent",
   cookieKitId,
+  userId,
   translations,
   translationI18NextPrefix,
   onManage,
@@ -368,23 +410,20 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
       if (!sessionId) {
         try {
-          // Generate new session ID
           sessionId = await generateSessionId(cookieKitId);
-
-          // Only proceed if we're still mounted
           if (!isMounted) return;
-
-          // Set the cookie
           setCookie(sessionKey, sessionId, 1);
-
-          // Double check the cookie was set
           const savedSessionId = getCookie(sessionKey);
           console.log("Generated session ID:", sessionId);
           console.log("Saved session ID:", savedSessionId);
-
-          // Post to analytics only if cookie was set and we're still mounted
           if (savedSessionId && isMounted) {
-            await postSessionToAnalytics(cookieKitId, sessionId);
+            await postSessionToAnalytics(
+              cookieKitId,
+              sessionId,
+              undefined,
+              undefined,
+              userId
+            );
           }
         } catch (error) {
           console.error("Error in session initialization:", error);
@@ -400,7 +439,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       isMounted = false;
       isInitializing = false;
     };
-  }, [cookieKitId, cookieKey]);
+  }, [cookieKitId, cookieKey, userId]);
 
   useEffect(() => {
     // Show banner if no consent decision has been made AND manage consent is not shown
@@ -469,17 +508,22 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     setDetailedConsent(newConsent);
     setIsVisible(false);
 
-    // Post analytics for accept action
     if (cookieKitId) {
       const sessionKey = `${cookieKey}-session`;
       const sessionId = getCookie(sessionKey);
       if (sessionId) {
         console.log("ACCEPTED");
-        await postSessionToAnalytics(cookieKitId, sessionId, "accept", {
-          Analytics: true,
-          Social: true,
-          Advertising: true,
-        });
+        await postSessionToAnalytics(
+          cookieKitId,
+          sessionId,
+          "accept",
+          {
+            Analytics: true,
+            Social: true,
+            Advertising: true,
+          },
+          userId
+        );
       }
     }
   };
@@ -491,16 +535,21 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     setIsVisible(false);
     console.log("Clicked Declined");
 
-    // Post analytics for decline action
     if (cookieKitId) {
       const sessionKey = `${cookieKey}-session`;
       const sessionId = getCookie(sessionKey);
       if (sessionId) {
-        await postSessionToAnalytics(cookieKitId, sessionId, "decline", {
-          Analytics: false,
-          Social: false,
-          Advertising: false,
-        });
+        await postSessionToAnalytics(
+          cookieKitId,
+          sessionId,
+          "decline",
+          {
+            Analytics: false,
+            Social: false,
+            Advertising: false,
+          },
+          userId
+        );
       }
     }
   };
@@ -516,7 +565,6 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     setDetailedConsent(newConsent);
     setShowManageConsent(false);
 
-    // Post analytics for save preferences action
     if (cookieKitId) {
       const sessionKey = `${cookieKey}-session`;
       const sessionId = getCookie(sessionKey);
@@ -526,7 +574,8 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
           cookieKitId,
           sessionId,
           "save_preferences",
-          preferences
+          preferences,
+          userId
         );
       }
     }

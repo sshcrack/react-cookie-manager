@@ -1,6 +1,6 @@
 {
   "name": "react-cookie-manager",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "🍪 The ultimate React cookie consent solution. Automatically block trackers, manage consent preferences, and protect user privacy with an elegant UI. Perfect for modern web applications.",
   "repository": {
     "type": "git",
@@ -56,7 +56,8 @@
   "scripts": {
     "build": "vite build",
     "dev": "tsup --config tsup.config.ts && npm link",
-    "convert-trackers": "node scripts/convert-trackers.js"
+    "convert-trackers": "node scripts/convert-trackers.js",
+    "postinstall": "node scripts/postinstall.js"
   },
   "type": "module",
   "author": "Hypership",
