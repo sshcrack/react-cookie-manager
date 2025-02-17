@@ -186,34 +186,39 @@ const generateSessionId = async (kitId: string): Promise<string> => {
   return `${kitId}_${timestamp}_${uniqueId}_${randomPart}`;
 };
 
-const postSessionToAnalytics = async (kitId: string, sessionId: string) => {
+const postSessionToAnalytics = async (
+  kitId: string,
+  sessionId: string,
+  action?: string,
+  preferences?: CookieCategories
+) => {
   try {
     const response = await fetch(
-      "https://api.example.com/cookie-kit/sessions",
+      "https://cookie-kit.hypership.dev/api/consents",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          kitId,
-          sessionId,
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          language: navigator.language,
-          screenSize: {
-            width: window.screen.width,
-            height: window.screen.height,
-          },
+          website_id: kitId,
+          session_id: sessionId,
+          analytics: preferences?.Analytics ?? false,
+          social: preferences?.Social ?? false,
+          advertising: preferences?.Advertising ?? false,
+          consent_method: action || "init",
+          consent_version: "1.0",
+          user_agent: navigator.userAgent,
+          location: navigator.language,
         }),
       }
     );
 
     if (!response.ok) {
-      console.warn("Failed to post session to analytics:", response.statusText);
+      console.warn("Failed to post consent to analytics:", response.statusText);
     }
   } catch (error) {
-    console.warn("Error posting session to analytics:", error);
+    console.warn("Error posting consent to analytics:", error);
   }
 };
 
@@ -458,21 +463,49 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     }
   };
 
-  const acceptCookies = () => {
+  const acceptCookies = async () => {
     const newConsent = createDetailedConsent(true);
     setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
     setDetailedConsent(newConsent);
     setIsVisible(false);
+
+    // Post analytics for accept action
+    if (cookieKitId) {
+      const sessionKey = `${cookieKey}-session`;
+      const sessionId = getCookie(sessionKey);
+      if (sessionId) {
+        console.log("ACCEPTED");
+        await postSessionToAnalytics(cookieKitId, sessionId, "accept", {
+          Analytics: true,
+          Social: true,
+          Advertising: true,
+        });
+      }
+    }
   };
 
-  const declineCookies = () => {
+  const declineCookies = async () => {
     const newConsent = createDetailedConsent(false);
     setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
     setDetailedConsent(newConsent);
     setIsVisible(false);
+    console.log("Clicked Declined");
+
+    // Post analytics for decline action
+    if (cookieKitId) {
+      const sessionKey = `${cookieKey}-session`;
+      const sessionId = getCookie(sessionKey);
+      if (sessionId) {
+        await postSessionToAnalytics(cookieKitId, sessionId, "decline", {
+          Analytics: false,
+          Social: false,
+          Advertising: false,
+        });
+      }
+    }
   };
 
-  const updateDetailedConsent = (preferences: CookieCategories) => {
+  const updateDetailedConsent = async (preferences: CookieCategories) => {
     const timestamp = new Date().toISOString();
     const newConsent: DetailedCookieConsent = {
       Analytics: { consented: preferences.Analytics, timestamp },
@@ -482,6 +515,22 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
     setDetailedConsent(newConsent);
     setShowManageConsent(false);
+
+    // Post analytics for save preferences action
+    if (cookieKitId) {
+      const sessionKey = `${cookieKey}-session`;
+      const sessionId = getCookie(sessionKey);
+      if (sessionId) {
+        console.log("SAVE PREFERENCES");
+        await postSessionToAnalytics(
+          cookieKitId,
+          sessionId,
+          "save_preferences",
+          preferences
+        );
+      }
+    }
+
     if (onManage) {
       onManage(preferences);
     }
