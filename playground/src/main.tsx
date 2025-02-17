@@ -52,6 +52,7 @@ createRoot(document.getElementById("root")!).render(
       showManageButton={true}
       privacyPolicyUrl="https://example.com/privacy"
       theme="dark"
+      cookieKitId="67b0bef7af7012a4f332d1ef"
       displayType="popup"
       onManage={(preferences?: CookieCategories) => {
         if (preferences) {

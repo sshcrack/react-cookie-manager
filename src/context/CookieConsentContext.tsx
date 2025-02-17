@@ -119,6 +119,73 @@ const restoreOriginalRequests = () => {
   }
 };
 
+// Session ID generation utilities
+const generateRandomString = (length: number): string => {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+};
+
+const generateUniqueId = async (): Promise<string> => {
+  // Get high-precision timestamp
+  const timestamp = performance.now().toString();
+
+  // Generate random values using crypto API if available
+  let randomValues = "";
+  if (window.crypto && window.crypto.getRandomValues) {
+    const array = new Uint32Array(2);
+    window.crypto.getRandomValues(array);
+    randomValues = Array.from(array)
+      .map((n) => n.toString(36))
+      .join("");
+  } else {
+    randomValues = Math.random().toString(36).substring(2);
+  }
+
+  // Get some browser-specific info without being too invasive
+  const browserInfo = [
+    window.screen.width,
+    window.screen.height,
+    navigator.language,
+    // Use hash of user agent to add entropy without storing the full string
+    await crypto.subtle
+      .digest("SHA-256", new TextEncoder().encode(navigator.userAgent))
+      .then((buf) =>
+        Array.from(new Uint8Array(buf))
+          .slice(0, 4)
+          .map((b) => b.toString(16))
+          .join("")
+      ),
+  ].join("_");
+
+  // Combine all sources of entropy
+  const combinedString = `${timestamp}_${randomValues}_${browserInfo}`;
+
+  // Hash the combined string for privacy
+  const hashBuffer = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(combinedString)
+  );
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return hashHex.slice(0, 16); // Return first 16 characters of hash
+};
+
+const generateSessionId = async (kitId: string): Promise<string> => {
+  const timestamp = new Date().getTime();
+  const uniqueId = await generateUniqueId();
+  const randomPart = generateRandomString(8);
+  return `${kitId}_${timestamp}_${uniqueId}_${randomPart}`;
+};
+
 interface CookieConsentContextValue {
   hasConsent: boolean | null;
   isDeclined: boolean;
@@ -137,6 +204,7 @@ export interface CookieManagerProps
   extends Omit<CookieConsenterProps, "onAccept" | "onDecline" | "forceShow"> {
   children: React.ReactNode;
   cookieKey?: string;
+  cookieKitId?: string;
   onManage?: (preferences?: CookieCategories) => void;
   disableAutomaticBlocking?: boolean;
   blockedDomains?: string[];
@@ -194,6 +262,7 @@ const createDetailedConsent = (consented: boolean): DetailedCookieConsent => ({
 export const CookieManager: React.FC<CookieManagerProps> = ({
   children,
   cookieKey = "cookie-consent",
+  cookieKitId,
   translations,
   translationI18NextPrefix,
   onManage,
@@ -246,6 +315,24 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     : null;
 
   const observerRef = useRef<MutationObserver | null>(null);
+
+  // Initialize session ID if cookieKitId is provided
+  useEffect(() => {
+    const initializeSessionId = async () => {
+      if (cookieKitId) {
+        const sessionKey = `${cookieKey}-session`;
+        let sessionId = getCookie(sessionKey);
+
+        if (!sessionId) {
+          sessionId = await generateSessionId(cookieKitId);
+          setCookie(sessionKey, sessionId, 1); // Session cookie expires in 1 day
+          console.log("Cookie Kit Session ID:", sessionId);
+        }
+      }
+    };
+
+    initializeSessionId();
+  }, [cookieKitId, cookieKey]);
 
   useEffect(() => {
     // Show banner if no consent decision has been made AND manage consent is not shown

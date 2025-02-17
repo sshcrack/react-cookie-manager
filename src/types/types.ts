@@ -244,4 +244,10 @@ export interface CookieConsenterProps {
    * @default false
    */
   forceShow?: boolean;
+
+  /**
+   * Optional identifier for cookie kit analytics
+   * When provided, generates a unique session ID for tracking consent events
+   */
+  cookieKitId?: string;
 }
