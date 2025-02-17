@@ -8,6 +8,7 @@ A powerful, customizable React component for cookie consent management with buil
 
 - [Features](#features)
 - [Try it out](#-try-it-out)
+- [CookieKit Integration](#cookiekit-integration)
 - [Automatically Disable Tracking](#automatically-disable-tracking)
 - [Installation](#installation)
 - [Importing Styles](#importing-styles)
@@ -33,7 +34,47 @@ A powerful, customizable React component for cookie consent management with buil
 - 🔧 Highly customizable UI
 - 💾 Persistent consent storage
 - 🔒 Privacy-first approach
-- 🇪🇺 Note: Full GDPR compliance requires you to store user consent in your own database.
+- 🇪🇺 GDPR compliance with CookieKit.io integration
+
+## CookieKit Integration
+
+Take your GDPR compliance to the next level with [CookieKit.io](https://cookiekit.io) integration!
+
+### Features
+
+- 📊 Real-time consent analytics dashboard
+- 🔄 Automatic consent proof storage
+- 📈 Advanced user segmentation
+- 🆓 Completely free to use!
+
+### Usage with CookieKit
+
+```jsx
+import { CookieManager } from "react-cookie-manager";
+
+function App() {
+  return (
+    <CookieManager
+      cookieKitId="your-cookie-kit-website-id" // Get this from cookiekit.io
+      translations={{
+        title: "Cookie Preferences",
+        message: "We use cookies to improve your experience.",
+      }}
+    >
+      <YourApp />
+    </CookieManager>
+  );
+}
+```
+
+When `cookieKitId` is provided, React Cookie Manager will automatically:
+
+- Generate and track unique session IDs
+- Send consent events to CookieKit.io
+- Store consent proofs for GDPR compliance
+- Provide analytics data in your CookieKit dashboard
+
+Visit [cookiekit.io](https://cookiekit.io) to get started for free!
 
 ## 🎮 Try it out!
 
@@ -168,6 +209,7 @@ function App() {
       privacyPolicyUrl="https://example.com/privacy"
       theme="light"
       displayType="popup"
+      cookieKitId="your-cookie-kit-id" // Optional: Enable CookieKit.io integration
       onManage={(preferences) => {
         if (preferences) {
           console.log("Cookie preferences updated:", preferences);
@@ -221,6 +263,7 @@ function CookieSettings() {
 | `theme`                    | 'light' \| 'dark'                        | 'light'          | Color theme                               |
 | `disableAutomaticBlocking` | boolean                                  | false            | Disable automatic tracking prevention     |
 | `blockedDomains`           | string[]                                 | []               | Additional domains to block               |
+| `cookieKitId`              | string                                   | undefined        | Your CookieKit.io integration ID          |
 | `onManage`                 | (preferences?: CookieCategories) => void | -                | Callback when preferences are updated     |
 
 ## Cookie Categories
