@@ -8,7 +8,5 @@ Visit \x1b[1mhttps://cookiekit.io\x1b[0m to:
 - Get real-time analytics
 - And much more!
 
-\x1b[32mBest of all, it's completely free! 🎉\x1b[0m
-
 \x1b[90m-------------------------------------------\x1b[0m
 `);
