@@ -186,6 +186,37 @@ const generateSessionId = async (kitId: string): Promise<string> => {
   return `${kitId}_${timestamp}_${uniqueId}_${randomPart}`;
 };
 
+const postSessionToAnalytics = async (kitId: string, sessionId: string) => {
+  try {
+    const response = await fetch(
+      "https://api.example.com/cookie-kit/sessions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          kitId,
+          sessionId,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          language: navigator.language,
+          screenSize: {
+            width: window.screen.width,
+            height: window.screen.height,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.warn("Failed to post session to analytics:", response.statusText);
+    }
+  } catch (error) {
+    console.warn("Error posting session to analytics:", error);
+  }
+};
+
 interface CookieConsentContextValue {
   hasConsent: boolean | null;
   isDeclined: boolean;
@@ -273,6 +304,8 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [showManageConsent, setShowManageConsent] = useState(false);
+  const hasPostedSession = useRef(false);
+  const isGeneratingSession = useRef(false);
   const tFunction = useMemo(
     () => createTFunction(translations, translationI18NextPrefix),
     [translations, translationI18NextPrefix]
@@ -318,20 +351,50 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
   // Initialize session ID if cookieKitId is provided
   useEffect(() => {
-    const initializeSessionId = async () => {
-      if (cookieKitId) {
-        const sessionKey = `${cookieKey}-session`;
-        let sessionId = getCookie(sessionKey);
+    let isMounted = true;
+    let isInitializing = false;
 
-        if (!sessionId) {
+    const initializeSessionId = async () => {
+      if (!cookieKitId || isInitializing) return;
+
+      isInitializing = true;
+      const sessionKey = `${cookieKey}-session`;
+      let sessionId = getCookie(sessionKey);
+
+      if (!sessionId) {
+        try {
+          // Generate new session ID
           sessionId = await generateSessionId(cookieKitId);
-          setCookie(sessionKey, sessionId, 1); // Session cookie expires in 1 day
-          console.log("Cookie Kit Session ID:", sessionId);
+
+          // Only proceed if we're still mounted
+          if (!isMounted) return;
+
+          // Set the cookie
+          setCookie(sessionKey, sessionId, 1);
+
+          // Double check the cookie was set
+          const savedSessionId = getCookie(sessionKey);
+          console.log("Generated session ID:", sessionId);
+          console.log("Saved session ID:", savedSessionId);
+
+          // Post to analytics only if cookie was set and we're still mounted
+          if (savedSessionId && isMounted) {
+            await postSessionToAnalytics(cookieKitId, sessionId);
+          }
+        } catch (error) {
+          console.error("Error in session initialization:", error);
         }
+      } else {
+        console.log("Using existing session ID:", sessionId);
       }
     };
 
     initializeSessionId();
+
+    return () => {
+      isMounted = false;
+      isInitializing = false;
+    };
   }, [cookieKitId, cookieKey]);
 
   useEffect(() => {
