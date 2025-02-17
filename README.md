@@ -104,13 +104,7 @@ The component requires its CSS file to be imported in your application. Add the 
 import "react-cookie-manager/style.css";
 ```
 
-![React Cookie Manager Popup Dark](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/popup-dark.png?raw=true)
-
-![React Cookie Manager Banner](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/banner.png?raw=true)
-
-![React Cookie Manager Modal](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/modal.png?raw=true)
-
-![React Cookie Manager Manage Cookies](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/manage-cookies.png?raw=true)
+![React Cookie Manager Styles](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/banner-styles.jpg?raw=true)
 
 ## Basic Usage
 
