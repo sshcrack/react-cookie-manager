@@ -18,6 +18,26 @@ import { ManageConsent } from "../components/ManageConsent";
 import { getBlockedHosts, getBlockedKeywords } from "../utils/tracker-utils";
 import { createTFunction } from "../utils/translations";
 
+// Cookie utility functions
+const setCookie = (name: string, value: string, days: number) => {
+  const date = new Date();
+  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/;SameSite=Lax`;
+};
+
+const getCookie = (name: string): string | null => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return parts.pop()?.split(";").shift() || null;
+  }
+  return null;
+};
+
+const deleteCookie = (name: string) => {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+};
+
 // Store original functions
 let originalXhrOpen: typeof XMLHttpRequest.prototype.open | null = null;
 let originalFetch: typeof window.fetch | null = null;
@@ -116,7 +136,7 @@ const CookieManagerContext = createContext<CookieConsentContextValue | null>(
 export interface CookieManagerProps
   extends Omit<CookieConsenterProps, "onAccept" | "onDecline" | "forceShow"> {
   children: React.ReactNode;
-  localStorageKey?: string;
+  cookieKey?: string;
   onManage?: (preferences?: CookieCategories) => void;
   disableAutomaticBlocking?: boolean;
   blockedDomains?: string[];
@@ -173,7 +193,7 @@ const createDetailedConsent = (consented: boolean): DetailedCookieConsent => ({
 
 export const CookieManager: React.FC<CookieManagerProps> = ({
   children,
-  localStorageKey = "cookie-consent",
+  cookieKey = "cookie-consent",
   translations,
   translationI18NextPrefix,
   onManage,
@@ -191,7 +211,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
   const [detailedConsent, setDetailedConsent] =
     useState<DetailedCookieConsent | null>(() => {
-      const storedConsent = localStorage.getItem(localStorageKey);
+      const storedConsent = getCookie(cookieKey);
       if (storedConsent) {
         try {
           const parsedConsent = JSON.parse(
@@ -209,7 +229,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
             oldestTimestamp + expirationDays * 24 * 60 * 60 * 1000;
 
           if (Date.now() > expirationTime) {
-            localStorage.removeItem(localStorageKey);
+            deleteCookie(cookieKey);
             return null;
           }
 
@@ -290,14 +310,14 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
   const acceptCookies = () => {
     const newConsent = createDetailedConsent(true);
-    localStorage.setItem(localStorageKey, JSON.stringify(newConsent));
+    setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
     setDetailedConsent(newConsent);
     setIsVisible(false);
   };
 
   const declineCookies = () => {
     const newConsent = createDetailedConsent(false);
-    localStorage.setItem(localStorageKey, JSON.stringify(newConsent));
+    setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
     setDetailedConsent(newConsent);
     setIsVisible(false);
   };
@@ -309,7 +329,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       Social: { consented: preferences.Social, timestamp },
       Advertising: { consented: preferences.Advertising, timestamp },
     };
-    localStorage.setItem(localStorageKey, JSON.stringify(newConsent));
+    setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
     setDetailedConsent(newConsent);
     setShowManageConsent(false);
     if (onManage) {
@@ -344,7 +364,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
         <CookieConsenter
           {...props}
           tFunction={tFunction}
-          localStorageKey={localStorageKey}
+          cookieKey={cookieKey}
           onAccept={acceptCookies}
           onDecline={declineCookies}
           onManage={handleManage}

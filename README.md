@@ -214,7 +214,7 @@ function CookieSettings() {
 | `translationI18NextPrefix` | string                                   | -                | i18next key prefix, e.g. "cookies."       |
 | `showManageButton`         | boolean                                  | false            | Whether to show the manage cookies button |
 | `privacyPolicyUrl`         | string                                   | -                | URL for the privacy policy                |
-| `localStorageKey`          | string                                   | 'cookie-consent' | Name of the key to store consent          |
+| `cookieKey`                | string                                   | 'cookie-consent' | Name of the cookie to store consent       |
 | `cookieExpiration`         | number                                   | 365              | Days until cookie expires                 |
 | `displayType`              | 'banner' \| 'popup' \| 'modal'           | 'banner'         | How the consent UI is displayed           |
 | `position`                 | 'top' \| 'bottom'                        | 'bottom'         | Position of the banner                    |
