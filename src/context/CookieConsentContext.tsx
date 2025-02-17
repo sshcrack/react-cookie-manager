@@ -231,28 +231,25 @@ const postSessionToAnalytics = async (
       console.warn("Could not get local IP address:", ipError);
     }
 
-    const response = await fetch(
-      "https://cookie-kit.hypership.dev/api/consents",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          website_id: kitId,
-          session_id: sessionId,
-          user_id: userId,
-          analytics: preferences?.Analytics ?? false,
-          social: preferences?.Social ?? false,
-          advertising: preferences?.Advertising ?? false,
-          consent_method: action || "init",
-          consent_version: "1.0",
-          user_agent: navigator.userAgent,
-          location: country,
-          anonymised_ip: anonymizedIp,
-        }),
-      }
-    );
+    const response = await fetch("https://cookiekit.io/api/consents", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        website_id: kitId,
+        session_id: sessionId,
+        user_id: userId,
+        analytics: preferences?.Analytics ?? false,
+        social: preferences?.Social ?? false,
+        advertising: preferences?.Advertising ?? false,
+        consent_method: action || "init",
+        consent_version: "1.0",
+        user_agent: navigator.userAgent,
+        location: country,
+        anonymised_ip: anonymizedIp,
+      }),
+    });
 
     if (!response.ok) {
       console.warn("Failed to post consent to analytics:", response.statusText);
