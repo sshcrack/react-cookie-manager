@@ -157,7 +157,7 @@ export interface CookieConsenterProps {
    * Name of the cookie to store the consent
    * @default 'cookie-consent'
    */
-  localStorageKey?: string;
+  cookieKey?: string;
 
   /**
    * Number of days until the cookie expires
@@ -244,4 +244,10 @@ export interface CookieConsenterProps {
    * @default false
    */
   forceShow?: boolean;
+
+  /**
+   * Optional identifier for cookie kit analytics
+   * When provided, generates a unique session ID for tracking consent events
+   */
+  cookieKitId?: string;
 }
