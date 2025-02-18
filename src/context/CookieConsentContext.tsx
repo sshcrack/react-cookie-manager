@@ -206,31 +206,6 @@ const postSessionToAnalytics = async (
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const country = resolveCountryFromTimezone(timeZone);
 
-    // Get IP address locally using WebRTC
-    let anonymizedIp = "0.0";
-    try {
-      const rtcPeerConnection = new RTCPeerConnection({ iceServers: [] });
-      rtcPeerConnection.createDataChannel("");
-      const offer = await rtcPeerConnection.createOffer();
-      await rtcPeerConnection.setLocalDescription(offer);
-
-      const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
-      const sdpMatch = offer.sdp?.match(ipRegex);
-
-      if (sdpMatch && sdpMatch[1]) {
-        const ipParts = sdpMatch[1].split(".");
-        if (ipParts.length >= 2) {
-          anonymizedIp = `${ipParts[0]}.${ipParts[1]}`;
-          console.log("Found IP address:", sdpMatch[1]); // Log full IP for testing
-          console.log("Anonymized IP:", anonymizedIp);
-        }
-      }
-
-      rtcPeerConnection.close();
-    } catch (ipError) {
-      console.warn("Could not get local IP address:", ipError);
-    }
-
     const response = await fetch("https://cookiekit.io/api/consents", {
       method: "POST",
       headers: {
@@ -247,7 +222,7 @@ const postSessionToAnalytics = async (
         consent_version: "1.0",
         user_agent: navigator.userAgent,
         location: country,
-        anonymised_ip: anonymizedIp,
+        anonymised_ip: "0.0.0.0",
       }),
     });
 
@@ -411,8 +386,6 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
           if (!isMounted) return;
           setCookie(sessionKey, sessionId, 1);
           const savedSessionId = getCookie(sessionKey);
-          console.log("Generated session ID:", sessionId);
-          console.log("Saved session ID:", savedSessionId);
           if (savedSessionId && isMounted) {
             await postSessionToAnalytics(
               cookieKitId,
@@ -426,7 +399,6 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
           console.error("Error in session initialization:", error);
         }
       } else {
-        console.log("Using existing session ID:", sessionId);
       }
     };
 
@@ -509,7 +481,6 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       const sessionKey = `${cookieKey}-session`;
       const sessionId = getCookie(sessionKey);
       if (sessionId) {
-        console.log("ACCEPTED");
         await postSessionToAnalytics(
           cookieKitId,
           sessionId,
@@ -530,7 +501,6 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
     setDetailedConsent(newConsent);
     setIsVisible(false);
-    console.log("Clicked Declined");
 
     if (cookieKitId) {
       const sessionKey = `${cookieKey}-session`;
@@ -566,7 +536,6 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       const sessionKey = `${cookieKey}-session`;
       const sessionId = getCookie(sessionKey);
       if (sessionId) {
-        console.log("SAVE PREFERENCES");
         await postSessionToAnalytics(
           cookieKitId,
           sessionId,
