@@ -676,13 +676,18 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
         !isVisible &&
         !showManageConsent &&
         createPortal(
-          <FloatingCookieButton
-            theme={theme}
-            onClick={() => {
-              setShowManageConsent(true);
-              setIsFloatingButtonVisible(false);
-            }}
-          />,
+          <div className="cookie-manager">
+            <FloatingCookieButton
+              theme={theme}
+              onClick={() => {
+                setShowManageConsent(true);
+                setIsFloatingButtonVisible(false);
+              }}
+              onClose={() => {
+                setIsFloatingButtonVisible(false);
+              }}
+            />
+          </div>,
           document.body
         )}
     </CookieManagerContext.Provider>
