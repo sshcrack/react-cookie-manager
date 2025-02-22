@@ -37,6 +37,7 @@ A powerful, customizable React component for cookie consent management with buil
 - 💾 Persistent consent storage
 - 🔒 Privacy-first approach
 - 🇪🇺 GDPR compliance with CookieKit.io integration
+- 🍪 Floating cookie button for easy access
 
 ## CookieKit Integration
 
@@ -243,6 +244,76 @@ function CookieSettings() {
 }
 ```
 
+## Floating Cookie Button
+
+The floating cookie button provides a persistent, accessible way for users to manage their cookie preferences after they've made their initial choice. It appears as a small, animated cookie icon in the bottom-left corner of the screen.
+
+### Enabling the Floating Button
+
+```jsx
+<CookieManager
+  enableFloatingButton={true}
+  theme="light" // or "dark"
+  // ... other props
+>
+  <YourApp />
+</CookieManager>
+```
+
+### Features
+
+- 🎯 Automatically appears after initial consent
+- 🎨 Matches your theme (light/dark mode)
+- 🔄 Smooth animations and hover effects
+- ❌ Dismissible with a close button
+- 📱 Responsive and mobile-friendly
+- 🎛️ Easy access to cookie preferences
+
+### Behavior
+
+1. The button appears after users make their initial cookie choice
+2. Hovering reveals a close button to dismiss the floating button
+3. Clicking opens the cookie preferences modal
+4. The button remains hidden until page refresh after being closed
+5. Maintains position during scroll
+
+### Customization
+
+The floating button automatically adapts to your chosen theme:
+
+```jsx
+// Light theme (default)
+<CookieManager
+  enableFloatingButton={true}
+  theme="light"
+>
+  <YourApp />
+</CookieManager>
+
+// Dark theme
+<CookieManager
+  enableFloatingButton={true}
+  theme="dark"
+>
+  <YourApp />
+</CookieManager>
+```
+
+The button inherits your color scheme:
+
+- Light theme: White background with gray text
+- Dark theme: Black background with light gray text
+
+### Accessibility
+
+The floating button is fully accessible:
+
+- Proper ARIA labels
+- Keyboard navigation support
+- Focus management
+- High contrast ratios
+- Screen reader friendly
+
 ## Props
 
 | Prop                       | Type                                     | Default          | Description                               |
@@ -251,6 +322,7 @@ function CookieSettings() {
 | `translations`             | TranslationObject \| TranslationFunction | -                | Translation object or i18n TFunction      |
 | `translationI18NextPrefix` | string                                   | -                | i18next key prefix, e.g. "cookies."       |
 | `showManageButton`         | boolean                                  | false            | Whether to show the manage cookies button |
+| `enableFloatingButton`     | boolean                                  | false            | Enable floating cookie button             |
 | `privacyPolicyUrl`         | string                                   | -                | URL for the privacy policy                |
 | `cookieKey`                | string                                   | 'cookie-consent' | Name of the cookie to store consent       |
 | `cookieExpiration`         | number                                   | 365              | Days until cookie expires                 |

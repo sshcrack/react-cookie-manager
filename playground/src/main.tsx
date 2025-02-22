@@ -51,7 +51,7 @@ createRoot(document.getElementById("root")!).render(
       translationI18NextPrefix={translationI18NextPrefix + "."}
       showManageButton={true}
       privacyPolicyUrl="https://example.com/privacy"
-      theme="dark"
+      theme="light"
       cookieKitId="67b322ffb47f4471855cda97"
       displayType="popup"
       enableFloatingButton={true}
