@@ -6,7 +6,9 @@ import React, {
   useMemo,
   useRef,
 } from "react";
+import { createPortal } from "react-dom";
 import CookieConsenter from "../components/CookieConsenter";
+import { FloatingCookieButton } from "../components/FloatingCookieButton";
 import type {
   CookieCategories,
   CookieConsenterProps,
@@ -295,6 +297,8 @@ export interface CookieManagerProps
    * ```
    */
   translationI18NextPrefix?: string;
+  enableFloatingButton?: boolean;
+  theme?: "light" | "dark";
 }
 
 const createConsentStatus = (consented: boolean) => ({
@@ -319,10 +323,13 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
   disableAutomaticBlocking = false,
   blockedDomains = [],
   expirationDays = 365,
+  enableFloatingButton = false,
+  theme = "light",
   ...props
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [showManageConsent, setShowManageConsent] = useState(false);
+  const [isFloatingButtonVisible, setIsFloatingButtonVisible] = useState(false);
   const hasPostedSession = useRef(false);
   const isGeneratingSession = useRef(false);
   const tFunction = useMemo(
@@ -476,6 +483,9 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
     setDetailedConsent(newConsent);
     setIsVisible(false);
+    if (enableFloatingButton) {
+      setIsFloatingButtonVisible(true);
+    }
 
     if (cookieKitId) {
       const sessionKey = `${cookieKey}-session`;
@@ -501,6 +511,9 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
     setDetailedConsent(newConsent);
     setIsVisible(false);
+    if (enableFloatingButton) {
+      setIsFloatingButtonVisible(true);
+    }
 
     if (cookieKitId) {
       const sessionKey = `${cookieKey}-session`;
@@ -531,6 +544,9 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
     setDetailedConsent(newConsent);
     setShowManageConsent(false);
+    if (enableFloatingButton) {
+      setIsFloatingButtonVisible(true);
+    }
 
     if (cookieKitId) {
       const sessionKey = `${cookieKey}-session`;
@@ -554,12 +570,41 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
   const handleManage = () => {
     setIsVisible(false);
     setShowManageConsent(true);
+    setIsFloatingButtonVisible(false);
   };
 
   const handleCancelManage = () => {
     setShowManageConsent(false);
-    setIsVisible(true);
+    if (enableFloatingButton && detailedConsent) {
+      setIsFloatingButtonVisible(true);
+    } else {
+      setIsVisible(true);
+    }
   };
+
+  // Add effect to show floating button on mount if consent exists
+  useEffect(() => {
+    if (enableFloatingButton && detailedConsent) {
+      setIsFloatingButtonVisible(true);
+    }
+  }, [enableFloatingButton, detailedConsent]);
+
+  // Add debug logging
+  useEffect(() => {
+    console.log("Debug floating button state:", {
+      enableFloatingButton,
+      isFloatingButtonVisible,
+      isVisible,
+      showManageConsent,
+      hasDetailedConsent: detailedConsent !== null,
+    });
+  }, [
+    enableFloatingButton,
+    isFloatingButtonVisible,
+    isVisible,
+    showManageConsent,
+    detailedConsent,
+  ]);
 
   const value: CookieConsentContextValue = {
     hasConsent,
@@ -577,6 +622,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       {isVisible && (
         <CookieConsenter
           {...props}
+          theme={theme}
           tFunction={tFunction}
           cookieKey={cookieKey}
           onAccept={acceptCookies}
@@ -594,36 +640,51 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
           }
         />
       )}
-      {showManageConsent && (
-        <div className="cookie-manager">
-          <div className="fixed inset-0 z-[99999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-            <div
-              className={`w-full max-w-lg rounded-xl p-6 ${
-                props.theme === "light"
-                  ? "bg-white/95 ring-1 ring-black/10"
-                  : "bg-black/95 ring-1 ring-white/10"
-              }`}
-            >
-              <ManageConsent
-                tFunction={tFunction}
-                theme={props.theme}
-                onSave={updateDetailedConsent}
-                onCancel={handleCancelManage}
-                initialPreferences={
-                  detailedConsent
-                    ? {
-                        Analytics: detailedConsent.Analytics.consented,
-                        Social: detailedConsent.Social.consented,
-                        Advertising: detailedConsent.Advertising.consented,
-                      }
-                    : undefined
-                }
-                detailedConsent={detailedConsent}
-              />
+      {showManageConsent &&
+        createPortal(
+          <div className="cookie-manager">
+            <div className="fixed inset-0 z-[99999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+              <div
+                className={`w-full max-w-lg rounded-xl p-6 ${
+                  theme === "light"
+                    ? "bg-white/95 ring-1 ring-black/10"
+                    : "bg-black/95 ring-1 ring-white/10"
+                }`}
+              >
+                <ManageConsent
+                  tFunction={tFunction}
+                  theme={theme}
+                  onSave={updateDetailedConsent}
+                  onCancel={handleCancelManage}
+                  initialPreferences={
+                    detailedConsent
+                      ? {
+                          Analytics: detailedConsent.Analytics.consented,
+                          Social: detailedConsent.Social.consented,
+                          Advertising: detailedConsent.Advertising.consented,
+                        }
+                      : undefined
+                  }
+                  detailedConsent={detailedConsent}
+                />
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
+      {isFloatingButtonVisible &&
+        !isVisible &&
+        !showManageConsent &&
+        createPortal(
+          <FloatingCookieButton
+            theme={theme}
+            onClick={() => {
+              setShowManageConsent(true);
+              setIsFloatingButtonVisible(false);
+            }}
+          />,
+          document.body
+        )}
     </CookieManagerContext.Provider>
   );
 };

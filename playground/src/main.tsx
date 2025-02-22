@@ -54,6 +54,7 @@ createRoot(document.getElementById("root")!).render(
       theme="dark"
       cookieKitId="67b322ffb47f4471855cda97"
       displayType="popup"
+      enableFloatingButton={true}
       onManage={(preferences?: CookieCategories) => {
         if (preferences) {
           console.log("Cookie preferences updated:", preferences);

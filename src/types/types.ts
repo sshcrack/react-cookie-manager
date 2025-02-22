@@ -148,6 +148,12 @@ export interface CookieConsenterProps {
   showManageButton?: boolean;
 
   /**
+   * Whether to enable the floating cookie button that appears after consent is closed
+   * @default false
+   */
+  enableFloatingButton?: boolean;
+
+  /**
    * URL for the privacy policy
    * If not provided, privacy policy link won't be shown
    */
