@@ -58,34 +58,52 @@ import "./cookie-manager.css";
     }
 
     saveConsent(categories) {
+      console.log("🍪 Saving consent with categories:", categories);
       this.state = categories;
       this.setCookie(
         this.config.cookieName,
         JSON.stringify(categories),
         this.config.cookieExpiration
       );
-      this.hideBanner();
+      console.log("📝 Cookie saved, now removing UI elements");
+
+      // Hide both banner and modal completely
+      if (this.wrapper) {
+        console.log("🗑️ Removing banner wrapper");
+        this.wrapper.remove();
+      }
+      if (this.modalWrapper) {
+        console.log("🗑️ Removing modal wrapper");
+        this.modalWrapper.remove();
+      }
+
       this.applyConsent();
     }
 
     applyConsent() {
+      console.log("🔄 Applying consent state:", this.state);
+
       if (this.state?.analytics) {
+        console.log("📊 Enabling analytics scripts");
         document
           .querySelectorAll('script[data-cookiekit="analytics"]')
           .forEach((script) => script.setAttribute("type", "text/javascript"));
       }
 
       if (this.state?.marketing) {
+        console.log("🎯 Enabling marketing scripts");
         document
           .querySelectorAll('script[data-cookiekit="marketing"]')
           .forEach((script) => script.setAttribute("type", "text/javascript"));
       }
 
+      console.log("📢 Dispatching consent updated event");
       window.dispatchEvent(
         new CustomEvent("cookiekit:consent-updated", {
           detail: this.state,
         })
       );
+      console.log("✅ Consent application complete");
     }
 
     createBanner() {
@@ -332,13 +350,14 @@ import "./cookie-manager.css";
       } z-[9999] hidden transition-all duration-300`;
 
       modal.querySelector(".save-preferences").addEventListener("click", () => {
+        console.log("💾 Save preferences clicked");
         const categories = {
           analytics: modal.querySelector('input[name="analytics"]').checked,
           marketing: modal.querySelector('input[name="marketing"]').checked,
           preferences: modal.querySelector('input[name="preferences"]').checked,
         };
+        console.log("📋 Collected categories:", categories);
         this.saveConsent(categories);
-        this.hideCustomizeModal();
       });
 
       modal.querySelector(".cancel").addEventListener("click", () => {
@@ -367,27 +386,34 @@ import "./cookie-manager.css";
     }
 
     showCustomizeModal() {
+      console.log("🔍 Showing customize modal");
       this.modal.classList.remove("hidden");
       this.overlay.classList.remove("hidden");
     }
 
     hideCustomizeModal() {
-      this.modal.classList.add("hidden");
-      this.overlay.classList.add("hidden");
-      // Show the banner again if it was hidden
-      if (this.banner.classList.contains("hidden")) {
-        this.banner.classList.remove("hidden");
+      console.log("🔒 Hiding customize modal");
+      if (this.modal) {
+        this.modal.classList.add("hidden");
+        this.overlay.classList.add("hidden");
       }
     }
 
     hideBanner() {
+      console.log("🔒 Hiding banner");
       this.banner.classList.add("hidden");
     }
 
     init() {
+      console.log("🚀 Initializing CookieKit");
+      console.log("Current state:", this.state);
+
       if (!this.state) {
+        console.log("📝 No existing consent found, creating UI elements");
         this.createBanner();
         this.createCustomizeModal();
+      } else {
+        console.log("✅ Existing consent found:", this.state);
       }
     }
   }
@@ -395,8 +421,29 @@ import "./cookie-manager.css";
   // Expose to global scope
   window.CookieKit = {
     init: (config) => {
+      console.log("🌟 CookieKit.init called with config:", config);
       const manager = new CookieManager(config);
       manager.init();
+      console.log("🎉 CookieKit initialization complete");
+    },
+    showBanner: () => {
+      console.log("🎯 Show banner requested");
+      const manager = new CookieManager({});
+      manager.createBanner();
+      manager.createCustomizeModal();
+    },
+    showCustomizeModal: () => {
+      console.log("🎯 Show customize modal requested");
+      const manager = new CookieManager({});
+      manager.createBanner();
+      manager.createCustomizeModal();
+      manager.showCustomizeModal();
+    },
+    resetConsent: () => {
+      console.log("🔄 Reset consent requested");
+      document.cookie =
+        "cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      location.reload();
     },
   };
 })();
