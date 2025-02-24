@@ -5,6 +5,126 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cookie Manager Development</title>
     <link rel="stylesheet" href="dist/wordpress/cookie-manager.css" />
+
+    <!-- Google Analytics initialization -->
+    <script>
+      window.ga =
+        window.ga ||
+        function () {
+          (ga.q = ga.q || []).push(arguments);
+        };
+      ga.l = +new Date();
+    </script>
+
+    <!-- Test Analytics Script - Initially blocked -->
+    <script
+      type="text/plain"
+      data-cookiekit="analytics"
+      src="https://www.google-analytics.com/analytics.js"
+    ></script>
+
+    <!-- Analytics initialization code -->
+    <script>
+      function initializeAnalytics() {
+        if (typeof ga !== "undefined") {
+          ga("create", "UA-123456789-1", {
+            cookieDomain: "none", // Prevent cookie domain issues in local testing
+            cookieFlags: "SameSite=None; Secure", // Required for modern browsers
+          });
+          ga("set", "checkProtocolTask", null); // Disable protocol checking for local testing
+          ga("set", "transport", "beacon"); // Use navigator.sendBeacon
+          ga("send", "pageview");
+          ga.loaded = true; // Mark as initialized
+          console.log("✅ Analytics initialized with test configuration");
+        } else {
+          console.error("❌ GA not available for initialization");
+        }
+      }
+    </script>
+
+    <!-- Test Marketing Script - Initially blocked -->
+    <script
+      type="text/plain"
+      data-cookiekit="marketing"
+      src="https://platform.twitter.com/widgets.js"
+    ></script>
+
+    <!-- Add consent check and network request testing -->
+    <script>
+      // Function to get current consent
+      function getCurrentConsent() {
+        const consent = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("cookie_consent="));
+
+        if (consent) {
+          try {
+            const value = consent.split("=")[1];
+            return JSON.parse(decodeURIComponent(value));
+          } catch (e) {
+            return null;
+          }
+        }
+        return null;
+      }
+
+      // Function to check if URL should be blocked
+      function shouldBlockRequest(url) {
+        const consent = getCurrentConsent();
+        if (!consent) return true; // Block if no consent
+
+        const urlString = url.toString();
+
+        // Check analytics
+        if (!consent.analytics && urlString.includes("google-analytics")) {
+          console.log("🚫 Blocking analytics request:", urlString);
+          return true;
+        }
+
+        // Check marketing
+        if (
+          !consent.marketing &&
+          (urlString.includes("twitter") || urlString.includes("doubleclick"))
+        ) {
+          console.log("🚫 Blocking marketing request:", urlString);
+          return true;
+        }
+
+        return false;
+      }
+
+      // Override fetch before anything else loads
+      const originalFetch = window.fetch;
+      window.fetch = function (url, options) {
+        const urlString = url.toString();
+        console.log("🔍 Intercepted fetch request to:", urlString);
+
+        if (shouldBlockRequest(urlString)) {
+          console.log("🚫 Request blocked by consent settings");
+          return Promise.resolve(
+            new Response(null, {
+              status: 403,
+              statusText: "Blocked by consent settings",
+            })
+          );
+        }
+
+        return originalFetch.apply(this, arguments);
+      };
+
+      // Override XHR
+      const originalXHROpen = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function (method, url) {
+        console.log("🔍 Intercepted XHR request to:", url);
+
+        if (shouldBlockRequest(url)) {
+          console.log("🚫 Request blocked by consent settings");
+          throw new Error("Request blocked by consent settings");
+        }
+
+        return originalXHROpen.apply(this, arguments);
+      };
+    </script>
     <style>
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
@@ -68,6 +188,29 @@
         background: white;
         min-width: 200px;
       }
+
+      /* Add styles for analytics test */
+      .test-analytics-btn {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 8px 16px;
+        background: #4f46e5;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .test-analytics-btn:hover {
+        background: #4338ca;
+      }
+      #analyticsResult {
+        padding: 8px;
+        background: white;
+        border-radius: 4px;
+        margin-top: 8px;
+      }
     </style>
   </head>
   <body>
@@ -101,6 +244,15 @@
         </button>
         <button onclick="window.CookieKit.resetConsent()">Reset Consent</button>
 
+        <!-- Add Test Analytics Button -->
+        <div class="state-panel">
+          <h3>Test Analytics:</h3>
+          <button onclick="testAnalytics()" class="test-analytics-btn">
+            Trigger Analytics Event
+          </button>
+          <div id="analyticsResult" class="mt-2 text-sm"></div>
+        </div>
+
         <div class="state-panel">
           <h3>Current Cookie State:</h3>
           <pre id="cookieState">No consent set</pre>
@@ -122,12 +274,79 @@
           try {
             const parsed = JSON.parse(decodeURIComponent(value));
             stateDisplay.textContent = JSON.stringify(parsed, null, 2);
+
+            // Enable analytics script if consent is given
+            if (parsed.analytics) {
+              const analyticsScript = document.querySelector(
+                'script[data-cookiekit="analytics"]'
+              );
+              if (
+                analyticsScript &&
+                analyticsScript.type !== "text/javascript"
+              ) {
+                analyticsScript.type = "text/javascript";
+                // Wait for script to load then initialize
+                analyticsScript.onload = function () {
+                  console.log("Analytics script loaded, initializing...");
+                  initializeAnalytics();
+                };
+                // Trigger script load by re-adding it to the document
+                analyticsScript.parentNode.removeChild(analyticsScript);
+                document.head.appendChild(analyticsScript);
+              }
+            }
           } catch (e) {
             stateDisplay.textContent = value;
           }
         } else {
           stateDisplay.textContent = "No consent set";
         }
+      }
+
+      // Add analytics test function
+      function testAnalytics() {
+        const result = document.getElementById("analyticsResult");
+        console.log("🧪 Testing analytics event...");
+
+        const consent = getCurrentConsent();
+        console.log("Current consent state:", consent);
+
+        // Direct network request to GA
+        const params = {
+          v: "1", // Version
+          tid: "UA-123456789-1", // Tracking ID
+          cid: "555", // Client ID (normally would be UUID)
+          t: "event", // Hit type
+          ec: "Test", // Event Category
+          ea: "click", // Event Action
+          el: "Direct Test " + new Date().toISOString(), // Event Label
+          z: Math.floor(Math.random() * 10000000), // Cache buster
+        };
+
+        const url =
+          "https://www.google-analytics.com/collect?" +
+          Object.entries(params)
+            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+            .join("&");
+
+        console.log("🚀 Sending direct request to:", url);
+
+        fetch(url, {
+          method: "POST",
+          mode: "no-cors", // Required for GA
+        })
+          .then((data) => {
+            console.log("🚀 Direct request sent successfully", data);
+            result.innerHTML =
+              "✅ Direct analytics request sent. Check Network tab.";
+            result.style.color = "#059669";
+            console.log("✅ Request sent successfully");
+          })
+          .catch((error) => {
+            result.innerHTML = `❌ Error: ${error.message}`;
+            result.style.color = "#dc2626";
+            console.error("Request error:", error);
+          });
       }
 
       // Function to get current configuration
@@ -212,7 +431,7 @@
         updateCookieState();
       });
 
-      // Initial initialization
+      // Initial checks
       initCookieKit();
     </script>
   </body>

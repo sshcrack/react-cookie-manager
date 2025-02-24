@@ -1,5 +1,87 @@
 // Import Tailwind styles
 import "./cookie-manager.css";
+import { getBlockedHosts, getBlockedKeywords } from "./tracker-utils.js";
+
+// Store original functions
+let originalXhrOpen = null;
+let originalFetch = null;
+
+const blockTrackingRequests = (blockedHosts) => {
+  // Store original functions if not already stored
+  if (!originalXhrOpen) {
+    originalXhrOpen = XMLHttpRequest.prototype.open;
+  }
+  if (!originalFetch) {
+    originalFetch = window.fetch;
+  }
+
+  // Override XMLHttpRequest to block requests to tracking domains
+  XMLHttpRequest.prototype.open = function (method, url) {
+    const urlString = url.toString();
+    if (blockedHosts.some((host) => urlString.includes(host))) {
+      return;
+    }
+    return originalXhrOpen.apply(this, arguments);
+  };
+
+  // Override fetch API to block tracking requests
+  window.fetch = function (url, options) {
+    const urlString = url.toString();
+    if (
+      typeof urlString === "string" &&
+      blockedHosts.some((host) => urlString.includes(host))
+    ) {
+      return Promise.resolve(
+        new Response(null, { status: 403, statusText: "Blocked" })
+      );
+    }
+    return originalFetch.apply(this, arguments);
+  };
+};
+
+const blockTrackingScripts = (trackingKeywords) => {
+  // Remove all script tags that match tracking domains
+  document.querySelectorAll("script").forEach((script) => {
+    if (
+      script.src &&
+      trackingKeywords.some((keyword) => script.src.includes(keyword))
+    ) {
+      script.remove();
+    }
+  });
+
+  // Prevent new tracking scripts from being injected
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node instanceof HTMLElement && node.tagName === "SCRIPT") {
+          const src = node.getAttribute("src");
+          if (
+            src &&
+            trackingKeywords.some((keyword) => src.includes(keyword))
+          ) {
+            node.remove();
+          }
+        }
+      });
+    });
+  });
+
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
+  return observer;
+};
+
+const restoreOriginalRequests = () => {
+  if (originalXhrOpen) {
+    XMLHttpRequest.prototype.open = originalXhrOpen;
+  }
+  if (originalFetch) {
+    window.fetch = originalFetch;
+  }
+};
 
 // Remove the import and export, make it a pure IIFE
 (function () {
@@ -34,14 +116,56 @@ import "./cookie-manager.css";
           cancel: "Cancel",
           ...(config?.translations || {}),
         },
+        disableAutomaticBlocking: false,
+        blockedDomains: [],
         ...configWithoutTranslations,
       };
 
       this.state = this.loadConsent();
+      this.observer = null;
+
+      // Initialize blocking based on current consent
+      this.initializeBlocking();
 
       // Log the CookieKitId
       if (this.config.cookieKitId) {
         console.log("CookieKit initialized with ID:", this.config.cookieKitId);
+      }
+    }
+
+    initializeBlocking() {
+      if (this.config.disableAutomaticBlocking) {
+        return;
+      }
+
+      // Get current preferences
+      const currentPreferences = this.state
+        ? {
+            analytics: this.state.analytics,
+            marketing: this.state.marketing,
+            preferences: this.state.preferences,
+          }
+        : null;
+
+      // Get blocked hosts and keywords based on preferences
+      const blockedHosts = [
+        ...getBlockedHosts(currentPreferences),
+        ...this.config.blockedDomains,
+      ];
+      const blockedKeywords = [
+        ...getBlockedKeywords(currentPreferences),
+        ...this.config.blockedDomains,
+      ];
+
+      if (blockedHosts.length > 0) {
+        blockTrackingRequests(blockedHosts);
+        this.observer = blockTrackingScripts(blockedKeywords);
+      } else {
+        restoreOriginalRequests();
+        if (this.observer) {
+          this.observer.disconnect();
+          this.observer = null;
+        }
       }
     }
 
@@ -85,6 +209,9 @@ import "./cookie-manager.css";
       );
 
       console.log("📝 Cookie saved, now removing UI elements");
+
+      // Reinitialize blocking based on new consent
+      this.initializeBlocking();
 
       // Animate out and then remove
       if (this.wrapper) {
