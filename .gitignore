@@ -32,3 +32,6 @@ dist-ssr
 
 # Next.js
 .next
+
+# Build artifacts
+*.zip
