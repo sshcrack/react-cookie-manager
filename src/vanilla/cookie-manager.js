@@ -16,6 +16,19 @@ import "./cookie-manager.css";
           marketing: true,
           preferences: true,
         },
+        translations: {
+          title: "Would You Like A Cookie? 🍪",
+          message:
+            "We use cookies to enhance your browsing experience and analyze our traffic.",
+          buttonText: "Accept All",
+          declineButtonText: "Decline All",
+          manageButtonText: "Customize",
+          privacyPolicyText: "Privacy Policy",
+          manageTitle: "Cookie Preferences",
+          manageMessage: "Choose which cookies you want to accept.",
+          savePreferences: "Save Preferences",
+          cancel: "Cancel",
+        },
         ...config,
       };
 
@@ -148,10 +161,10 @@ import "./cookie-manager.css";
             <div>
               <h2 class="text-sm font-semibold mb-2 ${
                 isLight ? "text-gray-900" : "text-white"
-              }">Would You Like A Cookie? 🍪</h2>
+              }">${this.config.translations.title}</h2>
               <p class="text-xs font-medium ${
                 isLight ? "text-gray-700" : "text-gray-200"
-              }">We use cookies to enhance your browsing experience and analyze our traffic.</p>
+              }">${this.config.translations.message}</p>
             </div>
             ${
               this.config.style === "popup"
@@ -163,14 +176,14 @@ import "./cookie-manager.css";
                         ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
                         : "bg-gray-800 hover:bg-gray-700 text-gray-300"
                     } transition-all duration-200 hover:scale-105">
-                      Decline All
+                      ${this.config.translations.declineButtonText}
                     </button>
                     <button class="accept-all flex-1 px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
-                      Accept All
+                      ${this.config.translations.buttonText}
                     </button>
                   </div>
                   <button class="customize w-full px-3 py-1.5 text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
-                    Customize
+                    ${this.config.translations.manageButtonText}
                   </button>
                 </div>
                 `
@@ -180,17 +193,17 @@ import "./cookie-manager.css";
                 } w-full gap-3">
                   <div class="flex items-center gap-3">
                     <button class="customize px-3 py-1.5 text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
-                      Customize
+                      ${this.config.translations.manageButtonText}
                     </button>
                     <button class="decline-all px-3 py-1.5 text-xs font-medium rounded-md ${
                       isLight
                         ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
                         : "bg-gray-800 hover:bg-gray-700 text-gray-300"
                     } transition-all duration-200 hover:scale-105">
-                      Decline All
+                      ${this.config.translations.declineButtonText}
                     </button>
                     <button class="accept-all px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
-                      Accept All
+                      ${this.config.translations.buttonText}
                     </button>
                   </div>
                 </div>
@@ -241,10 +254,10 @@ import "./cookie-manager.css";
             <div>
               <h3 class="text-sm font-semibold mb-2 ${
                 isLight ? "text-gray-900" : "text-white"
-              }">Cookie Preferences</h3>
+              }">${this.config.translations.manageTitle}</h3>
               <p class="text-xs ${
                 isLight ? "text-gray-700" : "text-gray-200"
-              }">Choose which cookies you want to accept.</p>
+              }">${this.config.translations.manageMessage}</p>
             </div>
 
             <div class="flex flex-col gap-4">
@@ -352,10 +365,10 @@ import "./cookie-manager.css";
 
             <div class="flex justify-end gap-3">
               <button class="cancel px-3 py-1.5 text-xs font-medium rounded-md border border-gray-500 text-gray-500 bg-transparent hover:text-gray-600 hover:border-gray-600 transition-all duration-200 hover:scale-105">
-                Cancel
+                ${this.config.translations.cancel}
               </button>
               <button class="save-preferences px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
-                Save Preferences
+                ${this.config.translations.savePreferences}
               </button>
             </div>
           </div>
