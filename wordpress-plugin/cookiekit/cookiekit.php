@@ -176,6 +176,7 @@ function cookiekit_settings_page() {
                     <td>
                         <input type="text" name="cookiekit_settings[cookie_name]" 
                                value="<?php echo esc_attr($settings['cookie_name']); ?>">
+                        <p class="description">The key name used to store cookie preferences in the browser's storage (e.g. "cookiekit_consent")</p>
                     </td>
                 </tr>
                 <tr>
@@ -184,7 +185,7 @@ function cookiekit_settings_page() {
                         <input type="text" name="cookiekit_settings[cookiekit_id]" 
                                value="<?php echo esc_attr($settings['cookiekit_id']); ?>"
                                placeholder="Enter your CookieKit ID">
-                        <p class="description">Your unique CookieKit identifier</p>
+                        <p class="description">Your unique project identifier from <a href="https://cookiekit.io" target="_blank">CookieKit</a></p>
                     </td>
                 </tr>
                 <tr>
