@@ -9,7 +9,8 @@ import "./cookie-manager.css";
         cookieName: "cookie_consent",
         cookieExpiration: 365,
         style: "banner", // banner, modal, or popup
-        theme: "light",
+        theme: "light", // light or dark
+        cookieKitId: "", // unique identifier
         categories: {
           analytics: true,
           marketing: true,
@@ -19,6 +20,11 @@ import "./cookie-manager.css";
       };
 
       this.state = this.loadConsent();
+
+      // Log the CookieKitId
+      if (this.config.cookieKitId) {
+        console.log("CookieKit initialized with ID:", this.config.cookieKitId);
+      }
     }
 
     injectStyles(cssContent) {
@@ -95,7 +101,8 @@ import "./cookie-manager.css";
       // Style-specific classes
       const styleClasses = {
         banner: "bottom-4 left-1/2 -translate-x-1/2 w-full md:max-w-2xl",
-        modal: "inset-0 flex items-center justify-center p-4",
+        modal:
+          "inset-0 flex items-center justify-center p-4 bg-black/20 backdrop-blur-[2px]",
         popup: "bottom-4 left-4 w-80",
       }[this.config.style];
 
@@ -139,6 +146,11 @@ import "./cookie-manager.css";
                 }">
                   Customize
                 </button>
+                <button class="decline-all px-3 py-1.5 text-xs font-medium rounded-md bg-gray-500 hover:bg-gray-600 text-white transition-all duration-200 hover:scale-105 ${
+                  this.config.style === "popup" ? "w-full justify-center" : ""
+                }">
+                  Decline All
+                </button>
                 <button class="accept-all px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105 ${
                   this.config.style === "popup" ? "w-full justify-center" : ""
                 }">
@@ -151,10 +163,14 @@ import "./cookie-manager.css";
       `;
 
       banner.querySelector(".accept-all").addEventListener("click", () => {
+        this.saveConsent(this.config.categories);
+      });
+
+      banner.querySelector(".decline-all").addEventListener("click", () => {
         this.saveConsent({
-          analytics: true,
-          marketing: true,
-          preferences: true,
+          analytics: false,
+          marketing: false,
+          preferences: false,
         });
       });
 
@@ -307,8 +323,10 @@ import "./cookie-manager.css";
 
       const overlay = document.createElement("div");
       overlay.className = `fixed inset-0 ${
-        this.config.style === "modal" ? "bg-black/20" : "bg-black/40"
-      } backdrop-blur-sm z-[9999] hidden`;
+        this.config.style === "modal"
+          ? "bg-black/20 backdrop-blur-[2px]"
+          : "bg-black/40"
+      } z-[9999] hidden transition-all duration-300`;
 
       modal.querySelector(".save-preferences").addEventListener("click", () => {
         const categories = {
@@ -319,6 +337,19 @@ import "./cookie-manager.css";
         this.saveConsent(categories);
         this.hideCustomizeModal();
       });
+
+      // Set initial state if exists
+      if (this.state) {
+        if (this.state.analytics) {
+          modal.querySelector('input[name="analytics"]').checked = true;
+        }
+        if (this.state.marketing) {
+          modal.querySelector('input[name="marketing"]').checked = true;
+        }
+        if (this.state.preferences) {
+          modal.querySelector('input[name="preferences"]').checked = true;
+        }
+      }
 
       modalWrapper.appendChild(overlay);
       modalWrapper.appendChild(modal);
