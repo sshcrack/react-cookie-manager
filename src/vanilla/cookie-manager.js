@@ -129,18 +129,21 @@ import "./cookie-manager.css";
       // Base classes for all styles
       const baseClasses = `fixed z-[9999] font-sans transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]`;
 
-      // Style-specific classes
-      const styleClasses = {
-        banner: "bottom-4 left-1/2 -translate-x-1/2 w-full md:max-w-2xl",
-        modal:
-          "inset-0 flex items-center justify-center p-4 bg-black/20 backdrop-blur-[2px]",
-        popup: "bottom-4 left-4 w-80",
+      // Mobile-first base positioning
+      const mobileClasses = "bottom-0 left-0 w-full";
+
+      // Desktop-specific classes
+      const desktopClasses = {
+        banner:
+          "md:bottom-4 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl",
+        modal: "md:inset-0 md:flex md:items-center md:justify-center md:p-4",
+        popup: "md:bottom-4 md:left-4 md:w-80",
       }[this.config.style];
 
-      banner.className = `${baseClasses} ${styleClasses}`;
+      banner.className = `${baseClasses} ${mobileClasses} ${desktopClasses}`;
 
       const contentBaseClasses = `
-        rounded-lg backdrop-blur-sm backdrop-saturate-150 
+        rounded-t-lg md:rounded-lg backdrop-blur-sm backdrop-saturate-150 
         ${
           isLight
             ? "bg-white/95 border border-black/10 shadow-lg"
@@ -148,11 +151,13 @@ import "./cookie-manager.css";
         }
       `;
 
-      // Add style-specific content modifiers
+      // Content-specific classes
       const contentClasses = {
-        banner: "p-4 hover:-translate-y-2 transition-transform duration-500",
-        modal: "w-full max-w-lg p-6",
-        popup: "p-4 hover:-translate-y-2 transition-transform duration-500",
+        banner:
+          "p-4 md:hover:-translate-y-2 md:transition-transform md:duration-500",
+        modal: "p-4 md:w-full md:max-w-lg md:p-6",
+        popup:
+          "p-4 md:hover:-translate-y-2 md:transition-transform md:duration-500",
       }[this.config.style];
 
       banner.innerHTML = `
@@ -170,7 +175,17 @@ import "./cookie-manager.css";
               this.config.style === "popup"
                 ? `
                 <div class="flex flex-col gap-3 w-full">
-                  <div class="flex items-center gap-3">
+                  <button class="accept-all w-full md:hidden px-4 py-2.5 text-sm font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
+                    ${this.config.translations.buttonText}
+                  </button>
+                  <button class="decline-all w-full md:hidden px-4 py-2.5 text-sm font-medium rounded-md ${
+                    isLight
+                      ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                      : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                  } transition-all duration-200 hover:scale-105">
+                    ${this.config.translations.declineButtonText}
+                  </button>
+                  <div class="hidden md:flex items-center gap-3">
                     <button class="decline-all flex-1 px-3 py-1.5 text-xs font-medium rounded-md ${
                       isLight
                         ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
@@ -182,27 +197,25 @@ import "./cookie-manager.css";
                       ${this.config.translations.buttonText}
                     </button>
                   </div>
-                  <button class="customize w-full px-3 py-1.5 text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
+                  <button class="customize w-full px-4 py-2.5 md:px-3 md:py-1.5 text-sm md:text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
                     ${this.config.translations.manageButtonText}
                   </button>
                 </div>
                 `
                 : `
-                <div class="flex items-center ${
-                  this.config.style === "popup" ? "flex-col" : "justify-between"
-                } w-full gap-3">
-                  <div class="flex items-center gap-3">
-                    <button class="customize px-3 py-1.5 text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between w-full gap-3">
+                  <div class="flex flex-col md:flex-row md:items-center gap-3">
+                    <button class="customize w-full md:w-auto px-4 py-2.5 md:px-3 md:py-1.5 text-sm md:text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
                       ${this.config.translations.manageButtonText}
                     </button>
-                    <button class="decline-all px-3 py-1.5 text-xs font-medium rounded-md ${
+                    <button class="decline-all w-full md:w-auto px-4 py-2.5 md:px-3 md:py-1.5 text-sm md:text-xs font-medium rounded-md ${
                       isLight
                         ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
                         : "bg-gray-800 hover:bg-gray-700 text-gray-300"
                     } transition-all duration-200 hover:scale-105">
                       ${this.config.translations.declineButtonText}
                     </button>
-                    <button class="accept-all px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
+                    <button class="accept-all w-full md:w-auto px-4 py-2.5 md:px-3 md:py-1.5 text-sm md:text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
                       ${this.config.translations.buttonText}
                     </button>
                   </div>
