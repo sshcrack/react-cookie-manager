@@ -9,7 +9,7 @@ import "./cookie-manager.css";
         cookieName: "cookie_consent",
         cookieExpiration: 365,
         position: "bottom",
-        primaryColor: "#007bff",
+        theme: "light",
         categories: {
           analytics: true,
           marketing: true,
@@ -87,23 +87,45 @@ import "./cookie-manager.css";
       wrapper.className = "cookie-manager";
 
       const banner = document.createElement("div");
-      banner.className = `fixed z-[9999] font-sans ${
+      const isLight = this.config.theme === "light";
+
+      banner.className = `fixed z-[9999] font-sans w-full md:max-w-2xl left-1/2 -translate-x-1/2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
         this.config.position === "top"
-          ? "top-0 left-0 right-0 shadow-md"
+          ? "top-4"
           : this.config.position === "floating"
-          ? "bottom-5 left-5 right-5 max-w-md mx-auto rounded-lg shadow-lg"
-          : "bottom-0 left-0 right-0 shadow-md"
+          ? "bottom-4 max-w-md"
+          : "bottom-4"
       }`;
-      banner.setAttribute("data-position", this.config.position);
+
       banner.innerHTML = `
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8 p-4 bg-white">
-          <div>
-            <h2 class="text-xl font-semibold text-gray-900 mb-2">Would you like to accept cookies?</h2>
-            <p class="text-gray-600">We use cookies to enhance your browsing experience and analyze our traffic.</p>
-          </div>
-          <div class="flex gap-4">
-            <button class="accept-all px-4 py-2 rounded-md font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">Accept All</button>
-            <button class="customize px-4 py-2 rounded-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Customize</button>
+        <div class="
+          rounded-lg backdrop-blur-sm backdrop-saturate-150 
+          ${
+            isLight
+              ? "bg-white/95 border border-black/10 shadow-lg"
+              : "bg-black/95 ring-1 ring-white/10"
+          }
+          p-4 hover:-translate-y-2 transition-transform duration-500
+        ">
+          <div class="flex flex-col gap-4">
+            <div>
+              <h2 class="text-sm font-semibold mb-1 ${
+                isLight ? "text-gray-900" : "text-white"
+              }">Would you like to accept cookies?</h2>
+              <p class="text-xs sm:text-sm font-medium text-center sm:text-left ${
+                isLight ? "text-gray-700" : "text-gray-200"
+              }">We use cookies to enhance your browsing experience and analyze our traffic.</p>
+            </div>
+            <div class="flex items-center justify-between w-full">
+              <div class="flex items-center gap-3">
+                <button class="customize px-3 py-1.5 text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
+                  Customize
+                </button>
+                <button class="accept-all px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
+                  Accept All
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -130,48 +152,142 @@ import "./cookie-manager.css";
       const modalWrapper = document.createElement("div");
       modalWrapper.className = "cookie-manager";
 
+      const isLight = this.config.theme === "light";
+
       const modal = document.createElement("div");
       modal.className =
-        "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg bg-white p-8 rounded-xl shadow-2xl z-[10000] hidden";
+        "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg z-[10000] hidden";
       modal.innerHTML = `
-        <h2 class="text-2xl font-semibold text-gray-900 mb-6">Cookie Preferences</h2>
-        <div class="space-y-4">
-          <div class="p-4 bg-gray-50 rounded-lg">
-            <label class="flex items-center gap-2 font-medium text-gray-900">
-              <input type="checkbox" name="analytics" ${
-                this.config.categories.analytics ? "checked" : ""
-              } class="w-4 h-4 rounded text-blue-600">
-              Analytics
-            </label>
-            <p class="mt-2 text-gray-600">Help us understand how visitors interact with our website.</p>
+        <div class="rounded-xl p-6 ${
+          isLight
+            ? "bg-white/95 ring-2 ring-gray-200"
+            : "bg-black/95 ring-1 ring-white/10"
+        }">
+          <div class="flex flex-col gap-6">
+            <div>
+              <h3 class="text-sm font-semibold mb-2 ${
+                isLight ? "text-gray-900" : "text-white"
+              }">Cookie Preferences</h3>
+              <p class="text-xs ${
+                isLight ? "text-gray-700" : "text-gray-200"
+              }">Choose which cookies you want to accept.</p>
+            </div>
+
+            <div class="flex flex-col gap-4">
+              <!-- Essential Cookies -->
+              <div class="flex items-start justify-between">
+                <div>
+                  <h4 class="text-xs font-medium text-left ${
+                    isLight ? "text-gray-900" : "text-white"
+                  }">Essential</h4>
+                  <p class="text-xs text-left ${
+                    isLight ? "text-gray-600" : "text-gray-400"
+                  }">Required for the website to function properly.</p>
+                  <p class="text-xs mt-1 text-left text-gray-500">Always enabled</p>
+                </div>
+                <div class="px-3 py-1 text-xs text-center font-medium rounded-full ${
+                  isLight
+                    ? "bg-gray-200 text-gray-600"
+                    : "bg-gray-800 text-gray-300"
+                }">
+                  Required
+                </div>
+              </div>
+
+              <!-- Analytics Cookies -->
+              <div class="flex items-start justify-between">
+                <div>
+                  <h4 class="text-xs font-medium text-left ${
+                    isLight ? "text-gray-900" : "text-white"
+                  }">Analytics</h4>
+                  <p class="text-xs text-left ${
+                    isLight ? "text-gray-600" : "text-gray-400"
+                  }">Help us understand how visitors interact with our website.</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" name="analytics" ${
+                    this.config.categories.analytics ? "checked" : ""
+                  } class="sr-only peer">
+                  <div class="w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
+                    ${
+                      isLight
+                        ? "bg-gray-200 peer-checked:bg-blue-500"
+                        : "bg-gray-700 peer-checked:bg-blue-500"
+                    } 
+                    peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
+                    after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
+                    after:transition-all">
+                  </div>
+                </label>
+              </div>
+
+              <!-- Marketing Cookies -->
+              <div class="flex items-start justify-between">
+                <div>
+                  <h4 class="text-xs font-medium text-left ${
+                    isLight ? "text-gray-900" : "text-white"
+                  }">Marketing</h4>
+                  <p class="text-xs text-left ${
+                    isLight ? "text-gray-600" : "text-gray-400"
+                  }">Allow us to personalize your experience and send you relevant content.</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" name="marketing" ${
+                    this.config.categories.marketing ? "checked" : ""
+                  } class="sr-only peer">
+                  <div class="w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
+                    ${
+                      isLight
+                        ? "bg-gray-200 peer-checked:bg-blue-500"
+                        : "bg-gray-700 peer-checked:bg-blue-500"
+                    } 
+                    peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
+                    after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
+                    after:transition-all">
+                  </div>
+                </label>
+              </div>
+
+              <!-- Preferences Cookies -->
+              <div class="flex items-start justify-between">
+                <div>
+                  <h4 class="text-xs font-medium text-left ${
+                    isLight ? "text-gray-900" : "text-white"
+                  }">Preferences</h4>
+                  <p class="text-xs text-left ${
+                    isLight ? "text-gray-600" : "text-gray-400"
+                  }">Remember your settings and provide enhanced functionality.</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" name="preferences" ${
+                    this.config.categories.preferences ? "checked" : ""
+                  } class="sr-only peer">
+                  <div class="w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
+                    ${
+                      isLight
+                        ? "bg-gray-200 peer-checked:bg-blue-500"
+                        : "bg-gray-700 peer-checked:bg-blue-500"
+                    } 
+                    peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
+                    after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
+                    after:transition-all">
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="flex justify-end">
+              <button class="save-preferences px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
+                Save Preferences
+              </button>
+            </div>
           </div>
-          <div class="p-4 bg-gray-50 rounded-lg">
-            <label class="flex items-center gap-2 font-medium text-gray-900">
-              <input type="checkbox" name="marketing" ${
-                this.config.categories.marketing ? "checked" : ""
-              } class="w-4 h-4 rounded text-blue-600">
-              Marketing
-            </label>
-            <p class="mt-2 text-gray-600">Allow us to personalize your experience and send you relevant content.</p>
-          </div>
-          <div class="p-4 bg-gray-50 rounded-lg">
-            <label class="flex items-center gap-2 font-medium text-gray-900">
-              <input type="checkbox" name="preferences" ${
-                this.config.categories.preferences ? "checked" : ""
-              } class="w-4 h-4 rounded text-blue-600">
-              Preferences
-            </label>
-            <p class="mt-2 text-gray-600">Remember your settings and provide enhanced functionality.</p>
-          </div>
-        </div>
-        <div class="mt-8 flex justify-end">
-          <button class="save-preferences px-6 py-2 rounded-md font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">Save Preferences</button>
         </div>
       `;
 
       const overlay = document.createElement("div");
       overlay.className =
-        "fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] hidden";
+        "fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] hidden";
 
       modal.querySelector(".save-preferences").addEventListener("click", () => {
         const categories = {
