@@ -5,6 +5,10 @@ import "./cookie-manager.css";
 (function () {
   class CookieManager {
     constructor(config) {
+      // Create a copy of config without translations to prevent overwriting
+      const configWithoutTranslations = { ...(config || {}) };
+      delete configWithoutTranslations.translations;
+
       this.config = {
         cookieName: "cookie_consent",
         cookieExpiration: 365,
@@ -28,8 +32,9 @@ import "./cookie-manager.css";
           manageMessage: "Choose which cookies you want to accept.",
           savePreferences: "Save Preferences",
           cancel: "Cancel",
+          ...(config?.translations || {}),
         },
-        ...config,
+        ...configWithoutTranslations,
       };
 
       this.state = this.loadConsent();
@@ -129,18 +134,25 @@ import "./cookie-manager.css";
       // Base classes for all styles
       const baseClasses = `fixed z-[9999] font-sans transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]`;
 
-      // Mobile-first base positioning
-      const mobileClasses = "bottom-0 left-0 w-full";
+      // Mobile-first base positioning - start from below screen and animate up
+      const mobileClasses =
+        "bottom-0 left-0 w-full translate-y-full animate-in duration-500";
 
       // Desktop-specific classes
       const desktopClasses = {
         banner:
-          "md:bottom-4 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-2xl",
-        modal: "md:inset-0 md:flex md:items-center md:justify-center md:p-4",
-        popup: "md:bottom-4 md:left-4 md:w-80",
+          "md:bottom-4 md:left-1/2 md:-translate-x-1/2 md:translate-y-0 md:w-full md:max-w-2xl",
+        modal:
+          "md:inset-0 md:flex md:items-center md:justify-center md:p-4 md:translate-y-0",
+        popup: "md:bottom-4 md:left-4 md:translate-y-0 md:w-80",
       }[this.config.style];
 
       banner.className = `${baseClasses} ${mobileClasses} ${desktopClasses}`;
+
+      // Trigger the animation after a brief delay
+      setTimeout(() => {
+        banner.classList.remove("translate-y-full");
+      }, 100);
 
       const contentBaseClasses = `
         rounded-t-lg md:rounded-lg backdrop-blur-sm backdrop-saturate-150 
@@ -164,10 +176,10 @@ import "./cookie-manager.css";
         <div class="${contentBaseClasses} ${contentClasses}">
           <div class="flex flex-col gap-4">
             <div>
-              <h2 class="text-sm font-semibold mb-2 ${
+              <h2 class="text-base md:text-sm font-semibold mb-2 ${
                 isLight ? "text-gray-900" : "text-white"
               }">${this.config.translations.title}</h2>
-              <p class="text-xs font-medium ${
+              <p class="text-sm md:text-xs font-medium ${
                 isLight ? "text-gray-700" : "text-gray-200"
               }">${this.config.translations.message}</p>
             </div>
@@ -412,15 +424,20 @@ import "./cookie-manager.css";
 
       // Set initial state if exists
       if (this.state) {
-        if (this.state.analytics) {
-          modal.querySelector('input[name="analytics"]').checked = true;
-        }
-        if (this.state.marketing) {
-          modal.querySelector('input[name="marketing"]').checked = true;
-        }
-        if (this.state.preferences) {
-          modal.querySelector('input[name="preferences"]').checked = true;
-        }
+        modal.querySelector('input[name="analytics"]').checked =
+          this.state.analytics;
+        modal.querySelector('input[name="marketing"]').checked =
+          this.state.marketing;
+        modal.querySelector('input[name="preferences"]').checked =
+          this.state.preferences;
+      } else {
+        // Use default values from config
+        modal.querySelector('input[name="analytics"]').checked =
+          this.config.categories.analytics;
+        modal.querySelector('input[name="marketing"]').checked =
+          this.config.categories.marketing;
+        modal.querySelector('input[name="preferences"]').checked =
+          this.config.categories.preferences;
       }
 
       modalWrapper.appendChild(overlay);
