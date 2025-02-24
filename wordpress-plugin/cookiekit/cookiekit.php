@@ -26,7 +26,7 @@ function cookiekit_enqueue_scripts() {
     // Load our plugin's JS first
     wp_enqueue_script(
         'cookiekit-main',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.733d8e39.js',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.f857f32b.js',
         array(),
         null, // Version will be part of the filename
         false // Load in header
@@ -35,7 +35,7 @@ function cookiekit_enqueue_scripts() {
     // Then enqueue our plugin's CSS
     wp_enqueue_style(
         'cookiekit-styles',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.733d8e39.css',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.f857f32b.css',
         array(),
         null // Version will be part of the filename
     );
@@ -69,6 +69,7 @@ function cookiekit_register_settings() {
             'theme' => 'light',
             'cookiekit_id' => '',
             'version_hash' => 'v1_' . substr(md5(COOKIEKIT_VERSION . time()), 0, 8),
+            'allowed_domains' => '',
             'text_settings' => array(
                 'title' => 'Would You Like A Cookie? 🍪',
                 'message' => 'We use cookies to enhance your browsing experience and analyze our traffic.',
@@ -169,6 +170,17 @@ function cookiekit_settings_page() {
                     <td>
                         <input type="number" name="cookiekit_settings[cookie_expiration]" 
                                value="<?php echo esc_attr($settings['cookie_expiration']); ?>" min="1" max="365">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Allowed Domains</th>
+                    <td>
+                        <textarea class="large-text" rows="4" 
+                                 name="cookiekit_settings[allowed_domains]"
+                                 placeholder="example.com&#10;api.example.com&#10;cdn.example.com"><?php 
+                            echo isset($settings['allowed_domains']) ? esc_textarea($settings['allowed_domains']) : ''; 
+                        ?></textarea>
+                        <p class="description">Enter one domain per line. These domains will not be blocked, even if consent is not given. Do not include http:// or https://</p>
                     </td>
                 </tr>
                 <tr>
@@ -361,6 +373,12 @@ function cookiekit_init() {
                 style: '<?php echo esc_js($settings['style']); ?>',
                 theme: '<?php echo esc_js($settings['theme']); ?>',
                 cookieKitId: '<?php echo esc_js($settings['cookiekit_id']); ?>',
+                allowedDomains: <?php 
+                    $allowed = isset($settings['allowed_domains']) && !empty($settings['allowed_domains']) 
+                        ? array_filter(array_map('trim', explode("\n", $settings['allowed_domains'])))
+                        : array();
+                    echo json_encode($allowed);
+                ?>,
                 translations: {
                     title: '<?php echo esc_js($text_settings['title']); ?>',
                     message: '<?php echo esc_js($text_settings['message']); ?>',
@@ -393,6 +411,7 @@ function cookiekit_activate() {
             'theme' => 'light',
             'cookiekit_id' => '',
             'version_hash' => 'v1_' . substr(md5(COOKIEKIT_VERSION . time()), 0, 8),
+            'allowed_domains' => '',
             'text_settings' => array(
                 'title' => 'Would You Like A Cookie? 🍪',
                 'message' => 'We use cookies to enhance your browsing experience and analyze our traffic.',

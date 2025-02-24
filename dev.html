@@ -70,10 +70,22 @@
 
       // Function to check if URL should be blocked
       function shouldBlockRequest(url) {
+        const urlString = url.toString();
+
+        // Check if domain is in allowed domains - these are never blocked
+        const allowedDomains = [
+          "google-analytics.com",
+          "analytics.google.com",
+          "www.google-analytics.com",
+        ];
+
+        if (allowedDomains.some((domain) => urlString.includes(domain))) {
+          console.log("✅ Request allowed by allowlist:", urlString);
+          return false;
+        }
+
         const consent = getCurrentConsent();
         if (!consent) return true; // Block if no consent
-
-        const urlString = url.toString();
 
         // Check analytics
         if (!consent.analytics && urlString.includes("google-analytics")) {
@@ -363,6 +375,12 @@
         console.log("🔄 Reinitializing CookieKit with config:", config);
 
         window.CookieKit.init({
+          ...config,
+          allowedDomains: [
+            "google-analytics.com",
+            "analytics.google.com",
+            "www.google-analytics.com",
+          ],
           translations: {
             title: "Cookie Settings 🍪",
             message:
@@ -389,7 +407,6 @@
           },
           showManageButton: true,
           privacyPolicyUrl: "https://example.com/privacy",
-          ...config,
         });
       }
 

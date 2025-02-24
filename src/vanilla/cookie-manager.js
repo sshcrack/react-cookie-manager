@@ -18,8 +18,22 @@ const blockTrackingRequests = (blockedHosts) => {
   // Override XMLHttpRequest to block requests to tracking domains
   XMLHttpRequest.prototype.open = function (method, url) {
     const urlString = url.toString();
+
+    // Check if domain is whitelisted
+    if (window.CookieKit.manager?.config.allowedDomains?.length > 0) {
+      if (
+        window.CookieKit.manager.config.allowedDomains.some((domain) =>
+          urlString.includes(domain)
+        )
+      ) {
+        console.log("✅ Request allowed by allowlist:", urlString);
+        return originalXhrOpen.apply(this, arguments);
+      }
+    }
+
     if (blockedHosts.some((host) => urlString.includes(host))) {
-      return;
+      console.log("🚫 Request blocked:", urlString);
+      throw new Error("Request blocked by consent settings");
     }
     return originalXhrOpen.apply(this, arguments);
   };
@@ -27,10 +41,24 @@ const blockTrackingRequests = (blockedHosts) => {
   // Override fetch API to block tracking requests
   window.fetch = function (url, options) {
     const urlString = url.toString();
+
+    // Check if domain is whitelisted
+    if (window.CookieKit.manager?.config.allowedDomains?.length > 0) {
+      if (
+        window.CookieKit.manager.config.allowedDomains.some((domain) =>
+          urlString.includes(domain)
+        )
+      ) {
+        console.log("✅ Request allowed by allowlist:", urlString);
+        return originalFetch.apply(this, arguments);
+      }
+    }
+
     if (
       typeof urlString === "string" &&
       blockedHosts.some((host) => urlString.includes(host))
     ) {
+      console.log("🚫 Request blocked:", urlString);
       return Promise.resolve(
         new Response(null, { status: 403, statusText: "Blocked" })
       );
@@ -102,6 +130,7 @@ const restoreOriginalRequests = () => {
           marketing: true,
           preferences: true,
         },
+        allowedDomains: [], // Domains that should never be blocked
         translations: {
           title: "Would You Like A Cookie? 🍪",
           message:
@@ -131,6 +160,62 @@ const restoreOriginalRequests = () => {
       if (this.config.cookieKitId) {
         console.log("CookieKit initialized with ID:", this.config.cookieKitId);
       }
+
+      // Override fetch before anything else loads
+      const originalFetch = window.fetch;
+      window.fetch = function (url, options) {
+        const urlString = url.toString();
+        console.log("🔍 Intercepted fetch request to:", urlString);
+
+        // Check if domain is whitelisted
+        if (window.CookieKit.manager?.config.allowedDomains?.length > 0) {
+          if (
+            window.CookieKit.manager.config.allowedDomains.some((domain) =>
+              urlString.includes(domain)
+            )
+          ) {
+            console.log("✅ Request allowed by allowlist:", urlString);
+            return originalFetch.apply(this, arguments);
+          }
+        }
+
+        if (shouldBlockRequest(url)) {
+          console.log("🚫 Request blocked by consent settings");
+          return Promise.resolve(
+            new Response(null, {
+              status: 403,
+              statusText: "Blocked by consent settings",
+            })
+          );
+        }
+
+        return originalFetch.apply(this, arguments);
+      };
+
+      // Override XHR
+      const originalXHROpen = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function (method, url) {
+        console.log("🔍 Intercepted XHR request to:", url);
+
+        // Check if domain is whitelisted
+        if (window.CookieKit.manager?.config.allowedDomains?.length > 0) {
+          if (
+            window.CookieKit.manager.config.allowedDomains.some((domain) =>
+              url.includes(domain)
+            )
+          ) {
+            console.log("✅ Request allowed by allowlist:", url);
+            return originalXHROpen.apply(this, arguments);
+          }
+        }
+
+        if (shouldBlockRequest(url)) {
+          console.log("🚫 Request blocked by consent settings");
+          throw new Error("Request blocked by consent settings");
+        }
+
+        return originalXHROpen.apply(this, arguments);
+      };
     }
 
     initializeBlocking() {
@@ -621,6 +706,47 @@ const restoreOriginalRequests = () => {
       } else {
         console.log("✅ Existing consent found:", this.state);
       }
+    }
+
+    // Function to check if URL should be blocked
+    shouldBlockRequest(url) {
+      const urlString = url.toString();
+
+      // Check if domain is in allowed domains - these are never blocked
+      if (this.config.allowedDomains?.length > 0) {
+        if (
+          this.config.allowedDomains.some((domain) =>
+            urlString.includes(domain)
+          )
+        ) {
+          console.log("✅ Request allowed by allowlist:", urlString);
+          return false;
+        }
+      }
+
+      // Get consent state
+      const consent = this.state;
+      if (!consent) {
+        console.log("🚫 No consent given, blocking request:", urlString);
+        return true;
+      }
+
+      // Check analytics
+      if (!consent.analytics && urlString.includes("google-analytics")) {
+        console.log("🚫 Blocking analytics request:", urlString);
+        return true;
+      }
+
+      // Check marketing
+      if (
+        !consent.marketing &&
+        (urlString.includes("twitter") || urlString.includes("doubleclick"))
+      ) {
+        console.log("🚫 Blocking marketing request:", urlString);
+        return true;
+      }
+
+      return false;
     }
   }
 
