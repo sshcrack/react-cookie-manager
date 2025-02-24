@@ -146,36 +146,56 @@ import "./cookie-manager.css";
         <div class="${contentBaseClasses} ${contentClasses}">
           <div class="flex flex-col gap-4">
             <div>
-              <h2 class="text-sm font-semibold mb-1 ${
+              <h2 class="text-sm font-semibold mb-2 ${
                 isLight ? "text-gray-900" : "text-white"
-              }">Would you like to accept cookies?</h2>
-              <p class="text-xs sm:text-sm font-medium text-center sm:text-left ${
+              }">Would You Like A Cookie? 🍪</h2>
+              <p class="text-xs font-medium ${
                 isLight ? "text-gray-700" : "text-gray-200"
               }">We use cookies to enhance your browsing experience and analyze our traffic.</p>
             </div>
-            <div class="flex items-center ${
-              this.config.style === "popup" ? "flex-col" : "justify-between"
-            } w-full gap-3">
-              <div class="flex items-center gap-3 ${
-                this.config.style === "popup" ? "w-full" : ""
-              }">
-                <button class="customize px-3 py-1.5 text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105 ${
-                  this.config.style === "popup" ? "w-full justify-center" : ""
-                }">
-                  Customize
-                </button>
-                <button class="decline-all px-3 py-1.5 text-xs font-medium rounded-md bg-gray-500 hover:bg-gray-600 text-white transition-all duration-200 hover:scale-105 ${
-                  this.config.style === "popup" ? "w-full justify-center" : ""
-                }">
-                  Decline All
-                </button>
-                <button class="accept-all px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105 ${
-                  this.config.style === "popup" ? "w-full justify-center" : ""
-                }">
-                  Accept All
-                </button>
-              </div>
-            </div>
+            ${
+              this.config.style === "popup"
+                ? `
+                <div class="flex flex-col gap-3 w-full">
+                  <div class="flex items-center gap-3">
+                    <button class="decline-all flex-1 px-3 py-1.5 text-xs font-medium rounded-md ${
+                      isLight
+                        ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                        : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                    } transition-all duration-200 hover:scale-105">
+                      Decline All
+                    </button>
+                    <button class="accept-all flex-1 px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
+                      Accept All
+                    </button>
+                  </div>
+                  <button class="customize w-full px-3 py-1.5 text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
+                    Customize
+                  </button>
+                </div>
+                `
+                : `
+                <div class="flex items-center ${
+                  this.config.style === "popup" ? "flex-col" : "justify-between"
+                } w-full gap-3">
+                  <div class="flex items-center gap-3">
+                    <button class="customize px-3 py-1.5 text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
+                      Customize
+                    </button>
+                    <button class="decline-all px-3 py-1.5 text-xs font-medium rounded-md ${
+                      isLight
+                        ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                        : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                    } transition-all duration-200 hover:scale-105">
+                      Decline All
+                    </button>
+                    <button class="accept-all px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
+                      Accept All
+                    </button>
+                  </div>
+                </div>
+                `
+            }
           </div>
         </div>
       `;
