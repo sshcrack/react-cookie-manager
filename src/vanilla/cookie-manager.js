@@ -420,24 +420,25 @@ import "./cookie-manager.css";
 
   // Expose to global scope
   window.CookieKit = {
+    manager: null,
     init: (config) => {
       console.log("🌟 CookieKit.init called with config:", config);
-      const manager = new CookieManager(config);
-      manager.init();
+      window.CookieKit.manager = new CookieManager(config);
+      window.CookieKit.manager.init();
       console.log("🎉 CookieKit initialization complete");
     },
     showBanner: () => {
       console.log("🎯 Show banner requested");
-      const manager = new CookieManager({});
-      manager.createBanner();
-      manager.createCustomizeModal();
+      if (window.CookieKit.manager) {
+        window.CookieKit.manager.createBanner();
+        window.CookieKit.manager.createCustomizeModal();
+      }
     },
     showCustomizeModal: () => {
       console.log("🎯 Show customize modal requested");
-      const manager = new CookieManager({});
-      manager.createBanner();
-      manager.createCustomizeModal();
-      manager.showCustomizeModal();
+      if (window.CookieKit.manager) {
+        window.CookieKit.manager.showCustomizeModal();
+      }
     },
     resetConsent: () => {
       console.log("🔄 Reset consent requested");
