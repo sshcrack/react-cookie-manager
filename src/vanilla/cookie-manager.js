@@ -1,4 +1,4 @@
-// Import styles
+// Import Tailwind styles
 import "./cookie-manager.css";
 
 // Remove the import and export, make it a pure IIFE
@@ -87,36 +87,38 @@ import "./cookie-manager.css";
       wrapper.className = "cookie-manager";
 
       const banner = document.createElement("div");
-      banner.className = "cookiekit-banner";
+      banner.className = `fixed z-[9999] font-sans ${
+        this.config.position === "top"
+          ? "top-0 left-0 right-0 shadow-md"
+          : this.config.position === "floating"
+          ? "bottom-5 left-5 right-5 max-w-md mx-auto rounded-lg shadow-lg"
+          : "bottom-0 left-0 right-0 shadow-md"
+      }`;
       banner.setAttribute("data-position", this.config.position);
       banner.innerHTML = `
-        <div class="cookiekit-content">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8 p-4 bg-white">
           <div>
-            <h2>Would you like to accept cookies?</h2>
-            <p>We use cookies to enhance your browsing experience and analyze our traffic.</p>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Would you like to accept cookies?</h2>
+            <p class="text-gray-600">We use cookies to enhance your browsing experience and analyze our traffic.</p>
           </div>
-          <div class="cookiekit-buttons">
-            <button class="cookiekit-button cookiekit-accept">Accept All</button>
-            <button class="cookiekit-button cookiekit-customize">Customize</button>
+          <div class="flex gap-4">
+            <button class="accept-all px-4 py-2 rounded-md font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">Accept All</button>
+            <button class="customize px-4 py-2 rounded-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors">Customize</button>
           </div>
         </div>
       `;
 
-      banner
-        .querySelector(".cookiekit-accept")
-        .addEventListener("click", () => {
-          this.saveConsent({
-            analytics: true,
-            marketing: true,
-            preferences: true,
-          });
+      banner.querySelector(".accept-all").addEventListener("click", () => {
+        this.saveConsent({
+          analytics: true,
+          marketing: true,
+          preferences: true,
         });
+      });
 
-      banner
-        .querySelector(".cookiekit-customize")
-        .addEventListener("click", () => {
-          this.showCustomizeModal();
-        });
+      banner.querySelector(".customize").addEventListener("click", () => {
+        this.showCustomizeModal();
+      });
 
       wrapper.appendChild(banner);
       document.body.appendChild(wrapper);
@@ -129,45 +131,49 @@ import "./cookie-manager.css";
       modalWrapper.className = "cookie-manager";
 
       const modal = document.createElement("div");
-      modal.className = "cookiekit-modal hidden";
+      modal.className =
+        "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg bg-white p-8 rounded-xl shadow-2xl z-[10000] hidden";
       modal.innerHTML = `
-        <h2>Cookie Preferences</h2>
-        <div class="cookiekit-category">
-          <label>
-            <input type="checkbox" name="analytics" ${
-              this.config.categories.analytics ? "checked" : ""
-            }>
-            Analytics
-          </label>
-          <p>Help us understand how visitors interact with our website.</p>
+        <h2 class="text-2xl font-semibold text-gray-900 mb-6">Cookie Preferences</h2>
+        <div class="space-y-4">
+          <div class="p-4 bg-gray-50 rounded-lg">
+            <label class="flex items-center gap-2 font-medium text-gray-900">
+              <input type="checkbox" name="analytics" ${
+                this.config.categories.analytics ? "checked" : ""
+              } class="w-4 h-4 rounded text-blue-600">
+              Analytics
+            </label>
+            <p class="mt-2 text-gray-600">Help us understand how visitors interact with our website.</p>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-lg">
+            <label class="flex items-center gap-2 font-medium text-gray-900">
+              <input type="checkbox" name="marketing" ${
+                this.config.categories.marketing ? "checked" : ""
+              } class="w-4 h-4 rounded text-blue-600">
+              Marketing
+            </label>
+            <p class="mt-2 text-gray-600">Allow us to personalize your experience and send you relevant content.</p>
+          </div>
+          <div class="p-4 bg-gray-50 rounded-lg">
+            <label class="flex items-center gap-2 font-medium text-gray-900">
+              <input type="checkbox" name="preferences" ${
+                this.config.categories.preferences ? "checked" : ""
+              } class="w-4 h-4 rounded text-blue-600">
+              Preferences
+            </label>
+            <p class="mt-2 text-gray-600">Remember your settings and provide enhanced functionality.</p>
+          </div>
         </div>
-        <div class="cookiekit-category">
-          <label>
-            <input type="checkbox" name="marketing" ${
-              this.config.categories.marketing ? "checked" : ""
-            }>
-            Marketing
-          </label>
-          <p>Allow us to personalize your experience and send you relevant content.</p>
-        </div>
-        <div class="cookiekit-category">
-          <label>
-            <input type="checkbox" name="preferences" ${
-              this.config.categories.preferences ? "checked" : ""
-            }>
-            Preferences
-          </label>
-          <p>Remember your settings and provide enhanced functionality.</p>
-        </div>
-        <div class="cookiekit-buttons">
-          <button class="cookiekit-button cookiekit-save">Save Preferences</button>
+        <div class="mt-8 flex justify-end">
+          <button class="save-preferences px-6 py-2 rounded-md font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors">Save Preferences</button>
         </div>
       `;
 
       const overlay = document.createElement("div");
-      overlay.className = "cookiekit-overlay hidden";
+      overlay.className =
+        "fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] hidden";
 
-      modal.querySelector(".cookiekit-save").addEventListener("click", () => {
+      modal.querySelector(".save-preferences").addEventListener("click", () => {
         const categories = {
           analytics: modal.querySelector('input[name="analytics"]').checked,
           marketing: modal.querySelector('input[name="marketing"]').checked,
@@ -201,10 +207,6 @@ import "./cookie-manager.css";
 
     init() {
       if (!this.state) {
-        document.documentElement.style.setProperty(
-          "--cookiekit-primary-color",
-          this.config.primaryColor
-        );
         this.createBanner();
         this.createCustomizeModal();
       }
