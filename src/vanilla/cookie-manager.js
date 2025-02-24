@@ -83,16 +83,32 @@ import "./cookie-manager.css";
         JSON.stringify(categories),
         this.config.cookieExpiration
       );
+
       console.log("📝 Cookie saved, now removing UI elements");
 
-      // Hide both banner and modal completely
+      // Animate out and then remove
       if (this.wrapper) {
         console.log("🗑️ Removing banner wrapper");
-        this.wrapper.remove();
+        const banner = this.wrapper.querySelector('div[class*="fixed"]');
+        if (banner) {
+          // Add translate-y-full to animate down
+          banner.classList.add("translate-y-full");
+          // Wait for animation to complete before removing
+          setTimeout(() => {
+            this.wrapper.remove();
+          }, 500); // Match the duration in the CSS transition
+        } else {
+          this.wrapper.remove();
+        }
       }
+
       if (this.modalWrapper) {
         console.log("🗑️ Removing modal wrapper");
-        this.modalWrapper.remove();
+        // Fade out modal
+        this.modalWrapper.classList.add("opacity-0");
+        setTimeout(() => {
+          this.modalWrapper.remove();
+        }, 300);
       }
 
       this.applyConsent();
@@ -262,7 +278,7 @@ import "./cookie-manager.css";
 
     createCustomizeModal() {
       const modalWrapper = document.createElement("div");
-      modalWrapper.className = "cookie-manager";
+      modalWrapper.className = "cookie-manager transition-opacity duration-300";
 
       const isLight = this.config.theme === "light";
 
