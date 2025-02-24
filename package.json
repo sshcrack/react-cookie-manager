@@ -56,6 +56,8 @@
   },
   "scripts": {
     "build": "vite build",
+    "build:wordpress": "vite build --config vite.wordpress.config.ts",
+    "wordpress": "node scripts/build-wordpress.js",
     "dev": "tsup --config tsup.config.ts && npm link",
     "convert-trackers": "node scripts/convert-trackers.js",
     "postinstall": "node scripts/postinstall.js",
