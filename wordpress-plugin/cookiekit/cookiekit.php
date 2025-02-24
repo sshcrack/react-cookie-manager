@@ -26,7 +26,7 @@ function cookiekit_enqueue_scripts() {
     // Load our plugin's JS first
     wp_enqueue_script(
         'cookiekit-main',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.05c46b13.js',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.b255e5eb.js',
         array(),
         null, // Version will be part of the filename
         false // Load in header
@@ -35,7 +35,7 @@ function cookiekit_enqueue_scripts() {
     // Then enqueue our plugin's CSS
     wp_enqueue_style(
         'cookiekit-styles',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.05c46b13.css',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.b255e5eb.css',
         array(),
         null // Version will be part of the filename
     );
@@ -68,7 +68,7 @@ function cookiekit_register_settings() {
             'enable_analytics' => true,
             'enable_marketing' => true,
             'enable_preferences' => true,
-            'banner_position' => 'bottom',
+            'style' => 'banner',
             'primary_color' => '#007bff',
             'text_color' => '#ffffff',
             'version_hash' => 'v1_' . substr(md5(COOKIEKIT_VERSION . time()), 0, 8)
@@ -148,13 +148,18 @@ function cookiekit_settings_page() {
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row">Banner Position</th>
+                    <th scope="row">Consent Style</th>
                     <td>
-                        <select name="cookiekit_settings[banner_position]">
-                            <option value="bottom" <?php selected($settings['banner_position'], 'bottom'); ?>>Bottom</option>
-                            <option value="top" <?php selected($settings['banner_position'], 'top'); ?>>Top</option>
-                            <option value="floating" <?php selected($settings['banner_position'], 'floating'); ?>>Floating</option>
+                        <select name="cookiekit_settings[style]">
+                            <option value="banner" <?php selected($settings['style'], 'banner'); ?>>Banner</option>
+                            <option value="popup" <?php selected($settings['style'], 'popup'); ?>>Popup</option>
+                            <option value="modal" <?php selected($settings['style'], 'modal'); ?>>Modal</option>
                         </select>
+                        <p class="description">
+                            Banner - Full-width banner at the bottom<br>
+                            Popup - Compact popup in the bottom-left corner<br>
+                            Modal - Centered modal with overlay
+                        </p>
                     </td>
                 </tr>
                 <tr>
@@ -189,8 +194,8 @@ function cookiekit_init() {
                 cookieName: '<?php echo esc_js($settings['cookie_name']); ?>',
                 cookieExpiration: <?php echo intval($settings['cookie_expiration']); ?>,
                 privacyPolicy: '<?php echo esc_js(get_privacy_policy_url()); ?>',
-                position: '<?php echo esc_js($settings['banner_position']); ?>',
-                primaryColor: '<?php echo esc_js($settings['primary_color']); ?>',
+                style: '<?php echo esc_js($settings['style']); ?>',
+                theme: 'light',
                 categories: {
                     analytics: <?php echo $settings['enable_analytics'] ? 'true' : 'false'; ?>,
                     marketing: <?php echo $settings['enable_marketing'] ? 'true' : 'false'; ?>,
@@ -229,7 +234,7 @@ function cookiekit_activate() {
             'enable_analytics' => true,
             'enable_marketing' => true,
             'enable_preferences' => true,
-            'banner_position' => 'bottom',
+            'style' => 'banner',
             'primary_color' => '#007bff',
             'version_hash' => 'v1_' . substr(md5(COOKIEKIT_VERSION . time()), 0, 8)
         ));

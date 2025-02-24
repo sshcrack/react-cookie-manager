@@ -8,7 +8,7 @@ import "./cookie-manager.css";
       this.config = {
         cookieName: "cookie_consent",
         cookieExpiration: 365,
-        position: "bottom",
+        style: "banner", // banner, modal, or popup
         theme: "light",
         categories: {
           analytics: true,
@@ -89,24 +89,36 @@ import "./cookie-manager.css";
       const banner = document.createElement("div");
       const isLight = this.config.theme === "light";
 
-      banner.className = `fixed z-[9999] font-sans w-full md:max-w-2xl left-1/2 -translate-x-1/2 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-        this.config.position === "top"
-          ? "top-4"
-          : this.config.position === "floating"
-          ? "bottom-4 max-w-md"
-          : "bottom-4"
-      }`;
+      // Base classes for all styles
+      const baseClasses = `fixed z-[9999] font-sans transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]`;
+
+      // Style-specific classes
+      const styleClasses = {
+        banner: "bottom-4 left-1/2 -translate-x-1/2 w-full md:max-w-2xl",
+        modal: "inset-0 flex items-center justify-center p-4",
+        popup: "bottom-4 left-4 w-80",
+      }[this.config.style];
+
+      banner.className = `${baseClasses} ${styleClasses}`;
+
+      const contentBaseClasses = `
+        rounded-lg backdrop-blur-sm backdrop-saturate-150 
+        ${
+          isLight
+            ? "bg-white/95 border border-black/10 shadow-lg"
+            : "bg-black/95 ring-1 ring-white/10"
+        }
+      `;
+
+      // Add style-specific content modifiers
+      const contentClasses = {
+        banner: "p-4 hover:-translate-y-2 transition-transform duration-500",
+        modal: "w-full max-w-lg p-6",
+        popup: "p-4 hover:-translate-y-2 transition-transform duration-500",
+      }[this.config.style];
 
       banner.innerHTML = `
-        <div class="
-          rounded-lg backdrop-blur-sm backdrop-saturate-150 
-          ${
-            isLight
-              ? "bg-white/95 border border-black/10 shadow-lg"
-              : "bg-black/95 ring-1 ring-white/10"
-          }
-          p-4 hover:-translate-y-2 transition-transform duration-500
-        ">
+        <div class="${contentBaseClasses} ${contentClasses}">
           <div class="flex flex-col gap-4">
             <div>
               <h2 class="text-sm font-semibold mb-1 ${
@@ -116,12 +128,20 @@ import "./cookie-manager.css";
                 isLight ? "text-gray-700" : "text-gray-200"
               }">We use cookies to enhance your browsing experience and analyze our traffic.</p>
             </div>
-            <div class="flex items-center justify-between w-full">
-              <div class="flex items-center gap-3">
-                <button class="customize px-3 py-1.5 text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
+            <div class="flex items-center ${
+              this.config.style === "popup" ? "flex-col" : "justify-between"
+            } w-full gap-3">
+              <div class="flex items-center gap-3 ${
+                this.config.style === "popup" ? "w-full" : ""
+              }">
+                <button class="customize px-3 py-1.5 text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105 ${
+                  this.config.style === "popup" ? "w-full justify-center" : ""
+                }">
                   Customize
                 </button>
-                <button class="accept-all px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
+                <button class="accept-all px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105 ${
+                  this.config.style === "popup" ? "w-full justify-center" : ""
+                }">
                   Accept All
                 </button>
               </div>
@@ -286,8 +306,9 @@ import "./cookie-manager.css";
       `;
 
       const overlay = document.createElement("div");
-      overlay.className =
-        "fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] hidden";
+      overlay.className = `fixed inset-0 ${
+        this.config.style === "modal" ? "bg-black/20" : "bg-black/40"
+      } backdrop-blur-sm z-[9999] hidden`;
 
       modal.querySelector(".save-preferences").addEventListener("click", () => {
         const categories = {
