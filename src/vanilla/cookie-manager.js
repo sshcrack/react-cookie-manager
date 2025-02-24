@@ -312,7 +312,10 @@ import "./cookie-manager.css";
               </div>
             </div>
 
-            <div class="flex justify-end">
+            <div class="flex justify-end gap-3">
+              <button class="cancel px-3 py-1.5 text-xs font-medium rounded-md border border-gray-500 text-gray-500 bg-transparent hover:text-gray-600 hover:border-gray-600 transition-all duration-200 hover:scale-105">
+                Cancel
+              </button>
               <button class="save-preferences px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
                 Save Preferences
               </button>
@@ -335,6 +338,10 @@ import "./cookie-manager.css";
           preferences: modal.querySelector('input[name="preferences"]').checked,
         };
         this.saveConsent(categories);
+        this.hideCustomizeModal();
+      });
+
+      modal.querySelector(".cancel").addEventListener("click", () => {
         this.hideCustomizeModal();
       });
 
@@ -367,6 +374,10 @@ import "./cookie-manager.css";
     hideCustomizeModal() {
       this.modal.classList.add("hidden");
       this.overlay.classList.add("hidden");
+      // Show the banner again if it was hidden
+      if (this.banner.classList.contains("hidden")) {
+        this.banner.classList.remove("hidden");
+      }
     }
 
     hideBanner() {

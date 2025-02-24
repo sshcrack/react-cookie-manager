@@ -26,7 +26,7 @@ function cookiekit_enqueue_scripts() {
     // Load our plugin's JS first
     wp_enqueue_script(
         'cookiekit-main',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.f1718d7a.js',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.a713e195.js',
         array(),
         null, // Version will be part of the filename
         false // Load in header
@@ -35,7 +35,7 @@ function cookiekit_enqueue_scripts() {
     // Then enqueue our plugin's CSS
     wp_enqueue_style(
         'cookiekit-styles',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.f1718d7a.css',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.a713e195.css',
         array(),
         null // Version will be part of the filename
     );
