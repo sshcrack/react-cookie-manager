@@ -6,71 +6,13 @@ import { getBlockedHosts, getBlockedKeywords } from "./tracker-utils.js";
 let originalXhrOpen = null;
 let originalFetch = null;
 
-// Session ID generation utilities
-const generateRandomString = (length) => {
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  const charactersLength = characters.length;
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-};
+// Simple session ID generation
+const generateSessionId = (kitId) => {
+  if (!kitId) return null;
 
-const generateUniqueId = async () => {
-  // Get high-precision timestamp
-  const timestamp = performance.now().toString();
-
-  // Generate random values using crypto API if available
-  let randomValues = "";
-  if (window.crypto && window.crypto.getRandomValues) {
-    const array = new Uint32Array(2);
-    window.crypto.getRandomValues(array);
-    randomValues = Array.from(array)
-      .map((n) => n.toString(36))
-      .join("");
-  } else {
-    randomValues = Math.random().toString(36).substring(2);
-  }
-
-  // Get some browser-specific info without being too invasive
-  const browserInfo = [
-    window.screen.width,
-    window.screen.height,
-    navigator.language,
-    // Use hash of user agent to add entropy without storing the full string
-    await crypto.subtle
-      .digest("SHA-256", new TextEncoder().encode(navigator.userAgent))
-      .then((buf) =>
-        Array.from(new Uint8Array(buf))
-          .slice(0, 4)
-          .map((b) => b.toString(16))
-          .join("")
-      ),
-  ].join("_");
-
-  // Combine all sources of entropy
-  const combinedString = `${timestamp}_${randomValues}_${browserInfo}`;
-
-  // Hash the combined string for privacy
-  const hashBuffer = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(combinedString)
-  );
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-
-  return hashHex.slice(0, 16); // Return first 16 characters of hash
-};
-
-const generateSessionId = async (kitId) => {
   const timestamp = new Date().getTime();
-  const uniqueId = await generateUniqueId();
-  const randomPart = generateRandomString(8);
-  return `${kitId}_${timestamp}_${uniqueId}_${randomPart}`;
+  const random = Math.random().toString(36).substring(2, 10);
+  return `${kitId}_${timestamp}_${random}`;
 };
 
 const blockTrackingRequests = (blockedHosts) => {
@@ -182,6 +124,8 @@ const restoreOriginalRequests = () => {
 (function () {
   class CookieManager {
     constructor(config) {
+      console.log("🎯 CookieManager constructor called with config:", config);
+
       // Create a copy of config without translations to prevent overwriting
       const configWithoutTranslations = { ...(config || {}) };
       delete configWithoutTranslations.translations;
@@ -217,8 +161,18 @@ const restoreOriginalRequests = () => {
         ...configWithoutTranslations,
       };
 
+      console.log("📋 Initialized with config:", this.config);
+
+      // Validate cookieKitId if provided
+      if (this.config.cookieKitId) {
+        console.log(
+          "🔍 CookieKitId found in constructor:",
+          this.config.cookieKitId
+        );
+      }
+
       this.state = this.loadConsent();
-      this.observer = null;
+      console.log("🔄 Initial consent state:", this.state);
 
       // Store original functions if not already stored
       if (!originalXhrOpen) {
@@ -265,7 +219,26 @@ const restoreOriginalRequests = () => {
 
       // Log the CookieKitId
       if (this.config.cookieKitId) {
-        console.log("CookieKit initialized with ID:", this.config.cookieKitId);
+        console.log(
+          "✅ CookieKit initialized with ID:",
+          this.config.cookieKitId
+        );
+      }
+
+      // Generate session if kitId exists
+      if (this.config.cookieKitId) {
+        const sessionKey = "cookie_consent-session";
+        let sessionId = this.getCookie(sessionKey);
+
+        if (!sessionId) {
+          sessionId = generateSessionId(this.config.cookieKitId);
+          if (sessionId) {
+            this.setCookie(sessionKey, sessionId, 1);
+            console.log("✨ Generated and saved new session:", sessionId);
+          }
+        } else {
+          console.log("♻️ Using existing session:", sessionId);
+        }
       }
     }
 
@@ -746,38 +719,28 @@ const restoreOriginalRequests = () => {
       this.banner.classList.add("hidden");
     }
 
-    async init(config = {}) {
+    init(config = {}) {
+      console.log("🚀 Initializing CookieKit with config:", config);
+
       // Merge config with defaults
       this.config = {
         ...this.config,
         ...config,
       };
 
-      // Initialize session if cookieKitId is provided
-      if (this.config.cookieKitId) {
-        const sessionKey = `${this.config.cookieName}-session`;
-        let sessionId = this.getCookie(sessionKey);
-
-        if (!sessionId) {
-          try {
-            sessionId = await generateSessionId(this.config.cookieKitId);
-            this.setCookie(sessionKey, sessionId, 1); // Session cookie expires in 1 day
-            console.log("✨ New session initialized:", sessionId);
-          } catch (error) {
-            console.error("Error in session initialization:", error);
-          }
-        } else {
-          console.log("🔄 Using existing session:", sessionId);
-        }
-      }
-
       // Create UI elements if no consent exists
-      if (!this.getConsent()) {
+      const consent = this.loadConsent();
+      console.log("🔍 Current consent state:", consent);
+
+      if (!consent) {
+        console.log("🎨 No consent found, creating banner");
         this.createBanner();
       }
 
       // Initialize blocking
+      console.log("🛡️ Initializing request blocking");
       this.initializeBlocking();
+      console.log("✅ CookieKit initialization complete");
     }
 
     // Function to check if URL should be blocked
@@ -838,7 +801,7 @@ const restoreOriginalRequests = () => {
     init: (config) => {
       console.log("🌟 CookieKit.init called with config:", config);
       window.CookieKit.manager = new CookieManager(config);
-      window.CookieKit.manager.init();
+      window.CookieKit.manager.init(config);
       console.log("🎉 CookieKit initialization complete");
     },
     showBanner: () => {

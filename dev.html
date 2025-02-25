@@ -248,136 +248,73 @@
 
       // Add analytics test function
       function testAnalytics() {
-        const result = document.getElementById("analyticsResult");
-        console.log("🧪 Testing analytics event...");
+        const resultDiv = document.getElementById("analyticsResult");
+        if (typeof ga === "undefined") {
+          resultDiv.textContent = "❌ Analytics not initialized";
+          return;
+        }
 
-        const consent = getCurrentConsent();
-        console.log("Current consent state:", consent);
-
-        // Direct network request to GA
-        const params = {
-          v: "1", // Version
-          tid: "UA-123456789-1", // Tracking ID
-          cid: "555", // Client ID (normally would be UUID)
-          t: "event", // Hit type
-          ec: "Test", // Event Category
-          ea: "click", // Event Action
-          el: "Direct Test " + new Date().toISOString(), // Event Label
-          z: Math.floor(Math.random() * 10000000), // Cache buster
-        };
-
-        const url =
-          "https://www.google-analytics.com/collect?" +
-          Object.entries(params)
-            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-            .join("&");
-
-        console.log("🚀 Sending direct request to:", url);
-
-        fetch(url, {
-          method: "POST",
-          mode: "no-cors", // Required for GA
-        })
-          .then((data) => {
-            console.log("🚀 Direct request sent successfully", data);
-            result.innerHTML =
-              "✅ Direct analytics request sent. Check Network tab.";
-            result.style.color = "#059669";
-            console.log("✅ Request sent successfully");
-          })
-          .catch((error) => {
-            result.innerHTML = `❌ Error: ${error.message}`;
-            result.style.color = "#dc2626";
-            console.error("Request error:", error);
-          });
-      }
-
-      // Function to get current configuration
-      function getConfig() {
-        return {
-          style: document.getElementById("displayType").value,
-          theme: document.getElementById("theme").value,
-        };
-      }
-
-      // Function to initialize CookieKit with current config
-      function initCookieKit() {
-        const config = getConfig();
-        console.log("🔄 Reinitializing CookieKit with config:", config);
-
-        window.CookieKit.init({
-          ...config,
-          allowedDomains: [],
-          translations: {
-            title: "Cookie Settings 🍪",
-            message:
-              "We use cookies to improve your experience on our website. Choose which cookies you want to allow.",
-            buttonText: "Accept All",
-            declineButtonText: "Decline All",
-            manageButtonText: "Manage Cookies",
-            privacyPolicyText: "Privacy Policy",
-            manageTitle: "Cookie Preferences",
-            manageMessage: "Customize your cookie preferences below",
-            manageEssentialTitle: "Essential Cookies",
-            manageAnalyticsTitle: "Analytics",
-            manageSocialTitle: "Social",
-            manageAdvertTitle: "Advertising",
-          },
-          onAccept: () => {
-            console.log("✅ Cookies accepted");
-          },
-          onDecline: () => {
-            console.log("❌ Cookies declined");
-          },
-          onManage: (categories) => {
-            console.log("⚙️ Cookie preferences updated:", categories);
-          },
-          cookieKitId: "134l234lk3240fd",
-          showManageButton: true,
-          privacyPolicyUrl: "https://example.com/privacy",
-        });
-      }
-
-      // Function to update configuration
-      function updateConfig() {
-        console.log("🧹 Cleaning up existing elements");
-
-        // Remove all cookie manager elements
-        document
-          .querySelectorAll(".cookie-manager")
-          .forEach((el) => el.remove());
-
-        // Remove any modals, overlays, or banners that might be outside cookie-manager
-        document
-          .querySelectorAll("[class*='cookie']")
-          .forEach((el) => el.remove());
-
-        // Clear the cookie to force a fresh state
-        document.cookie =
-          "cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-
-        console.log("✨ Initializing with new configuration");
-        // Reinitialize with new config
-        initCookieKit();
-
-        // Use the existing instance to show the banner
-        if (window.CookieKit.manager) {
-          window.CookieKit.manager.createBanner();
-          window.CookieKit.manager.createCustomizeModal();
+        try {
+          ga("send", "event", "Test", "click", "Test Button");
+          resultDiv.textContent = "✅ Analytics event sent";
+        } catch (error) {
+          resultDiv.textContent = `❌ Error: ${error.message}`;
         }
       }
 
-      // Update state every second
-      setInterval(updateCookieState, 1000);
+      // Function to update configuration
+      async function updateConfig() {
+        const displayType = document.getElementById("displayType").value;
+        const theme = document.getElementById("theme").value;
 
-      // Listen for consent updates
-      window.addEventListener("cookiekit:consent-updated", (event) => {
-        console.log("🍪 Consent updated:", event.detail);
-        updateCookieState();
+        // Reset any existing consent
+        window.CookieKit.resetConsent();
+
+        try {
+          // Initialize with new configuration
+          await window.CookieKit.init({
+            style: displayType,
+            theme: theme,
+            cookieKitId: "james",
+            allowedDomains: [
+              "google-analytics.com",
+              "analytics.google.com",
+              "www.google-analytics.com",
+            ],
+          });
+          console.log("✅ CookieKit initialized successfully");
+        } catch (error) {
+          console.error("❌ Failed to initialize CookieKit:", error);
+        }
+      }
+
+      // Initialize CookieKit when the page loads
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          await window.CookieKit.init({
+            style: "banner",
+            theme: "light",
+            cookieKitId: "james",
+            allowedDomains: [
+              "google-analytics.com",
+              "analytics.google.com",
+              "www.google-analytics.com",
+            ],
+          });
+          console.log("✅ CookieKit initialized successfully");
+
+          // Set up cookie state update listener
+          document.addEventListener("cookiekit:consent-updated", () => {
+            console.log("🔄 Consent updated, refreshing state");
+            updateCookieState();
+          });
+
+          // Initial cookie state update
+          updateCookieState();
+        } catch (error) {
+          console.error("❌ Failed to initialize CookieKit:", error);
+        }
       });
-
-      // Initial checks
-      initCookieKit();
     </script>
   </body>
 </html>
