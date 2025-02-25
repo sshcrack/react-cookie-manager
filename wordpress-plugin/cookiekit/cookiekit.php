@@ -6,8 +6,22 @@
  * Version: 1.0.0
  * Author: Hypership
  * Author URI: https://github.com/hypershiphq
- * License: MIT
- * Text Domain: cookiekit
+ * License: GPL-2.0+
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain: cookiekit-gdpr-cookie-consent
+ *
+ * CookieKit is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * any later version.
+ *
+ * CookieKit is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with CookieKit. If not, see http://www.gnu.org/licenses/gpl-2.0.txt.
  */
 
 // If this file is called directly, abort.
@@ -23,7 +37,7 @@ define('COOKIEKIT_PLUGIN_URL', plugin_dir_url(__FILE__));
  * Add settings link to plugin page
  */
 function cookiekit_add_settings_link($links) {
-    $settings_link = '<a href="' . admin_url('options-general.php?page=cookiekit-settings') . '">' . __('Settings', 'cookiekit') . '</a>';
+    $settings_link = '<a href="' . admin_url('options-general.php?page=cookiekit-settings') . '">' . __('Settings', 'cookiekit-gdpr-cookie-consent') . '</a>';
     array_unshift($links, $settings_link);
     return $links;
 }
@@ -36,7 +50,7 @@ function cookiekit_enqueue_scripts() {
     // Load our plugin's JS first
     wp_enqueue_script(
         'cookiekit-main',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.00f55c31.js',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.a72e0580.js',
         array(),
         null, // Version will be part of the filename
         false // Load in header
@@ -45,7 +59,7 @@ function cookiekit_enqueue_scripts() {
     // Then enqueue our plugin's CSS
     wp_enqueue_style(
         'cookiekit-styles',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.00f55c31.css',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.a72e0580.css',
         array(),
         null // Version will be part of the filename
     );
@@ -204,10 +218,21 @@ function cookiekit_settings_page() {
                 <tr>
                     <th scope="row">CookieKit ID</th>
                     <td>
-                        <input type="text" name="cookiekit_settings[cookiekit_id]" 
-                               value="<?php echo esc_attr($settings['cookiekit_id']); ?>"
-                               placeholder="Enter your CookieKit ID">
-                        <p class="description">Your unique project identifier from <a href="https://cookiekit.io" target="_blank">CookieKit</a></p>
+                        <div style="background: #f0f6ff; border: 1px solid #2271b1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <input type="text" 
+                                   name="cookiekit_settings[cookiekit_id]" 
+                                   value="<?php echo esc_attr($settings['cookiekit_id']); ?>"
+                                   placeholder="Enter your CookieKit ID"
+                                   style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                            <p class="description" style="margin-bottom: 10px;">
+                                <strong>💡 Get 2,000 GDPR-compliant consent logs FREE every month!</strong>
+                            </p>
+                            <p class="description" style="margin-bottom: 0;">
+                                1. Sign up for a free account at <a href="https://cookiekit.io" target="_blank">CookieKit.io</a><br>
+                                2. Create a new project<br>
+                                3. Copy your project ID and paste it here
+                            </p>
+                        </div>
                     </td>
                 </tr>
                 <tr>

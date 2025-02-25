@@ -556,6 +556,9 @@ const restoreOriginalRequests = () => {
       document.body.appendChild(wrapper);
       this.banner = banner;
       this.wrapper = wrapper;
+
+      // Create the customize modal right after creating the banner
+      this.createCustomizeModal();
     }
 
     createCustomizeModal() {
@@ -745,13 +748,19 @@ const restoreOriginalRequests = () => {
     }
 
     showCustomizeModal() {
+      // Create modal if it doesn't exist
+      if (!this.modal) {
+        this.createCustomizeModal();
+      }
       this.modal.classList.remove("hidden");
       this.overlay.classList.remove("hidden");
     }
 
     hideCustomizeModal() {
-      this.modal.classList.add("hidden");
-      this.overlay.classList.add("hidden");
+      if (this.modal) {
+        this.modal.classList.add("hidden");
+        this.overlay.classList.add("hidden");
+      }
     }
 
     hideBanner() {
