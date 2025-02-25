@@ -6,6 +6,73 @@ import { getBlockedHosts, getBlockedKeywords } from "./tracker-utils.js";
 let originalXhrOpen = null;
 let originalFetch = null;
 
+// Session ID generation utilities
+const generateRandomString = (length) => {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+};
+
+const generateUniqueId = async () => {
+  // Get high-precision timestamp
+  const timestamp = performance.now().toString();
+
+  // Generate random values using crypto API if available
+  let randomValues = "";
+  if (window.crypto && window.crypto.getRandomValues) {
+    const array = new Uint32Array(2);
+    window.crypto.getRandomValues(array);
+    randomValues = Array.from(array)
+      .map((n) => n.toString(36))
+      .join("");
+  } else {
+    randomValues = Math.random().toString(36).substring(2);
+  }
+
+  // Get some browser-specific info without being too invasive
+  const browserInfo = [
+    window.screen.width,
+    window.screen.height,
+    navigator.language,
+    // Use hash of user agent to add entropy without storing the full string
+    await crypto.subtle
+      .digest("SHA-256", new TextEncoder().encode(navigator.userAgent))
+      .then((buf) =>
+        Array.from(new Uint8Array(buf))
+          .slice(0, 4)
+          .map((b) => b.toString(16))
+          .join("")
+      ),
+  ].join("_");
+
+  // Combine all sources of entropy
+  const combinedString = `${timestamp}_${randomValues}_${browserInfo}`;
+
+  // Hash the combined string for privacy
+  const hashBuffer = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(combinedString)
+  );
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return hashHex.slice(0, 16); // Return first 16 characters of hash
+};
+
+const generateSessionId = async (kitId) => {
+  const timestamp = new Date().getTime();
+  const uniqueId = await generateUniqueId();
+  const randomPart = generateRandomString(8);
+  return `${kitId}_${timestamp}_${uniqueId}_${randomPart}`;
+};
+
 const blockTrackingRequests = (blockedHosts) => {
   // Store original functions if not already stored
   if (!originalXhrOpen) {
@@ -153,33 +220,34 @@ const restoreOriginalRequests = () => {
       this.state = this.loadConsent();
       this.observer = null;
 
-      // Initialize blocking based on current consent
-      this.initializeBlocking();
-
-      // Log the CookieKitId
-      if (this.config.cookieKitId) {
-        console.log("CookieKit initialized with ID:", this.config.cookieKitId);
+      // Store original functions if not already stored
+      if (!originalXhrOpen) {
+        originalXhrOpen = XMLHttpRequest.prototype.open;
+      }
+      if (!originalFetch) {
+        originalFetch = window.fetch;
       }
 
-      // Override fetch before anything else loads
-      const originalFetch = window.fetch;
+      // Override XMLHttpRequest to block requests to tracking domains
+      const self = this; // Store reference to this for use in function
+      XMLHttpRequest.prototype.open = function (method, url) {
+        const urlString = url.toString();
+        console.log("🔍 Intercepted XHR request to:", urlString);
+
+        if (self.shouldBlockRequest(urlString)) {
+          console.log("🚫 Request blocked by consent settings");
+          throw new Error("Request blocked by consent settings");
+        }
+
+        return originalXhrOpen.apply(this, arguments);
+      };
+
+      // Override fetch API to block tracking requests
       window.fetch = function (url, options) {
         const urlString = url.toString();
         console.log("🔍 Intercepted fetch request to:", urlString);
 
-        // Check if domain is whitelisted
-        if (window.CookieKit.manager?.config.allowedDomains?.length > 0) {
-          if (
-            window.CookieKit.manager.config.allowedDomains.some((domain) =>
-              urlString.includes(domain)
-            )
-          ) {
-            console.log("✅ Request allowed by allowlist:", urlString);
-            return originalFetch.apply(this, arguments);
-          }
-        }
-
-        if (shouldBlockRequest(url)) {
+        if (self.shouldBlockRequest(urlString)) {
           console.log("🚫 Request blocked by consent settings");
           return Promise.resolve(
             new Response(null, {
@@ -192,30 +260,13 @@ const restoreOriginalRequests = () => {
         return originalFetch.apply(this, arguments);
       };
 
-      // Override XHR
-      const originalXHROpen = XMLHttpRequest.prototype.open;
-      XMLHttpRequest.prototype.open = function (method, url) {
-        console.log("🔍 Intercepted XHR request to:", url);
+      // Initialize blocking based on current consent
+      this.initializeBlocking();
 
-        // Check if domain is whitelisted
-        if (window.CookieKit.manager?.config.allowedDomains?.length > 0) {
-          if (
-            window.CookieKit.manager.config.allowedDomains.some((domain) =>
-              url.includes(domain)
-            )
-          ) {
-            console.log("✅ Request allowed by allowlist:", url);
-            return originalXHROpen.apply(this, arguments);
-          }
-        }
-
-        if (shouldBlockRequest(url)) {
-          console.log("🚫 Request blocked by consent settings");
-          throw new Error("Request blocked by consent settings");
-        }
-
-        return originalXHROpen.apply(this, arguments);
-      };
+      // Log the CookieKitId
+      if (this.config.cookieKitId) {
+        console.log("CookieKit initialized with ID:", this.config.cookieKitId);
+      }
     }
 
     initializeBlocking() {
@@ -268,20 +319,20 @@ const restoreOriginalRequests = () => {
     setCookie(name, value, days) {
       const date = new Date();
       date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-      const expires = "; expires=" + date.toUTCString();
-      document.cookie = name + "=" + value + expires + "; path=/";
+      document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/;SameSite=Lax`;
     }
 
     getCookie(name) {
-      const nameEQ = name + "=";
-      const ca = document.cookie.split(";");
-      for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === " ") c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) === 0)
-          return c.substring(nameEQ.length, c.length);
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) {
+        return parts.pop()?.split(";").shift() || null;
       }
       return null;
+    }
+
+    deleteCookie(name) {
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
     }
 
     saveConsent(categories) {
@@ -695,17 +746,38 @@ const restoreOriginalRequests = () => {
       this.banner.classList.add("hidden");
     }
 
-    init() {
-      console.log("🚀 Initializing CookieKit");
-      console.log("Current state:", this.state);
+    async init(config = {}) {
+      // Merge config with defaults
+      this.config = {
+        ...this.config,
+        ...config,
+      };
 
-      if (!this.state) {
-        console.log("📝 No existing consent found, creating UI elements");
-        this.createBanner();
-        this.createCustomizeModal();
-      } else {
-        console.log("✅ Existing consent found:", this.state);
+      // Initialize session if cookieKitId is provided
+      if (this.config.cookieKitId) {
+        const sessionKey = `${this.config.cookieName}-session`;
+        let sessionId = this.getCookie(sessionKey);
+
+        if (!sessionId) {
+          try {
+            sessionId = await generateSessionId(this.config.cookieKitId);
+            this.setCookie(sessionKey, sessionId, 1); // Session cookie expires in 1 day
+            console.log("✨ New session initialized:", sessionId);
+          } catch (error) {
+            console.error("Error in session initialization:", error);
+          }
+        } else {
+          console.log("🔄 Using existing session:", sessionId);
+        }
       }
+
+      // Create UI elements if no consent exists
+      if (!this.getConsent()) {
+        this.createBanner();
+      }
+
+      // Initialize blocking
+      this.initializeBlocking();
     }
 
     // Function to check if URL should be blocked
@@ -725,14 +797,20 @@ const restoreOriginalRequests = () => {
       }
 
       // Get consent state
-      const consent = this.state;
+      const consent = this.loadConsent();
+
+      // If no consent exists, block everything except allowed domains
       if (!consent) {
         console.log("🚫 No consent given, blocking request:", urlString);
         return true;
       }
 
       // Check analytics
-      if (!consent.analytics && urlString.includes("google-analytics")) {
+      if (
+        !consent.analytics &&
+        (urlString.includes("google-analytics") ||
+          urlString.includes("analytics.google.com"))
+      ) {
         console.log("🚫 Blocking analytics request:", urlString);
         return true;
       }
@@ -740,12 +818,16 @@ const restoreOriginalRequests = () => {
       // Check marketing
       if (
         !consent.marketing &&
-        (urlString.includes("twitter") || urlString.includes("doubleclick"))
+        (urlString.includes("twitter") ||
+          urlString.includes("doubleclick") ||
+          urlString.includes("facebook") ||
+          urlString.includes("linkedin"))
       ) {
         console.log("🚫 Blocking marketing request:", urlString);
         return true;
       }
 
+      console.log("✅ Request allowed by consent settings:", urlString);
       return false;
     }
   }

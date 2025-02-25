@@ -67,75 +67,6 @@
         }
         return null;
       }
-
-      // Function to check if URL should be blocked
-      function shouldBlockRequest(url) {
-        const urlString = url.toString();
-
-        // Check if domain is in allowed domains - these are never blocked
-        const allowedDomains = [
-          "google-analytics.com",
-          "analytics.google.com",
-          "www.google-analytics.com",
-        ];
-
-        if (allowedDomains.some((domain) => urlString.includes(domain))) {
-          console.log("✅ Request allowed by allowlist:", urlString);
-          return false;
-        }
-
-        const consent = getCurrentConsent();
-        if (!consent) return true; // Block if no consent
-
-        // Check analytics
-        if (!consent.analytics && urlString.includes("google-analytics")) {
-          console.log("🚫 Blocking analytics request:", urlString);
-          return true;
-        }
-
-        // Check marketing
-        if (
-          !consent.marketing &&
-          (urlString.includes("twitter") || urlString.includes("doubleclick"))
-        ) {
-          console.log("🚫 Blocking marketing request:", urlString);
-          return true;
-        }
-
-        return false;
-      }
-
-      // Override fetch before anything else loads
-      const originalFetch = window.fetch;
-      window.fetch = function (url, options) {
-        const urlString = url.toString();
-        console.log("🔍 Intercepted fetch request to:", urlString);
-
-        if (shouldBlockRequest(urlString)) {
-          console.log("🚫 Request blocked by consent settings");
-          return Promise.resolve(
-            new Response(null, {
-              status: 403,
-              statusText: "Blocked by consent settings",
-            })
-          );
-        }
-
-        return originalFetch.apply(this, arguments);
-      };
-
-      // Override XHR
-      const originalXHROpen = XMLHttpRequest.prototype.open;
-      XMLHttpRequest.prototype.open = function (method, url) {
-        console.log("🔍 Intercepted XHR request to:", url);
-
-        if (shouldBlockRequest(url)) {
-          console.log("🚫 Request blocked by consent settings");
-          throw new Error("Request blocked by consent settings");
-        }
-
-        return originalXHROpen.apply(this, arguments);
-      };
     </script>
     <style>
       body {
@@ -376,11 +307,7 @@
 
         window.CookieKit.init({
           ...config,
-          allowedDomains: [
-            "google-analytics.com",
-            "analytics.google.com",
-            "www.google-analytics.com",
-          ],
+          allowedDomains: [],
           translations: {
             title: "Cookie Settings 🍪",
             message:
@@ -405,6 +332,7 @@
           onManage: (categories) => {
             console.log("⚙️ Cookie preferences updated:", categories);
           },
+          cookieKitId: "134l234lk3240fd",
           showManageButton: true,
           privacyPolicyUrl: "https://example.com/privacy",
         });
