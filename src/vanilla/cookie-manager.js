@@ -26,6 +26,7 @@ const postConsentToAnalytics = async (
   try {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const country = resolveCountryFromTimezone(timeZone);
+    const domain = window.location.hostname;
 
     const response = await fetch("https://cookiekit.io/api/consents", {
       method: "POST",
@@ -44,6 +45,7 @@ const postConsentToAnalytics = async (
         user_agent: navigator.userAgent,
         location: country,
         anonymised_ip: "0.0.0.0",
+        domain: domain,
       }),
     });
   } catch (error) {
