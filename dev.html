@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cookie Manager Development</title>
+    <link rel="stylesheet" href="dist/wordpress/cookie-manager.css" />
+
+    <!-- Google Analytics initialization -->
+    <script>
+      window.ga =
+        window.ga ||
+        function () {
+          (ga.q = ga.q || []).push(arguments);
+        };
+      ga.l = +new Date();
+    </script>
+
+    <!-- Test Analytics Script - Initially blocked -->
+    <script
+      type="text/plain"
+      data-cookiekit="analytics"
+      src="https://www.google-analytics.com/analytics.js"
+    ></script>
+
+    <!-- Analytics initialization code -->
+    <script>
+      function initializeAnalytics() {
+        if (typeof ga !== "undefined") {
+          ga("create", "UA-123456789-1", {
+            cookieDomain: "none", // Prevent cookie domain issues in local testing
+            cookieFlags: "SameSite=None; Secure", // Required for modern browsers
+          });
+          ga("set", "checkProtocolTask", null); // Disable protocol checking for local testing
+          ga("set", "transport", "beacon"); // Use navigator.sendBeacon
+          ga("send", "pageview");
+          ga.loaded = true; // Mark as initialized
+          console.log("✅ Analytics initialized with test configuration");
+        } else {
+          console.error("❌ GA not available for initialization");
+        }
+      }
+    </script>
+
+    <!-- Test Marketing Script - Initially blocked -->
+    <script
+      type="text/plain"
+      data-cookiekit="marketing"
+      src="https://platform.twitter.com/widgets.js"
+    ></script>
+
+    <!-- Add consent check and network request testing -->
+    <script>
+      // Function to get current consent
+      function getCurrentConsent() {
+        const consent = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("cookie_consent="));
+
+        if (consent) {
+          try {
+            const value = consent.split("=")[1];
+            return JSON.parse(decodeURIComponent(value));
+          } catch (e) {
+            return null;
+          }
+        }
+        return null;
+      }
+    </script>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        margin: 0;
+        padding: 20px;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .debug-panel {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f5f5f5;
+        border-radius: 8px;
+      }
+      .debug-panel button {
+        margin: 5px;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        background: #0070f3;
+        color: white;
+        cursor: pointer;
+      }
+      .debug-panel button:hover {
+        background: #0051cc;
+      }
+      pre {
+        background: #fff;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      .state-panel {
+        margin-top: 20px;
+        padding: 15px;
+        background: #e0e0e0;
+        border-radius: 8px;
+      }
+      .config-panel {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #e8f0fe;
+        border-radius: 8px;
+      }
+      .config-group {
+        margin-bottom: 15px;
+      }
+      .config-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+      }
+      select {
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        background: white;
+        min-width: 200px;
+      }
+
+      /* Add styles for analytics test */
+      .test-analytics-btn {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 8px 16px;
+        background: #4f46e5;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .test-analytics-btn:hover {
+        background: #4338ca;
+      }
+      #analyticsResult {
+        padding: 8px;
+        background: white;
+        border-radius: 4px;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Cookie Manager Development</h1>
+
+      <div class="config-panel">
+        <h2>Configuration</h2>
+        <div class="config-group">
+          <label for="displayType">Display Type:</label>
+          <select id="displayType" onchange="updateConfig()">
+            <option value="banner">Banner</option>
+            <option value="modal">Modal</option>
+            <option value="popup">Popup</option>
+          </select>
+        </div>
+        <div class="config-group">
+          <label for="theme">Theme:</label>
+          <select id="theme" onchange="updateConfig()">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="debug-panel">
+        <h2>Debug Panel</h2>
+        <button onclick="window.CookieKit.showBanner()">Show Banner</button>
+        <button onclick="window.CookieKit.showCustomizeModal()">
+          Show Customize Modal
+        </button>
+        <button onclick="window.CookieKit.resetConsent()">Reset Consent</button>
+
+        <!-- Add Test Analytics Button -->
+        <div class="state-panel">
+          <h3>Test Analytics:</h3>
+          <button onclick="testAnalytics()" class="test-analytics-btn">
+            Trigger Analytics Event
+          </button>
+          <div id="analyticsResult" class="mt-2 text-sm"></div>
+        </div>
+
+        <div class="state-panel">
+          <h3>Current Cookie State:</h3>
+          <pre id="cookieState">No consent set</pre>
+        </div>
+      </div>
+    </div>
+
+    <script src="dist/wordpress/cookie-manager.js"></script>
+    <script>
+      // Function to update the cookie state display
+      function updateCookieState() {
+        const consent = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("cookie_consent="));
+
+        const stateDisplay = document.getElementById("cookieState");
+        if (consent) {
+          const value = consent.split("=")[1];
+          try {
+            const parsed = JSON.parse(decodeURIComponent(value));
+            stateDisplay.textContent = JSON.stringify(parsed, null, 2);
+
+            // Enable analytics script if consent is given
+            if (parsed.analytics) {
+              const analyticsScript = document.querySelector(
+                'script[data-cookiekit="analytics"]'
+              );
+              if (
+                analyticsScript &&
+                analyticsScript.type !== "text/javascript"
+              ) {
+                analyticsScript.type = "text/javascript";
+                // Wait for script to load then initialize
+                analyticsScript.onload = function () {
+                  console.log("Analytics script loaded, initializing...");
+                  initializeAnalytics();
+                };
+                // Trigger script load by re-adding it to the document
+                analyticsScript.parentNode.removeChild(analyticsScript);
+                document.head.appendChild(analyticsScript);
+              }
+            }
+          } catch (e) {
+            stateDisplay.textContent = value;
+          }
+        } else {
+          stateDisplay.textContent = "No consent set";
+        }
+      }
+
+      // Add analytics test function
+      function testAnalytics() {
+        const resultDiv = document.getElementById("analyticsResult");
+        if (typeof ga === "undefined") {
+          resultDiv.textContent = "❌ Analytics not initialized";
+          return;
+        }
+
+        try {
+          ga("send", "event", "Test", "click", "Test Button");
+          resultDiv.textContent = "✅ Analytics event sent";
+        } catch (error) {
+          resultDiv.textContent = `❌ Error: ${error.message}`;
+        }
+      }
+
+      // Function to update configuration
+      async function updateConfig() {
+        const displayType = document.getElementById("displayType").value;
+        const theme = document.getElementById("theme").value;
+
+        // Reset any existing consent
+        window.CookieKit.resetConsent();
+
+        try {
+          // Initialize with new configuration
+          await window.CookieKit.init({
+            style: displayType,
+            theme: theme,
+            cookieKitId: "james",
+            allowedDomains: [
+              "google-analytics.com",
+              "analytics.google.com",
+              "www.google-analytics.com",
+            ],
+          });
+          console.log("✅ CookieKit initialized successfully");
+        } catch (error) {
+          console.error("❌ Failed to initialize CookieKit:", error);
+        }
+      }
+
+      // Initialize CookieKit when the page loads
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          await window.CookieKit.init({
+            style: "banner",
+            theme: "light",
+            cookieKitId: "james",
+            allowedDomains: [
+              "google-analytics.com",
+              "analytics.google.com",
+              "www.google-analytics.com",
+            ],
+          });
+          console.log("✅ CookieKit initialized successfully");
+
+          // Set up cookie state update listener
+          document.addEventListener("cookiekit:consent-updated", () => {
+            console.log("🔄 Consent updated, refreshing state");
+            updateCookieState();
+          });
+
+          // Initial cookie state update
+          updateCookieState();
+        } catch (error) {
+          console.error("❌ Failed to initialize CookieKit:", error);
+        }
+      });
+    </script>
+  </body>
+</html>
