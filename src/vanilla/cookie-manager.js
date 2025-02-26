@@ -28,7 +28,7 @@ const postConsentToAnalytics = async (
     const country = resolveCountryFromTimezone(timeZone);
     const domain = window.location.hostname;
 
-    const response = await fetch("https://cookiekit.io/api/consents", {
+    await fetch("https://cookiekit.io/api/consents", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
