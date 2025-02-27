@@ -145,10 +145,32 @@ const blockTrackingScripts = (trackingKeywords) => {
     }
   });
 
-  // Prevent new tracking scripts from being injected
+  // Also block iframes from tracking domains (especially for YouTube embeds)
+  document.querySelectorAll("iframe").forEach((iframe) => {
+    if (
+      iframe.src &&
+      trackingKeywords.some((keyword) => iframe.src.includes(keyword))
+    ) {
+      console.debug(`[CookieKit] Blocking iframe: ${iframe.src}`);
+      // Get the original iframe dimensions
+      const width = iframe.width || iframe.style.width || "100%";
+      const height = iframe.height || iframe.style.height || "315px";
+
+      // Replace with a placeholder using CSS classes and preserving dimensions
+      const placeholder = document.createElement("div");
+      placeholder.className = "cookie-consent-blocked-iframe";
+      placeholder.style.cssText = `width: ${width}; height: ${height}; background-color: red;`;
+      placeholder.innerHTML =
+        '<div class="cookie-consent-blocked-content">Content blocked due to cookie preferences</div>';
+      iframe.parentNode?.replaceChild(placeholder, iframe);
+    }
+  });
+
+  // Prevent new tracking scripts and iframes from being injected
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
+        // Handle script tags
         if (node instanceof HTMLElement && node.tagName === "SCRIPT") {
           const src = node.getAttribute("src");
           if (
@@ -156,6 +178,30 @@ const blockTrackingScripts = (trackingKeywords) => {
             trackingKeywords.some((keyword) => src.includes(keyword))
           ) {
             node.remove();
+          }
+        }
+
+        // Handle iframe tags (especially YouTube)
+        if (node instanceof HTMLElement && node.tagName === "IFRAME") {
+          const src = node.getAttribute("src");
+          if (
+            src &&
+            trackingKeywords.some((keyword) => src.includes(keyword))
+          ) {
+            console.debug(`[CookieKit] Blocking injected iframe: ${src}`);
+            // Get the original iframe dimensions
+            const width =
+              node.getAttribute("width") || node.style.width || "100%";
+            const height =
+              node.getAttribute("height") || node.style.height || "315px";
+
+            // Replace with a placeholder using CSS classes and preserving dimensions
+            const placeholder = document.createElement("div");
+            placeholder.className = "cookie-consent-blocked-iframe";
+            placeholder.style.cssText = `width: ${width}; height: ${height}; background-color: red;`;
+            placeholder.innerHTML =
+              '<div class="cookie-consent-blocked-content">Content blocked due to cookie preferences</div>';
+            node.parentNode?.replaceChild(placeholder, node);
           }
         }
       });

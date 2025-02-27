@@ -1,3 +1,56 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Cookie consent blocked content styles */
+@layer components {
+  .cookie-consent-blocked-iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+    background-color: #ff0000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 100; /* Ensure it's above the iframe */
+  }
+
+  .cookie-consent-blocked-content {
+    text-align: center;
+    padding: 20px;
+    color: #495057;
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 500;
+  }
+
+  /* Dark theme support */
+  .dark .cookie-consent-blocked-iframe {
+    background-color: #1f2937;
+    border-color: #4b5563;
+  }
+
+  .dark .cookie-consent-blocked-content {
+    color: #d1d5db;
+  }
+
+  /* Style for the wrapper */
+  [data-cookie-consent-placeholder="true"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Hide the blocked iframe */
+  iframe[data-cookie-blocked="true"] {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}

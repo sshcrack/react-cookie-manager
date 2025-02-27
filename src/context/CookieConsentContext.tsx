@@ -58,7 +58,8 @@ const blockTrackingRequests = (blockedHosts: string[]) => {
   XMLHttpRequest.prototype.open = function (method: string, url: string | URL) {
     const urlString = url.toString();
     if (blockedHosts.some((host) => urlString.includes(host))) {
-      return;
+      console.debug(`[CookieKit] Blocked XMLHttpRequest to: ${urlString}`);
+      throw new Error(`Request to ${urlString} blocked by consent settings`);
     }
     return originalXhrOpen!.apply(this, arguments as any);
   };
@@ -70,8 +71,12 @@ const blockTrackingRequests = (blockedHosts: string[]) => {
       typeof urlString === "string" &&
       blockedHosts.some((host) => urlString.includes(host))
     ) {
+      console.debug(`[CookieKit] Blocked fetch request to: ${urlString}`);
       return Promise.resolve(
-        new Response(null, { status: 403, statusText: "Blocked" })
+        new Response(null, {
+          status: 403,
+          statusText: "Blocked by consent settings",
+        })
       );
     }
     return originalFetch!.apply(this, arguments as any);
@@ -85,21 +90,243 @@ const blockTrackingScripts = (trackingKeywords: string[]) => {
       script.src &&
       trackingKeywords.some((keyword) => script.src.includes(keyword))
     ) {
+      console.debug(`[CookieKit] Removing script: ${script.src}`);
       script.remove();
     }
   });
 
-  // Prevent new tracking scripts from being injected
+  // Also block iframes from tracking domains (especially for YouTube embeds)
+  document.querySelectorAll("iframe").forEach((iframe) => {
+    if (
+      iframe.src &&
+      trackingKeywords.some((keyword) => iframe.src.includes(keyword))
+    ) {
+      console.debug(`[CookieKit] Blocking iframe: ${iframe.src}`);
+
+      // Create a unique ID for the placeholder
+      const placeholderId = `cookie-blocked-content-${Math.random()
+        .toString(36)
+        .substring(2, 11)}`;
+
+      // Get iframe dimensions and position
+      const rect = iframe.getBoundingClientRect();
+      const computedStyle = window.getComputedStyle(iframe);
+
+      // Get the iframe's parent element
+      const parentElement = iframe.parentElement;
+      if (!parentElement) return;
+
+      // Make the iframe invisible but keep it in place
+      iframe.style.opacity = "0";
+      iframe.style.pointerEvents = "none";
+      iframe.setAttribute("data-cookie-blocked", "true");
+
+      // Set a blank src to prevent loading
+      const originalSrc = iframe.src;
+      iframe.setAttribute("data-original-src", originalSrc);
+      iframe.src = "about:blank";
+
+      // Create a wrapper div with position relative
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+      wrapper.style.width = computedStyle.width;
+      wrapper.style.height = computedStyle.height;
+      wrapper.style.display = "inline-block";
+
+      // Create the placeholder
+      const placeholder = document.createElement("div");
+      placeholder.id = placeholderId;
+      placeholder.className = "cookie-consent-blocked-iframe";
+      placeholder.setAttribute("data-cookie-consent-placeholder", "true");
+      placeholder.setAttribute("data-blocked-src", originalSrc);
+
+      // Position the placeholder absolutely to cover the iframe exactly
+      placeholder.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        min-height: 200px;
+        background-color: #ff0000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: 2px solid #e9ecef;
+        z-index: 100;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      `;
+
+      // Create content with more information
+      const contentDiv = document.createElement("div");
+      contentDiv.className = "cookie-consent-blocked-content";
+      contentDiv.style.cssText = `
+        text-align: center;
+        padding: 20px;
+        color: #495057;
+        font-size: 14px;
+        line-height: 1.5;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      `;
+
+      // Add an icon or visual indicator
+      const iconDiv = document.createElement("div");
+      iconDiv.style.cssText = `
+        margin-bottom: 10px;
+        font-size: 24px;
+      `;
+      iconDiv.innerHTML = "🔒"; // Lock emoji as a simple visual indicator
+
+      // Add message with more context
+      const messageDiv = document.createElement("div");
+      messageDiv.innerHTML =
+        "<strong>Content Blocked</strong><br>This content has been blocked due to your cookie preferences.";
+
+      // Assemble the placeholder
+      contentDiv.appendChild(iconDiv);
+      contentDiv.appendChild(messageDiv);
+      placeholder.appendChild(contentDiv);
+
+      // Insert the wrapper right before the iframe
+      parentElement.insertBefore(wrapper, iframe);
+
+      // Move the iframe inside the wrapper
+      wrapper.appendChild(iframe);
+
+      // Add the placeholder to the wrapper
+      wrapper.appendChild(placeholder);
+
+      console.debug(
+        `[CookieKit] Added overlay placeholder ID: ${placeholderId}`
+      );
+    }
+  });
+
+  // Prevent new tracking scripts and iframes from being injected
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
+        // Handle script tags
         if (node instanceof HTMLElement && node.tagName === "SCRIPT") {
           const src = node.getAttribute("src");
           if (
             src &&
             trackingKeywords.some((keyword) => src.includes(keyword))
           ) {
+            console.debug(`[CookieKit] Blocking injected script: ${src}`);
             node.remove();
+          }
+        }
+
+        // Handle iframe tags (especially YouTube)
+        if (node instanceof HTMLElement && node.tagName === "IFRAME") {
+          const src = node.getAttribute("src");
+          if (
+            src &&
+            trackingKeywords.some((keyword) => src.includes(keyword))
+          ) {
+            console.debug(`[CookieKit] Blocking injected iframe: ${src}`);
+
+            // Create a unique ID for the placeholder
+            const placeholderId = `cookie-blocked-content-${Math.random()
+              .toString(36)
+              .substring(2, 11)}`;
+
+            // Get the iframe's parent element
+            const parentElement = node.parentElement;
+            if (!parentElement) return;
+
+            // Cast node to HTMLIFrameElement to access iframe-specific properties
+            const iframeElement = node as HTMLIFrameElement;
+
+            // Make the iframe invisible but keep it in place
+            iframeElement.style.opacity = "0";
+            iframeElement.style.pointerEvents = "none";
+            iframeElement.setAttribute("data-cookie-blocked", "true");
+
+            // Set a blank src to prevent loading
+            const originalSrc = src;
+            iframeElement.setAttribute("data-original-src", originalSrc);
+            iframeElement.src = "about:blank";
+
+            // Create a wrapper div with position relative
+            const wrapper = document.createElement("div");
+            wrapper.style.position = "relative";
+            wrapper.style.width = iframeElement.style.width || "100%";
+            wrapper.style.height = iframeElement.style.height || "315px";
+            wrapper.style.display = "inline-block";
+            wrapper.style.backgroundColor = "red";
+
+            // Create the placeholder
+            const placeholder = document.createElement("div");
+            placeholder.id = placeholderId;
+            placeholder.className = "cookie-consent-blocked-iframe";
+            placeholder.setAttribute("data-cookie-consent-placeholder", "true");
+            placeholder.setAttribute("data-blocked-src", originalSrc);
+
+            // Position the placeholder absolutely to cover the iframe exactly
+            placeholder.style.cssText = `
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              min-height: 200px;
+              background-color: #ff0000;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: 8px;
+              border: 2px solid #e9ecef;
+              z-index: 100;
+              overflow: hidden;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            `;
+
+            // Create content with more information
+            const contentDiv = document.createElement("div");
+            contentDiv.className = "cookie-consent-blocked-content";
+            contentDiv.style.cssText = `
+              text-align: center;
+              padding: 20px;
+              color: #495057;
+              font-size: 14px;
+              line-height: 1.5;
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            `;
+
+            // Add an icon or visual indicator
+            const iconDiv = document.createElement("div");
+            iconDiv.style.cssText = `
+              margin-bottom: 10px;
+              font-size: 24px;
+            `;
+            iconDiv.innerHTML = "🔒"; // Lock emoji as a simple visual indicator
+
+            // Add message with more context
+            const messageDiv = document.createElement("div");
+            messageDiv.innerHTML =
+              "<strong>Content Blocked</strong><br>This content has been blocked due to your cookie preferences.";
+
+            // Assemble the placeholder
+            contentDiv.appendChild(iconDiv);
+            contentDiv.appendChild(messageDiv);
+            placeholder.appendChild(contentDiv);
+
+            // Insert the wrapper right before the iframe
+            parentElement.insertBefore(wrapper, node);
+
+            // Move the iframe inside the wrapper
+            wrapper.appendChild(node);
+
+            // Add the placeholder to the wrapper
+            wrapper.appendChild(placeholder);
+
+            console.debug(
+              `[CookieKit] Added overlay placeholder ID: ${placeholderId}`
+            );
           }
         }
       });
@@ -441,14 +668,265 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
         ...getBlockedHosts(currentPreferences),
         ...blockedDomains,
       ];
+
       const blockedKeywords = [
         ...getBlockedKeywords(currentPreferences),
         ...blockedDomains,
       ];
 
       if (blockedHosts.length > 0) {
+        console.debug(
+          "[CookieKit] Blocking tracking requests for domains:",
+          blockedHosts
+        );
         blockTrackingRequests(blockedHosts);
-        observerRef.current = blockTrackingScripts(blockedKeywords);
+
+        // Only create a new observer if one doesn't exist already
+        // This ensures placeholders remain when consent changes
+        if (!observerRef.current) {
+          console.debug(
+            "[CookieKit] Creating new MutationObserver for tracking scripts"
+          );
+          observerRef.current = blockTrackingScripts(blockedKeywords);
+
+          // Add a periodic check to ensure placeholders remain visible
+          const ensurePlaceholdersVisible = () => {
+            const placeholders = document.querySelectorAll(
+              '[data-cookie-consent-placeholder="true"]'
+            );
+            if (placeholders.length > 0) {
+              console.debug(
+                `[CookieKit] Ensuring ${placeholders.length} placeholders remain visible`
+              );
+              placeholders.forEach((placeholder) => {
+                // Make sure the placeholder is visible
+                if (placeholder instanceof HTMLElement) {
+                  placeholder.style.display = "flex";
+                  placeholder.style.visibility = "visible";
+                  placeholder.style.opacity = "1";
+                  placeholder.style.zIndex = "100";
+
+                  // Find the parent wrapper
+                  const wrapper = placeholder.parentElement;
+                  if (wrapper) {
+                    // Make sure the wrapper is properly positioned
+                    wrapper.style.position = "relative";
+                    wrapper.style.display = "inline-block";
+                    wrapper.style.backgroundColor = "red";
+
+                    // Find the iframe inside the wrapper
+                    const iframe = wrapper.querySelector("iframe");
+                    if (iframe) {
+                      // Make sure the iframe is invisible
+                      iframe.style.opacity = "0";
+                      iframe.style.pointerEvents = "none";
+
+                      // Make sure it's still using about:blank
+                      if (
+                        iframe.src !== "about:blank" &&
+                        iframe.hasAttribute("data-original-src")
+                      ) {
+                        iframe.src = "about:blank";
+                      }
+                    }
+                  }
+
+                  // If the placeholder is not in the DOM, try to restore it
+                  if (!document.body.contains(placeholder)) {
+                    console.debug(
+                      "[CookieKit] Placeholder was removed, attempting to restore it"
+                    );
+
+                    // Try to find the original iframe by the blocked src
+                    const blockedSrc =
+                      placeholder.getAttribute("data-blocked-src");
+                    if (blockedSrc) {
+                      // Look for iframes that might need blocking
+                      document.querySelectorAll("iframe").forEach((iframe) => {
+                        if (
+                          iframe.src === blockedSrc ||
+                          iframe.getAttribute("data-original-src") ===
+                            blockedSrc
+                        ) {
+                          console.debug(
+                            `[CookieKit] Found iframe to re-block: ${blockedSrc}`
+                          );
+
+                          // Get the iframe's parent
+                          const parentElement = iframe.parentElement;
+                          if (parentElement) {
+                            // Create a new wrapper
+                            const wrapper = document.createElement("div");
+                            wrapper.style.position = "relative";
+                            wrapper.style.width = iframe.style.width || "100%";
+                            wrapper.style.height =
+                              iframe.style.height || "315px";
+                            wrapper.style.display = "inline-block";
+
+                            // Insert the wrapper and move the iframe
+                            parentElement.insertBefore(wrapper, iframe);
+                            wrapper.appendChild(iframe);
+
+                            // Make the iframe invisible
+                            iframe.style.opacity = "0";
+                            iframe.style.pointerEvents = "none";
+                            iframe.setAttribute("data-cookie-blocked", "true");
+                            iframe.setAttribute(
+                              "data-original-src",
+                              blockedSrc
+                            );
+                            iframe.src = "about:blank";
+
+                            // Add the placeholder back
+                            wrapper.appendChild(placeholder);
+                          }
+                        }
+                      });
+                    }
+                  }
+                }
+              });
+            }
+          };
+
+          // Run the check immediately and then every 2 seconds
+          ensurePlaceholdersVisible();
+          const intervalId = setInterval(ensurePlaceholdersVisible, 2000);
+
+          // Store the interval ID for cleanup
+          return () => {
+            clearInterval(intervalId);
+            if (observerRef.current) {
+              observerRef.current.disconnect();
+            }
+          };
+        } else {
+          // If we already have an observer, just run the initial blocking again
+          // without disconnecting the existing observer
+          console.debug(
+            "[CookieKit] Re-running initial iframe/script blocking"
+          );
+          document.querySelectorAll("script").forEach((script) => {
+            if (
+              script.src &&
+              blockedKeywords.some((keyword) => script.src.includes(keyword))
+            ) {
+              console.debug(`[CookieKit] Removing script: ${script.src}`);
+              script.remove();
+            }
+          });
+
+          document.querySelectorAll("iframe").forEach((iframe) => {
+            if (
+              iframe.src &&
+              blockedKeywords.some((keyword) => iframe.src.includes(keyword))
+            ) {
+              console.debug(`[CookieKit] Blocking iframe: ${iframe.src}`);
+
+              // Create a unique ID for the placeholder
+              const placeholderId = `cookie-blocked-content-${Math.random()
+                .toString(36)
+                .substring(2, 11)}`;
+
+              // Get iframe dimensions and position
+              const rect = iframe.getBoundingClientRect();
+              const computedStyle = window.getComputedStyle(iframe);
+
+              // Get the iframe's parent element
+              const parentElement = iframe.parentElement;
+              if (!parentElement) return;
+
+              // Make the iframe invisible but keep it in place
+              iframe.style.opacity = "0";
+              iframe.style.pointerEvents = "none";
+              iframe.setAttribute("data-cookie-blocked", "true");
+
+              // Set a blank src to prevent loading
+              const originalSrc = iframe.src;
+              iframe.setAttribute("data-original-src", originalSrc);
+              iframe.src = "about:blank";
+
+              // Create a wrapper div with position relative
+              const wrapper = document.createElement("div");
+              wrapper.style.position = "relative";
+              wrapper.style.width = computedStyle.width;
+              wrapper.style.height = computedStyle.height;
+              wrapper.style.display = "inline-block";
+
+              // Create the placeholder
+              const placeholder = document.createElement("div");
+              placeholder.id = placeholderId;
+              placeholder.className = "cookie-consent-blocked-iframe";
+              placeholder.setAttribute(
+                "data-cookie-consent-placeholder",
+                "true"
+              );
+              placeholder.setAttribute("data-blocked-src", originalSrc);
+
+              // Position the placeholder absolutely to cover the iframe exactly
+              placeholder.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                min-height: 200px;
+                background-color: #ff0000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
+                border: 2px solid #e9ecef;
+                z-index: 100;
+                overflow: hidden;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+              `;
+
+              // Create content with more information
+              const contentDiv = document.createElement("div");
+              contentDiv.className = "cookie-consent-blocked-content";
+              contentDiv.style.cssText = `
+                text-align: center;
+                padding: 20px;
+                color: #495057;
+                font-size: 14px;
+                line-height: 1.5;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              `;
+
+              // Add an icon or visual indicator
+              const iconDiv = document.createElement("div");
+              iconDiv.style.cssText = `
+                margin-bottom: 10px;
+                font-size: 24px;
+              `;
+              iconDiv.innerHTML = "🔒"; // Lock emoji as a simple visual indicator
+
+              // Add message with more context
+              const messageDiv = document.createElement("div");
+              messageDiv.innerHTML =
+                "<strong>Content Blocked</strong><br>This content has been blocked due to your cookie preferences.";
+
+              // Assemble the placeholder
+              contentDiv.appendChild(iconDiv);
+              contentDiv.appendChild(messageDiv);
+              placeholder.appendChild(contentDiv);
+
+              // Insert the wrapper right before the iframe
+              parentElement.insertBefore(wrapper, iframe);
+
+              // Move the iframe inside the wrapper
+              wrapper.appendChild(iframe);
+
+              // Add the placeholder to the wrapper
+              wrapper.appendChild(placeholder);
+
+              console.debug(
+                `[CookieKit] Added overlay placeholder ID: ${placeholderId}`
+              );
+            }
+          });
+        }
       } else {
         // If no hosts are blocked, restore original functions
         restoreOriginalRequests();
