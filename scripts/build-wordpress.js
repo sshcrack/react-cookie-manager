@@ -4,6 +4,8 @@ import path from "path";
 import crypto from "crypto";
 
 const WORDPRESS_PLUGIN_DIR = "wordpress-plugin/cookiekit/assets";
+// Define logo files that should be preserved during build
+const PRESERVE_FILES = ["cookiekit-logo.svg", "gdpr-shield.svg"];
 
 async function buildWordPress() {
   try {
@@ -20,11 +22,17 @@ async function buildWordPress() {
     // Ensure WordPress plugin assets directory exists
     await fs.mkdir(WORDPRESS_PLUGIN_DIR, { recursive: true });
 
-    // Clean up old files
-    console.log("🧹 Cleaning up old files...");
+    // Clean up old files but preserve logo files
+    console.log("🧹 Cleaning up old files (preserving logo files)...");
     const oldFiles = await fs.readdir(WORDPRESS_PLUGIN_DIR);
     await Promise.all(
-      oldFiles.map((file) => fs.unlink(path.join(WORDPRESS_PLUGIN_DIR, file)))
+      oldFiles
+        .filter(
+          (file) =>
+            !PRESERVE_FILES.includes(file) &&
+            file.match(/cookie-manager\.[a-f0-9]+\.(js|css)/)
+        )
+        .map((file) => fs.unlink(path.join(WORDPRESS_PLUGIN_DIR, file)))
     );
 
     // Run WordPress build
