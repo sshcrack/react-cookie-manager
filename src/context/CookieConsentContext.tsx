@@ -132,6 +132,12 @@ const blockTrackingScripts = (trackingKeywords: string[]) => {
       wrapper.style.width = computedStyle.width;
       wrapper.style.height = computedStyle.height;
       wrapper.style.display = "inline-block";
+      wrapper.style.backgroundColor = "rgba(31, 41, 55, 0.95)";
+      wrapper.style.borderRadius = "8px";
+      wrapper.style.border = "2px solid #4b5563";
+      wrapper.style.boxShadow = "0 8px 20px rgba(0, 0, 0, 0.15)";
+      wrapper.style.overflow = "hidden";
+      wrapper.style.backdropFilter = "blur(4px)";
 
       // Create the placeholder
       const placeholder = document.createElement("div");
@@ -148,15 +154,10 @@ const blockTrackingScripts = (trackingKeywords: string[]) => {
         width: 100%;
         height: 100%;
         min-height: 200px;
-        background-color: #ff0000;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 8px;
-        border: 2px solid #e9ecef;
         z-index: 100;
-        overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
       `;
 
       // Create content with more information
@@ -164,29 +165,65 @@ const blockTrackingScripts = (trackingKeywords: string[]) => {
       contentDiv.className = "cookie-consent-blocked-content";
       contentDiv.style.cssText = `
         text-align: center;
-        padding: 20px;
-        color: #495057;
-        font-size: 14px;
-        line-height: 1.5;
+        padding: 24px;
+        color: #f3f4f6;
+        font-size: 15px;
+        line-height: 1.6;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        max-width: 90%;
       `;
 
       // Add an icon or visual indicator
       const iconDiv = document.createElement("div");
       iconDiv.style.cssText = `
-        margin-bottom: 10px;
-        font-size: 24px;
+        margin-bottom: 16px;
+        font-size: 32px;
       `;
       iconDiv.innerHTML = "🔒"; // Lock emoji as a simple visual indicator
 
       // Add message with more context
       const messageDiv = document.createElement("div");
-      messageDiv.innerHTML =
-        "<strong>Content Blocked</strong><br>This content has been blocked due to your cookie preferences.";
+      messageDiv.innerHTML = `
+        <h3 style="font-size: 18px; margin-bottom: 10px; font-weight: bold; color: white;">Content Blocked</h3>
+        <p style="margin-bottom: 12px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+        <p style="margin-bottom: 12px;">This embedded content from an external provider may track your activity or store cookies on your device.</p>
+        <p style="margin-bottom: 12px;">To view this content, please update your cookie preferences using the button below.</p>
+      `;
+
+      // Add a button to manage cookies
+      const buttonDiv = document.createElement("div");
+      buttonDiv.style.cssText = `
+        margin-top: 16px;
+      `;
+      const settingsButton = document.createElement("button");
+      settingsButton.textContent = "Manage Cookie Settings";
+      settingsButton.style.cssText = `
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      `;
+      settingsButton.addEventListener("mouseover", () => {
+        settingsButton.style.backgroundColor = "#2563eb";
+      });
+      settingsButton.addEventListener("mouseout", () => {
+        settingsButton.style.backgroundColor = "#3b82f6";
+      });
+      settingsButton.addEventListener("click", () => {
+        // Try to show cookie settings
+        window.dispatchEvent(new CustomEvent("show-cookie-consent"));
+      });
+      buttonDiv.appendChild(settingsButton);
 
       // Assemble the placeholder
       contentDiv.appendChild(iconDiv);
       contentDiv.appendChild(messageDiv);
+      contentDiv.appendChild(buttonDiv);
       placeholder.appendChild(contentDiv);
 
       // Insert the wrapper right before the iframe
@@ -257,7 +294,12 @@ const blockTrackingScripts = (trackingKeywords: string[]) => {
             wrapper.style.width = iframeElement.style.width || "100%";
             wrapper.style.height = iframeElement.style.height || "315px";
             wrapper.style.display = "inline-block";
-            wrapper.style.backgroundColor = "red";
+            wrapper.style.backgroundColor = "rgba(31, 41, 55, 0.95)";
+            wrapper.style.borderRadius = "8px";
+            wrapper.style.border = "2px solid #4b5563";
+            wrapper.style.boxShadow = "0 8px 20px rgba(0, 0, 0, 0.15)";
+            wrapper.style.overflow = "hidden";
+            wrapper.style.backdropFilter = "blur(4px)";
 
             // Create the placeholder
             const placeholder = document.createElement("div");
@@ -274,15 +316,10 @@ const blockTrackingScripts = (trackingKeywords: string[]) => {
               width: 100%;
               height: 100%;
               min-height: 200px;
-              background-color: #ff0000;
               display: flex;
               align-items: center;
               justify-content: center;
-              border-radius: 8px;
-              border: 2px solid #e9ecef;
               z-index: 100;
-              overflow: hidden;
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             `;
 
             // Create content with more information
@@ -290,29 +327,65 @@ const blockTrackingScripts = (trackingKeywords: string[]) => {
             contentDiv.className = "cookie-consent-blocked-content";
             contentDiv.style.cssText = `
               text-align: center;
-              padding: 20px;
-              color: #495057;
-              font-size: 14px;
-              line-height: 1.5;
+              padding: 24px;
+              color: #f3f4f6;
+              font-size: 15px;
+              line-height: 1.6;
               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              max-width: 90%;
             `;
 
             // Add an icon or visual indicator
             const iconDiv = document.createElement("div");
             iconDiv.style.cssText = `
-              margin-bottom: 10px;
-              font-size: 24px;
+              margin-bottom: 16px;
+              font-size: 32px;
             `;
             iconDiv.innerHTML = "🔒"; // Lock emoji as a simple visual indicator
 
             // Add message with more context
             const messageDiv = document.createElement("div");
-            messageDiv.innerHTML =
-              "<strong>Content Blocked</strong><br>This content has been blocked due to your cookie preferences.";
+            messageDiv.innerHTML = `
+              <h3 style="font-size: 18px; margin-bottom: 10px; font-weight: bold; color: white;">Content Blocked</h3>
+              <p style="margin-bottom: 12px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+              <p style="margin-bottom: 12px;">This embedded content from an external provider may track your activity or store cookies on your device.</p>
+              <p style="margin-bottom: 12px;">To view this content, please update your cookie preferences using the button below.</p>
+            `;
+
+            // Add a button to manage cookies
+            const buttonDiv = document.createElement("div");
+            buttonDiv.style.cssText = `
+              margin-top: 16px;
+            `;
+            const settingsButton = document.createElement("button");
+            settingsButton.textContent = "Manage Cookie Settings";
+            settingsButton.style.cssText = `
+              background-color: #3b82f6;
+              color: white;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 4px;
+              font-weight: 500;
+              cursor: pointer;
+              font-size: 14px;
+              transition: all 0.2s ease;
+            `;
+            settingsButton.addEventListener("mouseover", () => {
+              settingsButton.style.backgroundColor = "#2563eb";
+            });
+            settingsButton.addEventListener("mouseout", () => {
+              settingsButton.style.backgroundColor = "#3b82f6";
+            });
+            settingsButton.addEventListener("click", () => {
+              // Try to show cookie settings
+              window.dispatchEvent(new CustomEvent("show-cookie-consent"));
+            });
+            buttonDiv.appendChild(settingsButton);
 
             // Assemble the placeholder
             contentDiv.appendChild(iconDiv);
             contentDiv.appendChild(messageDiv);
+            contentDiv.appendChild(buttonDiv);
             placeholder.appendChild(contentDiv);
 
             // Insert the wrapper right before the iframe
@@ -712,7 +785,12 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
                     // Make sure the wrapper is properly positioned
                     wrapper.style.position = "relative";
                     wrapper.style.display = "inline-block";
-                    wrapper.style.backgroundColor = "red";
+                    wrapper.style.backgroundColor = "rgba(31, 41, 55, 0.95)";
+                    wrapper.style.borderRadius = "8px";
+                    wrapper.style.border = "2px solid #4b5563";
+                    wrapper.style.boxShadow = "0 8px 20px rgba(0, 0, 0, 0.15)";
+                    wrapper.style.overflow = "hidden";
+                    wrapper.style.backdropFilter = "blur(4px)";
 
                     // Find the iframe inside the wrapper
                     const iframe = wrapper.querySelector("iframe");
@@ -852,6 +930,12 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
               wrapper.style.width = computedStyle.width;
               wrapper.style.height = computedStyle.height;
               wrapper.style.display = "inline-block";
+              wrapper.style.backgroundColor = "rgba(31, 41, 55, 0.95)";
+              wrapper.style.borderRadius = "8px";
+              wrapper.style.border = "2px solid #4b5563";
+              wrapper.style.boxShadow = "0 8px 20px rgba(0, 0, 0, 0.15)";
+              wrapper.style.overflow = "hidden";
+              wrapper.style.backdropFilter = "blur(4px)";
 
               // Create the placeholder
               const placeholder = document.createElement("div");
@@ -871,15 +955,10 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
                 width: 100%;
                 height: 100%;
                 min-height: 200px;
-                background-color: #ff0000;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                border-radius: 8px;
-                border: 2px solid #e9ecef;
                 z-index: 100;
-                overflow: hidden;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
               `;
 
               // Create content with more information
@@ -887,29 +966,65 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
               contentDiv.className = "cookie-consent-blocked-content";
               contentDiv.style.cssText = `
                 text-align: center;
-                padding: 20px;
-                color: #495057;
-                font-size: 14px;
-                line-height: 1.5;
+                padding: 24px;
+                color: #f3f4f6;
+                font-size: 15px;
+                line-height: 1.6;
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                max-width: 90%;
               `;
 
               // Add an icon or visual indicator
               const iconDiv = document.createElement("div");
               iconDiv.style.cssText = `
-                margin-bottom: 10px;
-                font-size: 24px;
+                margin-bottom: 16px;
+                font-size: 32px;
               `;
               iconDiv.innerHTML = "🔒"; // Lock emoji as a simple visual indicator
 
               // Add message with more context
               const messageDiv = document.createElement("div");
-              messageDiv.innerHTML =
-                "<strong>Content Blocked</strong><br>This content has been blocked due to your cookie preferences.";
+              messageDiv.innerHTML = `
+                <h3 style="font-size: 18px; margin-bottom: 10px; font-weight: bold; color: white;">Content Blocked</h3>
+                <p style="margin-bottom: 12px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+                <p style="margin-bottom: 12px;">This embedded content from an external provider may track your activity or store cookies on your device.</p>
+                <p style="margin-bottom: 12px;">To view this content, please update your cookie preferences using the button below.</p>
+              `;
+
+              // Add a button to manage cookies
+              const buttonDiv = document.createElement("div");
+              buttonDiv.style.cssText = `
+                margin-top: 16px;
+              `;
+              const settingsButton = document.createElement("button");
+              settingsButton.textContent = "Manage Cookie Settings";
+              settingsButton.style.cssText = `
+                background-color: #3b82f6;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: 500;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.2s ease;
+              `;
+              settingsButton.addEventListener("mouseover", () => {
+                settingsButton.style.backgroundColor = "#2563eb";
+              });
+              settingsButton.addEventListener("mouseout", () => {
+                settingsButton.style.backgroundColor = "#3b82f6";
+              });
+              settingsButton.addEventListener("click", () => {
+                // Try to show cookie settings
+                window.dispatchEvent(new CustomEvent("show-cookie-consent"));
+              });
+              buttonDiv.appendChild(settingsButton);
 
               // Assemble the placeholder
               contentDiv.appendChild(iconDiv);
               contentDiv.appendChild(messageDiv);
+              contentDiv.appendChild(buttonDiv);
               placeholder.appendChild(contentDiv);
 
               // Insert the wrapper right before the iframe
@@ -1067,6 +1182,28 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     if (enableFloatingButton && detailedConsent) {
       setIsFloatingButtonVisible(true);
     }
+
+    // Add event listener for custom event to show cookie settings
+    const handleShowCookieConsent = () => {
+      console.debug(
+        "[CookieKit] Custom event triggered to show cookie settings"
+      );
+      if (detailedConsent) {
+        setShowManageConsent(true);
+        setIsFloatingButtonVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+    };
+
+    window.addEventListener("show-cookie-consent", handleShowCookieConsent);
+
+    return () => {
+      window.removeEventListener(
+        "show-cookie-consent",
+        handleShowCookieConsent
+      );
+    };
   }, [enableFloatingButton, detailedConsent]);
 
   // Add debug logging
