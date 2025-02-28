@@ -40,6 +40,25 @@
     opacity: 0.9;
   }
 
+  /* Direct content in wrapper */
+  .cookie-consent-wrapper-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    color: #f3f4f6;
+    font-size: 15px;
+    line-height: 1.6;
+    z-index: 100;
+  }
+
   /* Dark theme support */
   .dark .cookie-consent-blocked-iframe {
     color: #e5e7eb;
