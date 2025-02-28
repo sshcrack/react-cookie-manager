@@ -46,9 +46,9 @@ const createPlaceholderContent = (placeholderId: string): string => {
       <h3 style="font-size: 16px; margin: 0 0 8px 0; font-weight: bold; color: white;">Content Blocked</h3>
       <p style="margin: 0 0 8px 0; font-size: 14px;">This content requires cookies that are currently blocked by your privacy settings. This embedded content may track your activity.</p>
       <p style="margin: 0 0 8px 0; font-size: 13px; color: #d1d5db;">After accepting cookies, please refresh the page to view this content.</p>
-      <button id="cookie-settings-${placeholderId}" style="margin-top: 10px; background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px; transition: all 0.2s ease;">
+      <div id="cookie-settings-${placeholderId}" style="margin-top: 10px; background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px; transition: all 0.2s ease; display: inline-block;">
         Manage Cookie Settings
-      </button>
+      </div>
     </div>
   `;
 };
@@ -151,8 +151,6 @@ export const createContentPlaceholder = (
   // Add event listener to the button
   addSettingsButtonListeners(placeholderId);
 
-  console.debug(`[CookieKit] Added overlay placeholder ID: ${placeholderId}`);
-
   return wrapper;
 };
 
@@ -170,7 +168,6 @@ export const blockTrackingScripts = (
       script.src &&
       trackingKeywords.some((keyword) => script.src.includes(keyword))
     ) {
-      console.debug(`[CookieKit] Removing script: ${script.src}`);
       script.remove();
     }
   });
@@ -181,7 +178,6 @@ export const blockTrackingScripts = (
       iframe.src &&
       trackingKeywords.some((keyword) => iframe.src.includes(keyword))
     ) {
-      console.debug(`[CookieKit] Blocking iframe: ${iframe.src}`);
       createContentPlaceholder(iframe, iframe.src);
     }
   });
@@ -197,7 +193,6 @@ export const blockTrackingScripts = (
             src &&
             trackingKeywords.some((keyword) => src.includes(keyword))
           ) {
-            console.debug(`[CookieKit] Blocking injected script: ${src}`);
             node.remove();
           }
         }
@@ -209,7 +204,6 @@ export const blockTrackingScripts = (
             src &&
             trackingKeywords.some((keyword) => src.includes(keyword))
           ) {
-            console.debug(`[CookieKit] Blocking injected iframe: ${src}`);
             createContentPlaceholder(node as HTMLIFrameElement, src);
           }
         }
@@ -234,10 +228,6 @@ export const ensurePlaceholdersVisible = (): void => {
   );
 
   if (placeholders.length > 0) {
-    console.debug(
-      `[CookieKit] Ensuring ${placeholders.length} placeholders remain visible`
-    );
-
     placeholders.forEach((placeholder) => {
       // Make sure the placeholder is visible
       if (placeholder instanceof HTMLElement) {
