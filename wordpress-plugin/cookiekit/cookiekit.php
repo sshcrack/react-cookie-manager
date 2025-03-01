@@ -50,7 +50,7 @@ function cookiekit_enqueue_scripts() {
     // Load our plugin's JS first
     wp_enqueue_script(
         'cookiekit-main',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.709e770a.js',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.e71deec8.js',
         array(),
         null, // Version will be part of the filename
         false // Load in header
@@ -59,7 +59,7 @@ function cookiekit_enqueue_scripts() {
     // Then enqueue our plugin's CSS
     wp_enqueue_style(
         'cookiekit-styles',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.709e770a.css',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.e71deec8.css',
         array(),
         null // Version will be part of the filename
     );
@@ -109,66 +109,8 @@ function cookiekit_register_settings() {
         ),
         'sanitize_callback' => 'cookiekit_sanitize_settings'
     ));
-    
-    // Register option for dismissing the import/export notice
-    register_setting('cookiekit_options', 'cookiekit_import_export_notice_dismissed', array(
-        'type' => 'boolean',
-        'default' => false,
-        'sanitize_callback' => 'rest_sanitize_boolean'
-    ));
 }
 add_action('admin_init', 'cookiekit_register_settings');
-
-/**
- * Display admin notice about import/export functionality
- */
-function cookiekit_admin_notices() {
-    // Only show on our settings page
-    $screen = get_current_screen();
-    if ($screen->id !== 'settings_page_cookiekit-settings') {
-        return;
-    }
-    
-    // Check if notice has been dismissed
-    $notice_dismissed = get_option('cookiekit_import_export_notice_dismissed', false);
-    if ($notice_dismissed) {
-        return;
-    }
-    
-    ?>
-    <div class="notice notice-info is-dismissible cookiekit-import-export-notice">
-        <p>
-            <strong><?php _e('New Feature: Import/Export Settings', 'cookiekit-gdpr-cookie-consent'); ?></strong>
-        </p>
-        <p>
-            <?php _e('You can now quickly configure CookieKit by importing settings from a JSON file or export your current settings for backup or use on another site.', 'cookiekit-gdpr-cookie-consent'); ?>
-            <?php _e('Look for the Import/Export section below!', 'cookiekit-gdpr-cookie-consent'); ?>
-        </p>
-    </div>
-    <script>
-        jQuery(document).ready(function($) {
-            $(document).on('click', '.cookiekit-import-export-notice .notice-dismiss', function() {
-                $.ajax({
-                    url: ajaxurl,
-                    data: {
-                        action: 'cookiekit_dismiss_import_export_notice'
-                    }
-                });
-            });
-        });
-    </script>
-    <?php
-}
-add_action('admin_notices', 'cookiekit_admin_notices');
-
-/**
- * AJAX handler to dismiss the import/export notice
- */
-function cookiekit_dismiss_import_export_notice() {
-    update_option('cookiekit_import_export_notice_dismissed', true);
-    wp_die();
-}
-add_action('wp_ajax_cookiekit_dismiss_import_export_notice', 'cookiekit_dismiss_import_export_notice');
 
 /**
  * Sanitize settings and preserve version hash
@@ -361,53 +303,6 @@ function cookiekit_settings_page() {
             <h2 class="title">General Settings</h2>
             <table class="form-table">
                 <tr>
-                    <th scope="row">CookieKit ID</th>
-                    <td>
-                        <div style="background: #f0f6ff; border: 1px solid #2271b1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                            <input type="text" 
-                                   name="cookiekit_settings[cookiekit_id]" 
-                                   value="<?php echo esc_attr($settings['cookiekit_id']); ?>"
-                                   placeholder="Enter your CookieKit ID"
-                                   style="width: 100%; padding: 8px; margin-bottom: 10px;">
-                            <p class="description" style="margin-bottom: 10px;">
-                                <strong>💡 Get 2,000 GDPR-compliant consent logs free every month</strong>
-                            </p>
-                            <p class="description" style="margin-bottom: 0;">
-                                1. Sign up for a free account at <a href="https://cookiekit.io" target="_blank">CookieKit.io</a><br>
-                                2. Create a new project<br>
-                                3. Copy your project ID and paste it above
-                                4. Become 100% GDPR compliant
-                            </p>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">Cookie Expiration (days)</th>
-                    <td>
-                        <input type="number" name="cookiekit_settings[cookie_expiration]" 
-                               value="<?php echo esc_attr($settings['cookie_expiration']); ?>" min="1" max="365">
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">Allowed Trackers</th>
-                    <td>
-                        <textarea class="large-text" rows="4" 
-                                 name="cookiekit_settings[allowed_domains]"
-                                 placeholder="example.com&#10;api.example.com&#10;cdn.example.com"><?php 
-                            echo isset($settings['allowed_domains']) ? esc_textarea($settings['allowed_domains']) : ''; 
-                        ?></textarea>
-                        <p class="description">Enter one domain per line. These domains will not be blocked, even if consent is not given. Do not include http:// or https://</p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">Cookie Name</th>
-                    <td>
-                        <input type="text" name="cookiekit_settings[cookie_name]" 
-                               value="<?php echo esc_attr($settings['cookie_name']); ?>">
-                        <p class="description">The key name used to store cookie preferences in the browser's storage (e.g. "cookiekit_consent")</p>
-                    </td>
-                </tr>
-                <tr>
                     <th scope="row">Consent Style</th>
                     <td>
                         <select name="cookiekit_settings[style]">
@@ -430,6 +325,53 @@ function cookiekit_settings_page() {
                             <option value="dark" <?php selected($settings['theme'], 'dark'); ?>>Dark</option>
                         </select>
                         <p class="description">Choose between light and dark theme for the consent UI</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Cookie Expiration (days)</th>
+                    <td>
+                        <input type="number" name="cookiekit_settings[cookie_expiration]" 
+                               value="<?php echo esc_attr($settings['cookie_expiration']); ?>" min="1" max="365">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Cookie Name</th>
+                    <td>
+                        <input type="text" name="cookiekit_settings[cookie_name]" 
+                               value="<?php echo esc_attr($settings['cookie_name']); ?>">
+                        <p class="description">The key name used to store cookie preferences in the browser's storage (e.g. "cookiekit_consent")</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Allowed Trackers</th>
+                    <td>
+                        <textarea class="large-text" rows="4" 
+                                 name="cookiekit_settings[allowed_domains]"
+                                 placeholder="example.com&#10;api.example.com&#10;cdn.example.com"><?php 
+                            echo isset($settings['allowed_domains']) ? esc_textarea($settings['allowed_domains']) : ''; 
+                        ?></textarea>
+                        <p class="description">Enter one domain per line. These domains will not be blocked, even if consent is not given. Do not include http:// or https://</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">CookieKit ID</th>
+                    <td>
+                        <div style="background: #f0f6ff; border: 1px solid #2271b1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <input type="text" 
+                                   name="cookiekit_settings[cookiekit_id]" 
+                                   value="<?php echo esc_attr($settings['cookiekit_id']); ?>"
+                                   placeholder="Enter your CookieKit ID"
+                                   style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                            <p class="description" style="margin-bottom: 10px;">
+                                <strong>💡 Get 2,000 GDPR-compliant consent logs free every month</strong>
+                            </p>
+                            <p class="description" style="margin-bottom: 0;">
+                                1. Sign up for a free account at <a href="https://cookiekit.io" target="_blank">CookieKit.io</a><br>
+                                2. Create a new project<br>
+                                3. Copy your project ID and paste it above
+                                4. Become 100% GDPR compliant
+                            </p>
+                        </div>
                     </td>
                 </tr>
             </table>

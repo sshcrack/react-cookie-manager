@@ -600,16 +600,26 @@ const restoreOriginalRequests = () => {
     }
 
     saveConsent(categories) {
+      // Debug log to help diagnose issues
+      console.log(`Saving consent for style: ${this.config.style}`, categories);
+
       // Animate out and then hide
       if (this.wrapper) {
-        const banner = this.wrapper.querySelector('div[class*="fixed"]');
-        if (banner) {
-          banner.classList.add("translate-y-full");
-          setTimeout(() => {
-            this.wrapper.style.display = "none";
-          }, 10);
-        } else {
+        // For popup style, we need to handle it differently
+        if (this.config.style === "popup") {
+          // Immediately hide the wrapper
           this.wrapper.style.display = "none";
+        } else {
+          // For banner and modal styles, use animation
+          const banner = this.wrapper.querySelector('div[class*="fixed"]');
+          if (banner) {
+            banner.classList.add("translate-y-full");
+            setTimeout(() => {
+              this.wrapper.style.display = "none";
+            }, 300); // Increased timeout to ensure animation completes
+          } else {
+            this.wrapper.style.display = "none";
+          }
         }
       }
 
@@ -617,7 +627,7 @@ const restoreOriginalRequests = () => {
         this.modalWrapper.classList.add("opacity-0");
         setTimeout(() => {
           this.modalWrapper.style.display = "none";
-        }, 10);
+        }, 300); // Increased timeout to ensure animation completes
       }
 
       this.state = categories;
@@ -747,6 +757,7 @@ const restoreOriginalRequests = () => {
               this.config.style === "popup"
                 ? `
                 <div class="flex flex-col gap-3 w-full">
+                  <!-- Mobile buttons -->
                   <button class="accept-all w-full md:hidden px-4 py-2.5 text-sm font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
                     ${this.config.translations.buttonText}
                   </button>
@@ -757,6 +768,8 @@ const restoreOriginalRequests = () => {
                   } transition-all duration-200 hover:scale-105">
                     ${this.config.translations.declineButtonText}
                   </button>
+                  
+                  <!-- Desktop buttons -->
                   <div class="hidden md:flex items-center gap-3">
                     <button class="decline-all flex-1 px-3 py-1.5 text-xs font-medium rounded-md ${
                       isLight
@@ -769,6 +782,8 @@ const restoreOriginalRequests = () => {
                       ${this.config.translations.buttonText}
                     </button>
                   </div>
+                  
+                  <!-- Customize button -->
                   <button class="customize w-full px-4 py-2.5 md:px-3 md:py-1.5 text-sm md:text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
                     ${this.config.translations.manageButtonText}
                   </button>
@@ -798,20 +813,27 @@ const restoreOriginalRequests = () => {
         </div>
       `;
 
-      banner.querySelector(".accept-all").addEventListener("click", () => {
-        this.saveConsent(this.config.categories);
-      });
-
-      banner.querySelector(".decline-all").addEventListener("click", () => {
-        this.saveConsent({
-          analytics: false,
-          marketing: false,
-          preferences: false,
+      // Add event listeners to all buttons with these classes
+      banner.querySelectorAll(".accept-all").forEach((button) => {
+        button.addEventListener("click", () => {
+          this.saveConsent(this.config.categories);
         });
       });
 
-      banner.querySelector(".customize").addEventListener("click", () => {
-        this.showCustomizeModal();
+      banner.querySelectorAll(".decline-all").forEach((button) => {
+        button.addEventListener("click", () => {
+          this.saveConsent({
+            analytics: false,
+            marketing: false,
+            preferences: false,
+          });
+        });
+      });
+
+      banner.querySelectorAll(".customize").forEach((button) => {
+        button.addEventListener("click", () => {
+          this.showCustomizeModal();
+        });
       });
 
       wrapper.appendChild(banner);
