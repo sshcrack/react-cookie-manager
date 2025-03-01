@@ -159,9 +159,30 @@ const blockTrackingScripts = (trackingKeywords) => {
       // Replace with a placeholder using CSS classes and preserving dimensions
       const placeholder = document.createElement("div");
       placeholder.className = "cookie-consent-blocked-iframe";
-      placeholder.style.cssText = `width: ${width}; height: ${height}; background-color: red;`;
-      placeholder.innerHTML =
-        '<div class="cookie-consent-blocked-content">Content blocked due to cookie preferences</div>';
+      placeholder.style.cssText = `
+        width: ${width}; 
+        height: ${height}; 
+        background-color: rgba(31, 41, 55, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: 1px solid #4b5563;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        color: #f3f4f6;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      `;
+      placeholder.innerHTML = `
+        <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
+        <h3 style="font-size: 16px; margin: 0 0 10px 0; font-weight: bold; color: white;">Content Blocked</h3>
+        <p style="margin: 0 0 10px 0; font-size: 14px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+        <button onclick="window.CookieKit.showCustomizeModal()" style="margin-top: 10px; background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px;">
+          Manage Cookie Settings
+        </button>
+      `;
       iframe.parentNode?.replaceChild(placeholder, iframe);
     }
   });
@@ -198,9 +219,30 @@ const blockTrackingScripts = (trackingKeywords) => {
             // Replace with a placeholder using CSS classes and preserving dimensions
             const placeholder = document.createElement("div");
             placeholder.className = "cookie-consent-blocked-iframe";
-            placeholder.style.cssText = `width: ${width}; height: ${height}; background-color: red;`;
-            placeholder.innerHTML =
-              '<div class="cookie-consent-blocked-content">Content blocked due to cookie preferences</div>';
+            placeholder.style.cssText = `
+              width: ${width}; 
+              height: ${height}; 
+              background-color: rgba(31, 41, 55, 0.95);
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              border-radius: 6px;
+              border: 1px solid #4b5563;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+              color: #f3f4f6;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+              text-align: center;
+              padding: 20px;
+            `;
+            placeholder.innerHTML = `
+              <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
+              <h3 style="font-size: 16px; margin: 0 0 10px 0; font-weight: bold; color: white;">Content Blocked</h3>
+              <p style="margin: 0 0 10px 0; font-size: 14px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+              <button onclick="window.CookieKit.showCustomizeModal()" style="margin-top: 10px; background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px;">
+                Manage Cookie Settings
+              </button>
+            `;
             node.parentNode?.replaceChild(placeholder, node);
           }
         }
