@@ -445,9 +445,9 @@ const restoreOriginalRequests = () => {
         theme: "light", // light or dark
         cookieKitId: "", // unique identifier
         categories: {
-          analytics: true,
-          marketing: true,
-          preferences: true,
+          analytics: false,
+          marketing: false,
+          preferences: false,
         },
         allowedDomains: [], // Domains that should never be blocked
         translations: {
@@ -872,9 +872,7 @@ const restoreOriginalRequests = () => {
                   }">Help us understand how visitors interact with our website.</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" name="analytics" ${
-                    this.config.categories.analytics ? "checked" : ""
-                  } class="sr-only peer">
+                  <input type="checkbox" name="analytics" class="sr-only peer">
                   <div class="w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
                     ${
                       isLight
@@ -899,9 +897,7 @@ const restoreOriginalRequests = () => {
                   }">Allow us to personalize your experience and send you relevant content.</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" name="marketing" ${
-                    this.config.categories.marketing ? "checked" : ""
-                  } class="sr-only peer">
+                  <input type="checkbox" name="marketing" class="sr-only peer">
                   <div class="w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
                     ${
                       isLight
@@ -926,9 +922,7 @@ const restoreOriginalRequests = () => {
                   }">Remember your settings and provide enhanced functionality.</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" name="preferences" ${
-                    this.config.categories.preferences ? "checked" : ""
-                  } class="sr-only peer">
+                  <input type="checkbox" name="preferences" class="sr-only peer">
                   <div class="w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
                     ${
                       isLight
@@ -983,14 +977,6 @@ const restoreOriginalRequests = () => {
           this.state.marketing;
         modal.querySelector('input[name="preferences"]').checked =
           this.state.preferences;
-      } else {
-        // Use default values from config
-        modal.querySelector('input[name="analytics"]').checked =
-          this.config.categories.analytics;
-        modal.querySelector('input[name="marketing"]').checked =
-          this.config.categories.marketing;
-        modal.querySelector('input[name="preferences"]').checked =
-          this.config.categories.preferences;
       }
 
       modalWrapper.appendChild(overlay);
