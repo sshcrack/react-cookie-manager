@@ -680,6 +680,14 @@ const restoreOriginalRequests = () => {
       const wrapper = document.createElement("div");
       wrapper.className = "cookie-manager";
 
+      // If the style is modal, add an overlay background
+      if (this.config.style === "modal") {
+        const bannerOverlay = document.createElement("div");
+        bannerOverlay.className =
+          "fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]";
+        wrapper.appendChild(bannerOverlay);
+      }
+
       const banner = document.createElement("div");
       const isLight = this.config.theme === "light";
 
@@ -994,12 +1002,20 @@ const restoreOriginalRequests = () => {
       }
       this.modal.classList.remove("hidden");
       this.overlay.classList.remove("hidden");
+
+      // If we're in modal style, make sure the body doesn't scroll
+      if (this.config.style === "modal") {
+        document.body.style.overflow = "hidden";
+      }
     }
 
     hideCustomizeModal() {
       if (this.modal) {
         this.modal.classList.add("hidden");
         this.overlay.classList.add("hidden");
+
+        // Restore body scrolling
+        document.body.style.overflow = "";
       }
     }
 
