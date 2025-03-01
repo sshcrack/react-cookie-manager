@@ -152,11 +152,92 @@ const blockTrackingScripts = (trackingKeywords) => {
       trackingKeywords.some((keyword) => iframe.src.includes(keyword))
     ) {
       console.debug(`[CookieKit] Blocking iframe: ${iframe.src}`);
-      // Get the original iframe dimensions
-      const width = iframe.width || iframe.style.width || "100%";
-      const height = iframe.height || iframe.style.height || "315px";
 
-      // Replace with a placeholder using CSS classes and preserving dimensions
+      // Get the original iframe dimensions - be more precise about capturing dimensions
+      let width = "100%";
+      let height = "315px";
+
+      // Try to get the most accurate dimensions possible
+      if (iframe.width) {
+        width =
+          iframe.width +
+          (iframe.width.toString().match(/^[0-9]+$/) ? "px" : "");
+      } else if (iframe.style.width) {
+        width = iframe.style.width;
+      } else if (iframe.getAttribute("width")) {
+        width =
+          iframe.getAttribute("width") +
+          (iframe.getAttribute("width").match(/^[0-9]+$/) ? "px" : "");
+      }
+
+      if (iframe.height) {
+        height =
+          iframe.height +
+          (iframe.height.toString().match(/^[0-9]+$/) ? "px" : "");
+      } else if (iframe.style.height) {
+        height = iframe.style.height;
+      } else if (iframe.getAttribute("height")) {
+        height =
+          iframe.getAttribute("height") +
+          (iframe.getAttribute("height").match(/^[0-9]+$/) ? "px" : "");
+      }
+
+      // For YouTube embeds in responsive containers, check for parent with padding-bottom style
+      if (iframe.parentElement) {
+        const parentStyle = window.getComputedStyle(iframe.parentElement);
+        if (parentStyle.paddingBottom && parentStyle.paddingBottom !== "0px") {
+          // Use the same aspect ratio as the container
+          height = "0";
+          width = "100%";
+
+          // Create a placeholder that preserves aspect ratio
+          const placeholder = document.createElement("div");
+          placeholder.className = "cookie-consent-blocked-iframe";
+          placeholder.style.cssText = `
+            position: relative;
+            width: ${width}; 
+            padding-bottom: ${parentStyle.paddingBottom}; 
+            background-color: rgba(31, 41, 55, 0.95);
+            border-radius: 6px;
+            border: 1px solid #4b5563;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+          `;
+
+          const content = document.createElement("div");
+          content.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+          `;
+
+          content.innerHTML = `
+            <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
+            <h3 style="font-size: 16px; margin: 0 0 10px 0; font-weight: bold; color: white;">Content Blocked</h3>
+            <p style="margin: 0 0 10px 0; font-size: 14px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+            <p style="margin: 0 0 10px 0; font-size: 14px;">Refresh the page to view this content after adjusting your cookie settings.</p>
+            <button onclick="window.CookieKit.showCustomizeModal()" style="margin-top: 10px; background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px;">
+              Manage Cookie Settings
+            </button>
+          `;
+
+          placeholder.appendChild(content);
+          iframe.parentNode?.replaceChild(placeholder, iframe);
+          return;
+        }
+      }
+
+      // Standard placeholder for non-responsive containers
       const placeholder = document.createElement("div");
       placeholder.className = "cookie-consent-blocked-iframe";
       placeholder.style.cssText = `
@@ -210,13 +291,95 @@ const blockTrackingScripts = (trackingKeywords) => {
             trackingKeywords.some((keyword) => src.includes(keyword))
           ) {
             console.debug(`[CookieKit] Blocking injected iframe: ${src}`);
-            // Get the original iframe dimensions
-            const width =
-              node.getAttribute("width") || node.style.width || "100%";
-            const height =
-              node.getAttribute("height") || node.style.height || "315px";
 
-            // Replace with a placeholder using CSS classes and preserving dimensions
+            // Get the original iframe dimensions - be more precise about capturing dimensions
+            let width = "100%";
+            let height = "315px";
+
+            // Try to get the most accurate dimensions possible
+            if (node.width) {
+              width =
+                node.width +
+                (node.width.toString().match(/^[0-9]+$/) ? "px" : "");
+            } else if (node.style.width) {
+              width = node.style.width;
+            } else if (node.getAttribute("width")) {
+              width =
+                node.getAttribute("width") +
+                (node.getAttribute("width").match(/^[0-9]+$/) ? "px" : "");
+            }
+
+            if (node.height) {
+              height =
+                node.height +
+                (node.height.toString().match(/^[0-9]+$/) ? "px" : "");
+            } else if (node.style.height) {
+              height = node.style.height;
+            } else if (node.getAttribute("height")) {
+              height =
+                node.getAttribute("height") +
+                (node.getAttribute("height").match(/^[0-9]+$/) ? "px" : "");
+            }
+
+            // For YouTube embeds in responsive containers, check for parent with padding-bottom style
+            if (node.parentElement) {
+              const parentStyle = window.getComputedStyle(node.parentElement);
+              if (
+                parentStyle.paddingBottom &&
+                parentStyle.paddingBottom !== "0px"
+              ) {
+                // Use the same aspect ratio as the container
+                height = "0";
+                width = "100%";
+
+                // Create a placeholder that preserves aspect ratio
+                const placeholder = document.createElement("div");
+                placeholder.className = "cookie-consent-blocked-iframe";
+                placeholder.style.cssText = `
+                  position: relative;
+                  width: ${width}; 
+                  padding-bottom: ${parentStyle.paddingBottom}; 
+                  background-color: rgba(31, 41, 55, 0.95);
+                  border-radius: 6px;
+                  border: 1px solid #4b5563;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                  overflow: hidden;
+                `;
+
+                const content = document.createElement("div");
+                content.style.cssText = `
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: center;
+                  color: #f3f4f6;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                  text-align: center;
+                  padding: 20px;
+                `;
+
+                content.innerHTML = `
+                  <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
+                  <h3 style="font-size: 16px; margin: 0 0 10px 0; font-weight: bold; color: white;">Content Blocked</h3>
+                  <p style="margin: 0 0 10px 0; font-size: 14px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+                  <p style="margin: 0 0 10px 0; font-size: 14px;">Refresh the page to view this content after adjusting your cookie settings.</p>
+                  <button onclick="window.CookieKit.showCustomizeModal()" style="margin-top: 10px; background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px;">
+                    Manage Cookie Settings
+                  </button>
+                `;
+
+                placeholder.appendChild(content);
+                node.parentNode?.replaceChild(placeholder, node);
+                return;
+              }
+            }
+
+            // Standard placeholder for non-responsive containers
             const placeholder = document.createElement("div");
             placeholder.className = "cookie-consent-blocked-iframe";
             placeholder.style.cssText = `
@@ -239,6 +402,7 @@ const blockTrackingScripts = (trackingKeywords) => {
               <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
               <h3 style="font-size: 16px; margin: 0 0 10px 0; font-weight: bold; color: white;">Content Blocked</h3>
               <p style="margin: 0 0 10px 0; font-size: 14px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+              <p style="margin: 0 0 10px 0; font-size: 14px;">Refresh the page to view this content after adjusting your cookie settings.</p>
               <button onclick="window.CookieKit.showCustomizeModal()" style="margin-top: 10px; background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px;">
                 Manage Cookie Settings
               </button>
