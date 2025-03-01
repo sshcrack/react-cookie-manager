@@ -332,28 +332,52 @@
         const displayType = document.getElementById("displayType").value;
         const theme = document.getElementById("theme").value;
 
-        // Reset any existing consent
-        window.CookieKit.resetConsent();
-
+        // Instead of resetting consent and reloading, update the configuration directly
         try {
-          // Initialize with new configuration
-          await window.CookieKit.init({
-            style: displayType,
-            theme: theme,
-            cookieKitId: "james",
-          });
-          console.log("✅ CookieKit initialized successfully");
+          // If there's an existing banner, remove it first
+          if (window.CookieKit.manager && window.CookieKit.manager.wrapper) {
+            document.body.removeChild(window.CookieKit.manager.wrapper);
+            window.CookieKit.manager.wrapper = null;
+            window.CookieKit.manager.banner = null;
+          }
+
+          // If there's an existing modal, remove it too
+          if (
+            window.CookieKit.manager &&
+            window.CookieKit.manager.modalWrapper
+          ) {
+            document.body.removeChild(window.CookieKit.manager.modalWrapper);
+            window.CookieKit.manager.modalWrapper = null;
+            window.CookieKit.manager.modal = null;
+            window.CookieKit.manager.overlay = null;
+          }
+
+          // Update the configuration
+          window.CookieKit.manager.config.style = displayType;
+          window.CookieKit.manager.config.theme = theme;
+
+          // Show the banner with the new configuration
+          window.CookieKit.showBanner();
+
+          // Update the cookie state display
+          updateCookieState();
+
+          console.log("✅ CookieKit display updated successfully");
         } catch (error) {
-          console.error("❌ Failed to initialize CookieKit:", error);
+          console.error("❌ Failed to update CookieKit display:", error);
         }
       }
 
       // Initialize CookieKit when the page loads
       document.addEventListener("DOMContentLoaded", async () => {
         try {
+          // Get the initial display type and theme from the select elements
+          const displayType = document.getElementById("displayType").value;
+          const theme = document.getElementById("theme").value;
+
           await window.CookieKit.init({
             style: displayType,
-            theme: "light",
+            theme: theme,
             cookieKitId: "james",
           });
           console.log("✅ CookieKit initialized successfully");

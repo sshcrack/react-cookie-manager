@@ -1105,7 +1105,39 @@ const restoreOriginalRequests = () => {
     resetConsent: () => {
       document.cookie =
         "cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      location.reload();
+
+      // Instead of reloading the page, just show the banner again
+      if (window.CookieKit.manager) {
+        // Clear the state
+        window.CookieKit.manager.state = null;
+
+        // Remove existing banner and modal if they exist
+        if (window.CookieKit.manager.wrapper) {
+          document.body.removeChild(window.CookieKit.manager.wrapper);
+          window.CookieKit.manager.wrapper = null;
+          window.CookieKit.manager.banner = null;
+        }
+
+        if (window.CookieKit.manager.modalWrapper) {
+          document.body.removeChild(window.CookieKit.manager.modalWrapper);
+          window.CookieKit.manager.modalWrapper = null;
+          window.CookieKit.manager.modal = null;
+          window.CookieKit.manager.overlay = null;
+        }
+
+        // Show the banner again
+        window.CookieKit.showBanner();
+
+        // Reinitialize blocking
+        window.CookieKit.manager.initializeBlocking();
+
+        // Trigger the consent updated event
+        window.dispatchEvent(
+          new CustomEvent("cookiekit:consent-updated", {
+            detail: null,
+          })
+        );
+      }
     },
   };
 })();
