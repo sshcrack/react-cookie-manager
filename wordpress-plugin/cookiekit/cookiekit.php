@@ -50,7 +50,7 @@ function cookiekit_enqueue_scripts() {
     // Load our plugin's JS first
     wp_enqueue_script(
         'cookiekit-main',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.e71deec8.js',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.6b8e2561.js',
         array(),
         null, // Version will be part of the filename
         false // Load in header
@@ -59,7 +59,7 @@ function cookiekit_enqueue_scripts() {
     // Then enqueue our plugin's CSS
     wp_enqueue_style(
         'cookiekit-styles',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.e71deec8.css',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.6b8e2561.css',
         array(),
         null // Version will be part of the filename
     );
@@ -305,26 +305,105 @@ function cookiekit_settings_page() {
                 <tr>
                     <th scope="row">Consent Style</th>
                     <td>
-                        <select name="cookiekit_settings[style]">
-                            <option value="banner" <?php selected($settings['style'], 'banner'); ?>>Banner</option>
-                            <option value="popup" <?php selected($settings['style'], 'popup'); ?>>Popup</option>
-                            <option value="modal" <?php selected($settings['style'], 'modal'); ?>>Modal</option>
-                        </select>
+                        <div class="consent-style-options" style="display: flex; gap: 20px; margin-bottom: 15px;">
+                            <label style="display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border: 2px solid <?php echo $settings['style'] === 'banner' ? '#2271b1' : '#ddd'; ?>; border-radius: 6px; width: 120px; background: <?php echo $settings['style'] === 'banner' ? '#f0f6ff' : '#fff'; ?>;">
+                                <div style="margin-bottom: 10px; width: 100px; height: 70px; background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; position: relative; overflow: hidden;">
+                                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 20px; background: #2271b1; display: flex; justify-content: center; align-items: center;">
+                                        <span style="color: white; font-size: 9px;">Banner</span>
+                                    </div>
+                                </div>
+                                <input type="radio" name="cookiekit_settings[style]" value="banner" <?php checked($settings['style'], 'banner'); ?> style="margin-top: 5px;">
+                                <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['style'] === 'banner' ? 'bold' : 'normal'; ?>;">Banner</span>
+                            </label>
+                            
+                            <label style="display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border: 2px solid <?php echo $settings['style'] === 'popup' ? '#2271b1' : '#ddd'; ?>; border-radius: 6px; width: 120px; background: <?php echo $settings['style'] === 'popup' ? '#f0f6ff' : '#fff'; ?>;">
+                                <div style="margin-bottom: 10px; width: 100px; height: 70px; background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; position: relative; overflow: hidden;">
+                                    <div style="position: absolute; bottom: 5px; left: 5px; width: 40px; height: 30px; background: #2271b1; border-radius: 3px; display: flex; justify-content: center; align-items: center;">
+                                        <span style="color: white; font-size: 8px;">Popup</span>
+                                    </div>
+                                </div>
+                                <input type="radio" name="cookiekit_settings[style]" value="popup" <?php checked($settings['style'], 'popup'); ?> style="margin-top: 5px;">
+                                <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['style'] === 'popup' ? 'bold' : 'normal'; ?>;">Popup</span>
+                            </label>
+                            
+                            <label style="display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border: 2px solid <?php echo $settings['style'] === 'modal' ? '#2271b1' : '#ddd'; ?>; border-radius: 6px; width: 120px; background: <?php echo $settings['style'] === 'modal' ? '#f0f6ff' : '#fff'; ?>;">
+                                <div style="margin-bottom: 10px; width: 100px; height: 70px; background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; position: relative; overflow: hidden;">
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 40px; background: #2271b1; border-radius: 3px; display: flex; justify-content: center; align-items: center;">
+                                        <span style="color: white; font-size: 9px;">Modal</span>
+                                    </div>
+                                </div>
+                                <input type="radio" name="cookiekit_settings[style]" value="modal" <?php checked($settings['style'], 'modal'); ?> style="margin-top: 5px;">
+                                <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['style'] === 'modal' ? 'bold' : 'normal'; ?>;">Modal</span>
+                            </label>
+                        </div>
                         <p class="description">
-                            Banner - Full-width banner at the bottom<br>
-                            Popup - Compact popup in the bottom-left corner<br>
-                            Modal - Centered modal with overlay
+                            <strong>Banner:</strong> Full-width banner at the bottom of the screen<br>
+                            <strong>Popup:</strong> Compact popup in the bottom-left corner<br>
+                            <strong>Modal:</strong> Centered modal with overlay background
                         </p>
+                        <script>
+                            jQuery(document).ready(function($) {
+                                // Add click handler to style option labels
+                                $('.consent-style-options label').on('click', function() {
+                                    // Remove selected styling from all options
+                                    $('.consent-style-options label').css({
+                                        'border-color': '#ddd',
+                                        'background': '#fff'
+                                    }).find('span').css('font-weight', 'normal');
+                                    
+                                    // Add selected styling to clicked option
+                                    $(this).css({
+                                        'border-color': '#2271b1',
+                                        'background': '#f0f6ff'
+                                    }).find('span').css('font-weight', 'bold');
+                                });
+                            });
+                        </script>
                     </td>
                 </tr>
                 <tr>
                     <th scope="row">Theme</th>
                     <td>
-                        <select name="cookiekit_settings[theme]">
-                            <option value="light" <?php selected($settings['theme'], 'light'); ?>>Light</option>
-                            <option value="dark" <?php selected($settings['theme'], 'dark'); ?>>Dark</option>
-                        </select>
+                        <div class="theme-options" style="display: flex; gap: 20px; margin-bottom: 15px;">
+                            <label style="display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border: 2px solid <?php echo $settings['theme'] === 'light' ? '#2271b1' : '#ddd'; ?>; border-radius: 6px; width: 120px; background: <?php echo $settings['theme'] === 'light' ? '#f0f6ff' : '#fff'; ?>;">
+                                <div style="margin-bottom: 10px; width: 100px; height: 70px; background: #ffffff; border: 1px solid #ddd; border-radius: 4px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;">
+                                    <div style="height: 20px; background: #f0f0f0; border-top: 1px solid #ddd; display: flex; justify-content: center; align-items: center;">
+                                        <div style="width: 40px; height: 6px; background: #2271b1; border-radius: 3px;"></div>
+                                    </div>
+                                </div>
+                                <input type="radio" name="cookiekit_settings[theme]" value="light" <?php checked($settings['theme'], 'light'); ?> style="margin-top: 5px;">
+                                <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['theme'] === 'light' ? 'bold' : 'normal'; ?>;">Light</span>
+                            </label>
+                            
+                            <label style="display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border: 2px solid <?php echo $settings['theme'] === 'dark' ? '#2271b1' : '#ddd'; ?>; border-radius: 6px; width: 120px; background: <?php echo $settings['theme'] === 'dark' ? '#f0f6ff' : '#fff'; ?>;">
+                                <div style="margin-bottom: 10px; width: 100px; height: 70px; background: #1e1e1e; border: 1px solid #ddd; border-radius: 4px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;">
+                                    <div style="height: 20px; background: #2c2c2c; border-top: 1px solid #444; display: flex; justify-content: center; align-items: center;">
+                                        <div style="width: 40px; height: 6px; background: #3b82f6; border-radius: 3px;"></div>
+                                    </div>
+                                </div>
+                                <input type="radio" name="cookiekit_settings[theme]" value="dark" <?php checked($settings['theme'], 'dark'); ?> style="margin-top: 5px;">
+                                <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['theme'] === 'dark' ? 'bold' : 'normal'; ?>;">Dark</span>
+                            </label>
+                        </div>
                         <p class="description">Choose between light and dark theme for the consent UI</p>
+                        <script>
+                            jQuery(document).ready(function($) {
+                                // Add click handler to theme option labels
+                                $('.theme-options label').on('click', function() {
+                                    // Remove selected styling from all options
+                                    $('.theme-options label').css({
+                                        'border-color': '#ddd',
+                                        'background': '#fff'
+                                    }).find('span').css('font-weight', 'normal');
+                                    
+                                    // Add selected styling to clicked option
+                                    $(this).css({
+                                        'border-color': '#2271b1',
+                                        'background': '#f0f6ff'
+                                    }).find('span').css('font-weight', 'bold');
+                                });
+                            });
+                        </script>
                     </td>
                 </tr>
                 <tr>
