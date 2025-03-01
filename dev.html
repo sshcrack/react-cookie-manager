@@ -338,7 +338,7 @@
         try {
           // Initialize with new configuration
           await window.CookieKit.init({
-            style: "modal",
+            style: displayType,
             theme: theme,
             cookieKitId: "james",
           });
@@ -352,7 +352,7 @@
       document.addEventListener("DOMContentLoaded", async () => {
         try {
           await window.CookieKit.init({
-            style: "modal",
+            style: displayType,
             theme: "light",
             cookieKitId: "james",
           });

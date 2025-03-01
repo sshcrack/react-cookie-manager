@@ -600,6 +600,26 @@ const restoreOriginalRequests = () => {
     }
 
     saveConsent(categories) {
+      // Animate out and then hide
+      if (this.wrapper) {
+        const banner = this.wrapper.querySelector('div[class*="fixed"]');
+        if (banner) {
+          banner.classList.add("translate-y-full");
+          setTimeout(() => {
+            this.wrapper.style.display = "none";
+          }, 10);
+        } else {
+          this.wrapper.style.display = "none";
+        }
+      }
+
+      if (this.modalWrapper) {
+        this.modalWrapper.classList.add("opacity-0");
+        setTimeout(() => {
+          this.modalWrapper.style.display = "none";
+        }, 10);
+      }
+
       this.state = categories;
       this.setCookie(
         this.config.cookieName,
@@ -632,26 +652,6 @@ const restoreOriginalRequests = () => {
 
       // Reinitialize blocking based on new consent
       this.initializeBlocking();
-
-      // Animate out and then remove
-      if (this.wrapper) {
-        const banner = this.wrapper.querySelector('div[class*="fixed"]');
-        if (banner) {
-          banner.classList.add("translate-y-full");
-          setTimeout(() => {
-            this.wrapper.remove();
-          }, 500);
-        } else {
-          this.wrapper.remove();
-        }
-      }
-
-      if (this.modalWrapper) {
-        this.modalWrapper.classList.add("opacity-0");
-        setTimeout(() => {
-          this.modalWrapper.remove();
-        }, 300);
-      }
 
       this.applyConsent();
     }
@@ -1017,10 +1017,6 @@ const restoreOriginalRequests = () => {
         // Restore body scrolling
         document.body.style.overflow = "";
       }
-    }
-
-    hideBanner() {
-      this.banner.classList.add("hidden");
     }
 
     init(config = {}) {
