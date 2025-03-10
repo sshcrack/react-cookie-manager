@@ -14,7 +14,7 @@ export const FloatingCookieButton: React.FC<FloatingCookieButtonProps> = ({
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <button
+    <div
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -24,7 +24,7 @@ export const FloatingCookieButton: React.FC<FloatingCookieButtonProps> = ({
         flex items-center justify-center
         transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
         hover:scale-110 focus:outline-none
-        group
+        group cursor-pointer
         ${
           theme === "light"
             ? "bg-white/95 shadow-lg ring-1 ring-black/10 text-gray-700 hover:text-gray-900"
@@ -36,6 +36,13 @@ export const FloatingCookieButton: React.FC<FloatingCookieButtonProps> = ({
           "slide-in-bottom 0.5s cubic-bezier(0.32, 0.72, 0, 1) forwards",
       }}
       aria-label="Manage cookie preferences"
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          onClick();
+        }
+      }}
     >
       {/* Close button */}
       {isHovered && (
@@ -147,6 +154,6 @@ export const FloatingCookieButton: React.FC<FloatingCookieButtonProps> = ({
           />
         </g>
       </svg>
-    </button>
+    </div>
   );
 };
