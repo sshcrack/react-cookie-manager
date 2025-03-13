@@ -179,6 +179,50 @@
         </div>
       </div>
 
+      <!-- YouTube Embed Test Section -->
+      <div
+        class="embed-test-panel"
+        style="
+          margin: 20px 0;
+          padding: 15px;
+          background: #f0f4ff;
+          border-radius: 8px;
+        "
+      >
+        <h2>YouTube Embed Test</h2>
+        <p>
+          This YouTube video should be blocked until Social cookies are
+          accepted:
+        </p>
+        <div
+          class="video-container"
+          style="
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            margin-top: 15px;
+          "
+        >
+          <iframe
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+            "
+            src="https://www.youtube.com/embed/duR4MC5Y5So"
+            title="YouTube video player"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          >
+          </iframe>
+        </div>
+      </div>
+
       <div class="debug-panel">
         <h2>Debug Panel</h2>
         <button onclick="window.CookieKit.showBanner()">Show Banner</button>
@@ -186,6 +230,12 @@
           Show Customize Modal
         </button>
         <button onclick="window.CookieKit.resetConsent()">Reset Consent</button>
+        <button
+          onclick="reloadYouTubeEmbed()"
+          style="background-color: #ff0000; color: white"
+        >
+          Reload YouTube Embed
+        </button>
 
         <!-- Add Test Analytics Button -->
         <div class="state-panel">
@@ -199,6 +249,11 @@
         <div class="state-panel">
           <h3>Current Cookie State:</h3>
           <pre id="cookieState">No consent set</pre>
+        </div>
+
+        <div class="state-panel">
+          <h3>YouTube Status:</h3>
+          <span id="youtubeStatus">Blocked</span>
         </div>
       </div>
     </div>
@@ -217,6 +272,14 @@
           try {
             const parsed = JSON.parse(decodeURIComponent(value));
             stateDisplay.textContent = JSON.stringify(parsed, null, 2);
+
+            // Check YouTube blocking status
+            const youtubeStatus = parsed.social ? "Allowed" : "Blocked";
+            document.getElementById("youtubeStatus").textContent =
+              youtubeStatus;
+            document.getElementById("youtubeStatus").style.color = parsed.social
+              ? "green"
+              : "red";
 
             // Enable analytics script if consent is given
             if (parsed.analytics) {
@@ -243,6 +306,8 @@
           }
         } else {
           stateDisplay.textContent = "No consent set";
+          document.getElementById("youtubeStatus").textContent = "Blocked";
+          document.getElementById("youtubeStatus").style.color = "red";
         }
       }
 
@@ -267,39 +332,53 @@
         const displayType = document.getElementById("displayType").value;
         const theme = document.getElementById("theme").value;
 
-        // Reset any existing consent
-        window.CookieKit.resetConsent();
-
+        // Instead of resetting consent and reloading, update the configuration directly
         try {
-          // Initialize with new configuration
-          await window.CookieKit.init({
-            style: displayType,
-            theme: theme,
-            cookieKitId: "james",
-            allowedDomains: [
-              "google-analytics.com",
-              "analytics.google.com",
-              "www.google-analytics.com",
-            ],
-          });
-          console.log("✅ CookieKit initialized successfully");
+          // If there's an existing banner, remove it first
+          if (window.CookieKit.manager && window.CookieKit.manager.wrapper) {
+            document.body.removeChild(window.CookieKit.manager.wrapper);
+            window.CookieKit.manager.wrapper = null;
+            window.CookieKit.manager.banner = null;
+          }
+
+          // If there's an existing modal, remove it too
+          if (
+            window.CookieKit.manager &&
+            window.CookieKit.manager.modalWrapper
+          ) {
+            document.body.removeChild(window.CookieKit.manager.modalWrapper);
+            window.CookieKit.manager.modalWrapper = null;
+            window.CookieKit.manager.modal = null;
+            window.CookieKit.manager.overlay = null;
+          }
+
+          // Update the configuration
+          window.CookieKit.manager.config.style = displayType;
+          window.CookieKit.manager.config.theme = theme;
+
+          // Show the banner with the new configuration
+          window.CookieKit.showBanner();
+
+          // Update the cookie state display
+          updateCookieState();
+
+          console.log("✅ CookieKit display updated successfully");
         } catch (error) {
-          console.error("❌ Failed to initialize CookieKit:", error);
+          console.error("❌ Failed to update CookieKit display:", error);
         }
       }
 
       // Initialize CookieKit when the page loads
       document.addEventListener("DOMContentLoaded", async () => {
         try {
+          // Get the initial display type and theme from the select elements
+          const displayType = document.getElementById("displayType").value;
+          const theme = document.getElementById("theme").value;
+
           await window.CookieKit.init({
-            style: "banner",
-            theme: "light",
+            style: displayType,
+            theme: theme,
             cookieKitId: "james",
-            allowedDomains: [
-              "google-analytics.com",
-              "analytics.google.com",
-              "www.google-analytics.com",
-            ],
           });
           console.log("✅ CookieKit initialized successfully");
 
@@ -315,6 +394,22 @@
           console.error("❌ Failed to initialize CookieKit:", error);
         }
       });
+
+      // Function to reload the YouTube embed
+      function reloadYouTubeEmbed() {
+        const youtubeIframe = document.querySelector(".video-container iframe");
+        if (youtubeIframe) {
+          const currentSrc = youtubeIframe.src;
+          console.log("🔄 Reloading YouTube embed:", currentSrc);
+          youtubeIframe.src = "about:blank";
+          setTimeout(() => {
+            youtubeIframe.src = currentSrc;
+            console.log("✅ YouTube embed reloaded");
+          }, 100);
+        } else {
+          console.error("❌ YouTube iframe not found");
+        }
+      }
     </script>
   </body>
 </html>

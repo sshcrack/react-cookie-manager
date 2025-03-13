@@ -37,5 +37,9 @@ export const getBlockedKeywords = (
 
   const blockedHosts = getBlockedHosts(preferences);
   // Convert hosts to keywords by removing the TLD
-  return [...new Set(blockedHosts.map((host) => host.replace(/\.[^.]+$/, "")))];
+  const keywords = [
+    ...new Set(blockedHosts.map((host) => host.replace(/\.[^.]+$/, ""))),
+  ];
+
+  return keywords;
 };

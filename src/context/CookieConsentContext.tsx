@@ -19,224 +19,12 @@ import type {
 import { ManageConsent } from "../components/ManageConsent";
 import { getBlockedHosts, getBlockedKeywords } from "../utils/tracker-utils";
 import { createTFunction } from "../utils/translations";
-import { timezoneToCountryCodeMap } from "../utils/timeZoneMap";
-
-// Cookie utility functions
-const setCookie = (name: string, value: string, days: number) => {
-  const date = new Date();
-  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
-  document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/;SameSite=Lax`;
-};
-
-const getCookie = (name: string): string | null => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    return parts.pop()?.split(";").shift() || null;
-  }
-  return null;
-};
-
-const deleteCookie = (name: string) => {
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-};
-
-// Store original functions
-let originalXhrOpen: typeof XMLHttpRequest.prototype.open | null = null;
-let originalFetch: typeof window.fetch | null = null;
-
-const blockTrackingRequests = (blockedHosts: string[]) => {
-  // Store original functions if not already stored
-  if (!originalXhrOpen) {
-    originalXhrOpen = XMLHttpRequest.prototype.open;
-  }
-  if (!originalFetch) {
-    originalFetch = window.fetch;
-  }
-
-  // Override XMLHttpRequest to block requests to tracking domains
-  XMLHttpRequest.prototype.open = function (method: string, url: string | URL) {
-    const urlString = url.toString();
-    if (blockedHosts.some((host) => urlString.includes(host))) {
-      return;
-    }
-    return originalXhrOpen!.apply(this, arguments as any);
-  };
-
-  // Override fetch API to block tracking requests
-  window.fetch = function (url: RequestInfo | URL, options?: RequestInit) {
-    const urlString = url.toString();
-    if (
-      typeof urlString === "string" &&
-      blockedHosts.some((host) => urlString.includes(host))
-    ) {
-      return Promise.resolve(
-        new Response(null, { status: 403, statusText: "Blocked" })
-      );
-    }
-    return originalFetch!.apply(this, arguments as any);
-  };
-};
-
-const blockTrackingScripts = (trackingKeywords: string[]) => {
-  // Remove all script tags that match tracking domains
-  document.querySelectorAll("script").forEach((script) => {
-    if (
-      script.src &&
-      trackingKeywords.some((keyword) => script.src.includes(keyword))
-    ) {
-      script.remove();
-    }
-  });
-
-  // Prevent new tracking scripts from being injected
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
-        if (node instanceof HTMLElement && node.tagName === "SCRIPT") {
-          const src = node.getAttribute("src");
-          if (
-            src &&
-            trackingKeywords.some((keyword) => src.includes(keyword))
-          ) {
-            node.remove();
-          }
-        }
-      });
-    });
-  });
-
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-  });
-  return observer;
-};
-
-const restoreOriginalRequests = () => {
-  if (originalXhrOpen) {
-    XMLHttpRequest.prototype.open = originalXhrOpen;
-  }
-  if (originalFetch) {
-    window.fetch = originalFetch;
-  }
-};
-
-// Session ID generation utilities
-const generateRandomString = (length: number): string => {
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  const charactersLength = characters.length;
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-};
-
-const generateUniqueId = async (): Promise<string> => {
-  // Get high-precision timestamp
-  const timestamp = performance.now().toString();
-
-  // Generate random values using crypto API if available
-  let randomValues = "";
-  if (window.crypto && window.crypto.getRandomValues) {
-    const array = new Uint32Array(2);
-    window.crypto.getRandomValues(array);
-    randomValues = Array.from(array)
-      .map((n) => n.toString(36))
-      .join("");
-  } else {
-    randomValues = Math.random().toString(36).substring(2);
-  }
-
-  // Get some browser-specific info without being too invasive
-  const browserInfo = [
-    window.screen.width,
-    window.screen.height,
-    navigator.language,
-    // Use hash of user agent to add entropy without storing the full string
-    await crypto.subtle
-      .digest("SHA-256", new TextEncoder().encode(navigator.userAgent))
-      .then((buf) =>
-        Array.from(new Uint8Array(buf))
-          .slice(0, 4)
-          .map((b) => b.toString(16))
-          .join("")
-      ),
-  ].join("_");
-
-  // Combine all sources of entropy
-  const combinedString = `${timestamp}_${randomValues}_${browserInfo}`;
-
-  // Hash the combined string for privacy
-  const hashBuffer = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(combinedString)
-  );
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-
-  return hashHex.slice(0, 16); // Return first 16 characters of hash
-};
-
-const generateSessionId = async (kitId: string): Promise<string> => {
-  const timestamp = new Date().getTime();
-  const uniqueId = await generateUniqueId();
-  const randomPart = generateRandomString(8);
-  return `${kitId}_${timestamp}_${uniqueId}_${randomPart}`;
-};
-
-const resolveCountryFromTimezone = (timeZone: string): string => {
-  const entry = timezoneToCountryCodeMap[timeZone]?.a
-    ? timezoneToCountryCodeMap[timezoneToCountryCodeMap[timeZone].a]
-    : timezoneToCountryCodeMap[timeZone];
-
-  return entry?.c?.[0] ?? "Unknown";
-};
-
-const postSessionToAnalytics = async (
-  kitId: string,
-  sessionId: string,
-  action?: string,
-  preferences?: CookieCategories,
-  userId?: string
-) => {
-  try {
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const country = resolveCountryFromTimezone(timeZone);
-    const domain = window.location.hostname;
-
-    const response = await fetch("https://cookiekit.io/api/consents", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        website_id: kitId,
-        session_id: sessionId,
-        user_id: userId,
-        analytics: preferences?.Analytics ?? false,
-        social: preferences?.Social ?? false,
-        advertising: preferences?.Advertising ?? false,
-        consent_method: action || "init",
-        consent_version: "1.0",
-        user_agent: navigator.userAgent,
-        location: country,
-        anonymised_ip: "0.0.0.0",
-        domain: domain,
-      }),
-    });
-
-    if (!response.ok) {
-      console.warn("Failed to post consent to analytics:", response.statusText);
-    }
-  } catch (error) {
-    console.warn("Error posting consent to analytics:", error);
-  }
-};
+import { CookieBlockingManager } from "../utils/cookie-blocking";
+import { setCookie, getCookie, deleteCookie } from "../utils/cookie-utils";
+import {
+  generateSessionId,
+  postSessionToAnalytics,
+} from "../utils/session-utils";
 
 interface CookieConsentContextValue {
   hasConsent: boolean | null;
@@ -375,7 +163,8 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     ? Object.values(detailedConsent).some((status) => status.consented)
     : null;
 
-  const observerRef = useRef<MutationObserver | null>(null);
+  // Use the CookieBlockingManager
+  const cookieBlockingManager = useRef<CookieBlockingManager | null>(null);
 
   // Initialize session ID if cookieKitId is provided
   useEffect(() => {
@@ -441,34 +230,39 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
         ...getBlockedHosts(currentPreferences),
         ...blockedDomains,
       ];
+
       const blockedKeywords = [
         ...getBlockedKeywords(currentPreferences),
         ...blockedDomains,
       ];
 
-      if (blockedHosts.length > 0) {
-        blockTrackingRequests(blockedHosts);
-        observerRef.current = blockTrackingScripts(blockedKeywords);
+      // Initialize or update cookie blocking
+      if (blockedHosts.length > 0 || blockedKeywords.length > 0) {
+        // Create a new manager if one doesn't exist
+        if (!cookieBlockingManager.current) {
+          cookieBlockingManager.current = new CookieBlockingManager();
+        }
+
+        // Initialize the manager with current blocked hosts and keywords
+        cookieBlockingManager.current.initialize(blockedHosts, blockedKeywords);
       } else {
-        // If no hosts are blocked, restore original functions
-        restoreOriginalRequests();
-        if (observerRef.current) {
-          observerRef.current.disconnect();
-          observerRef.current = null;
+        // Clean up if no blocking is needed
+        if (cookieBlockingManager.current) {
+          cookieBlockingManager.current.cleanup();
         }
       }
     } else {
-      // If blocking is disabled, restore original functions
-      restoreOriginalRequests();
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-        observerRef.current = null;
+      // Clean up if blocking is disabled
+      if (cookieBlockingManager.current) {
+        cookieBlockingManager.current.cleanup();
+        cookieBlockingManager.current = null;
       }
     }
 
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
+      // Clean up on unmount
+      if (cookieBlockingManager.current) {
+        cookieBlockingManager.current.cleanup();
       }
     };
   }, [detailedConsent, disableAutomaticBlocking, blockedDomains]);
@@ -589,6 +383,28 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     if (enableFloatingButton && detailedConsent) {
       setIsFloatingButtonVisible(true);
     }
+
+    // Add event listener for custom event to show cookie settings
+    const handleShowCookieConsent = () => {
+      console.debug(
+        "[CookieKit] Custom event triggered to show cookie settings"
+      );
+      if (detailedConsent) {
+        setShowManageConsent(true);
+        setIsFloatingButtonVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+    };
+
+    window.addEventListener("show-cookie-consent", handleShowCookieConsent);
+
+    return () => {
+      window.removeEventListener(
+        "show-cookie-consent",
+        handleShowCookieConsent
+      );
+    };
   }, [enableFloatingButton, detailedConsent]);
 
   const value: CookieConsentContextValue = {

@@ -50,7 +50,7 @@ function cookiekit_enqueue_scripts() {
     // Load our plugin's JS first
     wp_enqueue_script(
         'cookiekit-main',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.9a4be773.js',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.6b8e2561.js',
         array(),
         null, // Version will be part of the filename
         false // Load in header
@@ -59,7 +59,7 @@ function cookiekit_enqueue_scripts() {
     // Then enqueue our plugin's CSS
     wp_enqueue_style(
         'cookiekit-styles',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.9a4be773.css',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.6b8e2561.css',
         array(),
         null // Version will be part of the filename
     );
@@ -72,7 +72,7 @@ add_action('wp_enqueue_scripts', 'cookiekit_enqueue_scripts');
 function cookiekit_admin_menu() {
     add_options_page(
         'CookieKit Settings',
-        'CookieKit <span class="update-plugins count-1"><span class="plugin-count">↔️</span></span>',
+        'CookieKit',
         'manage_options',
         'cookiekit-settings',
         'cookiekit_settings_page'
@@ -109,66 +109,8 @@ function cookiekit_register_settings() {
         ),
         'sanitize_callback' => 'cookiekit_sanitize_settings'
     ));
-    
-    // Register option for dismissing the import/export notice
-    register_setting('cookiekit_options', 'cookiekit_import_export_notice_dismissed', array(
-        'type' => 'boolean',
-        'default' => false,
-        'sanitize_callback' => 'rest_sanitize_boolean'
-    ));
 }
 add_action('admin_init', 'cookiekit_register_settings');
-
-/**
- * Display admin notice about import/export functionality
- */
-function cookiekit_admin_notices() {
-    // Only show on our settings page
-    $screen = get_current_screen();
-    if ($screen->id !== 'settings_page_cookiekit-settings') {
-        return;
-    }
-    
-    // Check if notice has been dismissed
-    $notice_dismissed = get_option('cookiekit_import_export_notice_dismissed', false);
-    if ($notice_dismissed) {
-        return;
-    }
-    
-    ?>
-    <div class="notice notice-info is-dismissible cookiekit-import-export-notice">
-        <p>
-            <strong><?php _e('New Feature: Import/Export Settings', 'cookiekit-gdpr-cookie-consent'); ?></strong>
-        </p>
-        <p>
-            <?php _e('You can now quickly configure CookieKit by importing settings from a JSON file or export your current settings for backup or use on another site.', 'cookiekit-gdpr-cookie-consent'); ?>
-            <?php _e('Look for the Import/Export section below!', 'cookiekit-gdpr-cookie-consent'); ?>
-        </p>
-    </div>
-    <script>
-        jQuery(document).ready(function($) {
-            $(document).on('click', '.cookiekit-import-export-notice .notice-dismiss', function() {
-                $.ajax({
-                    url: ajaxurl,
-                    data: {
-                        action: 'cookiekit_dismiss_import_export_notice'
-                    }
-                });
-            });
-        });
-    </script>
-    <?php
-}
-add_action('admin_notices', 'cookiekit_admin_notices');
-
-/**
- * AJAX handler to dismiss the import/export notice
- */
-function cookiekit_dismiss_import_export_notice() {
-    update_option('cookiekit_import_export_notice_dismissed', true);
-    wp_die();
-}
-add_action('wp_ajax_cookiekit_dismiss_import_export_notice', 'cookiekit_dismiss_import_export_notice');
 
 /**
  * Sanitize settings and preserve version hash
@@ -322,43 +264,32 @@ function cookiekit_settings_page() {
     }
     ?>
     <div class="wrap">
-        <h1>CookieKit Settings</h1>
-        <p class="description">Version Hash: <?php echo esc_html($settings['version_hash']); ?></p>
+        <!-- CookieKit Logo and Header -->
+        <div style="display: flex; align-items: center; margin-bottom: 20px;">
+            <div style="margin-right: 15px;">
+                <img src="<?php echo COOKIEKIT_PLUGIN_URL; ?>assets/cookiekit-logo.png" alt="CookieKit Logo" style="width: 60px; height: auto;" onerror="this.src='<?php echo COOKIEKIT_PLUGIN_URL; ?>assets/cookiekit-logo.png'; this.onerror=null;">
+            </div>
+            <div>
+                <h1 style="margin: 0;">CookieKit: GDPR & Cookie Consent</h1>
+                <p class="description">Version: <?php echo COOKIEKIT_VERSION; ?> | Hash: <?php echo esc_html($settings['version_hash']); ?></p>
+            </div>
+        </div>
         
-        <!-- Import/Export Section -->
-        <div class="card" style="max-width: 100%; margin-top: 20px; margin-bottom: 20px; padding: 20px; background-color: #fff; border: 1px solid #c3c4c7; border-radius: 4px; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
-            <h2 style="margin-top: 0;"><?php _e('Import/Export Settings', 'cookiekit-gdpr-cookie-consent'); ?></h2>
-            <p><?php _e('Quickly configure your plugin by importing settings from a JSON file or export your current settings for backup or use on another site.', 'cookiekit-gdpr-cookie-consent'); ?></p>
-            
-            <div style="display: flex; gap: 30px; flex-wrap: wrap;">
-                <!-- Import Settings -->
+        <!-- GDPR Compliance Section -->
+        <div class="card" style="max-width: 100%; margin-bottom: 30px; padding: 25px; background-color: #f8fcff; border: 1px solid #2271b1; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.05);">
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
                 <div style="flex: 1; min-width: 300px;">
-                    <h3 style="margin-top: 0;"><?php _e('Import Settings', 'cookiekit-gdpr-cookie-consent'); ?></h3>
-                    <p><?php _e('Upload a JSON file to import settings. This will overwrite your current settings.', 'cookiekit-gdpr-cookie-consent'); ?></p>
-                    <ol style="margin-left: 1.5em;">
-                        <li><?php _e('Create a JSON file with your settings', 'cookiekit-gdpr-cookie-consent'); ?></li>
-                        <li><?php _e('Click "Choose File" and select your JSON file', 'cookiekit-gdpr-cookie-consent'); ?></li>
-                        <li><?php _e('Click "Import Settings" to apply the settings', 'cookiekit-gdpr-cookie-consent'); ?></li>
-                    </ol>
-                    <form method="post" enctype="multipart/form-data">
-                        <input type="file" name="cookiekit_import_file" accept=".json" style="margin-bottom: 10px; display: block;">
-                        <?php submit_button(__('Import Settings', 'cookiekit-gdpr-cookie-consent'), 'secondary', 'cookiekit_import_settings', false); ?>
-                    </form>
-                </div>
-                
-                <!-- Export Settings -->
-                <div style="flex: 1; min-width: 300px;">
-                    <h3 style="margin-top: 0;"><?php _e('Export Settings', 'cookiekit-gdpr-cookie-consent'); ?></h3>
-                    <p><?php _e('Download your current settings as a JSON file for backup or use on another site.', 'cookiekit-gdpr-cookie-consent'); ?></p>
-                    <form method="post" style="margin-bottom: 15px;">
-                        <?php submit_button(__('Export Current Settings', 'cookiekit-gdpr-cookie-consent'), 'secondary', 'cookiekit_export_settings', false); ?>
-                    </form>
-                    
-                    <h4><?php _e('Need a template?', 'cookiekit-gdpr-cookie-consent'); ?></h4>
-                    <p><?php _e('Download a sample settings file to use as a template for creating your own settings file.', 'cookiekit-gdpr-cookie-consent'); ?></p>
-                    <form method="post">
-                        <?php submit_button(__('Download Sample Template', 'cookiekit-gdpr-cookie-consent'), 'secondary', 'cookiekit_download_sample', false); ?>
-                    </form>
+                    <h2 style="margin-top: 0; color: #2271b1; font-size: 1.5em;">🔒 100% GDPR & CCPA Compliance</h2>
+                    <p style="font-size: 15px; margin-bottom: 15px;">Take your cookie consent to the next level with CookieKit's compliance features:</p>
+                    <ul style="font-size: 14px;">
+                        <li><strong>Consent Logging:</strong> Automatically log all user consent actions</li>
+                        <li><strong>Proof of Consent:</strong> Maintain records for regulatory requirements</li>
+                        <li><strong>Analytics Dashboard:</strong> Monitor consent rates and user behavior</li>
+                    </ul>
+                    <div style="margin-top: 15px;">
+                        <a href="https://cookiekit.io/?utm_source=wp-plugin&utm_medium=settings-page" target="_blank" class="button button-primary" style="padding: 8px 20px; font-weight: 600; font-size: 14px;">Sign Up Free - No Credit Card Required</a>
+                        <p class="description" style="margin-top: 8px;">✓ 2,000 monthly consent logs included in free plan</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -372,21 +303,114 @@ function cookiekit_settings_page() {
             <h2 class="title">General Settings</h2>
             <table class="form-table">
                 <tr>
+                    <th scope="row">Consent Style</th>
+                    <td>
+                        <div class="consent-style-options" style="display: flex; gap: 20px; margin-bottom: 15px;">
+                            <label style="display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border: 2px solid <?php echo $settings['style'] === 'banner' ? '#2271b1' : '#ddd'; ?>; border-radius: 6px; width: 120px; background: <?php echo $settings['style'] === 'banner' ? '#f0f6ff' : '#fff'; ?>;">
+                                <div style="margin-bottom: 10px; width: 100px; height: 70px; background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; position: relative; overflow: hidden;">
+                                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 20px; background: #2271b1; display: flex; justify-content: center; align-items: center;">
+                                        <span style="color: white; font-size: 9px;">Banner</span>
+                                    </div>
+                                </div>
+                                <input type="radio" name="cookiekit_settings[style]" value="banner" <?php checked($settings['style'], 'banner'); ?> style="margin-top: 5px;">
+                                <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['style'] === 'banner' ? 'bold' : 'normal'; ?>;">Banner</span>
+                            </label>
+                            
+                            <label style="display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border: 2px solid <?php echo $settings['style'] === 'popup' ? '#2271b1' : '#ddd'; ?>; border-radius: 6px; width: 120px; background: <?php echo $settings['style'] === 'popup' ? '#f0f6ff' : '#fff'; ?>;">
+                                <div style="margin-bottom: 10px; width: 100px; height: 70px; background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; position: relative; overflow: hidden;">
+                                    <div style="position: absolute; bottom: 5px; left: 5px; width: 40px; height: 30px; background: #2271b1; border-radius: 3px; display: flex; justify-content: center; align-items: center;">
+                                        <span style="color: white; font-size: 8px;">Popup</span>
+                                    </div>
+                                </div>
+                                <input type="radio" name="cookiekit_settings[style]" value="popup" <?php checked($settings['style'], 'popup'); ?> style="margin-top: 5px;">
+                                <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['style'] === 'popup' ? 'bold' : 'normal'; ?>;">Popup</span>
+                            </label>
+                            
+                            <label style="display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border: 2px solid <?php echo $settings['style'] === 'modal' ? '#2271b1' : '#ddd'; ?>; border-radius: 6px; width: 120px; background: <?php echo $settings['style'] === 'modal' ? '#f0f6ff' : '#fff'; ?>;">
+                                <div style="margin-bottom: 10px; width: 100px; height: 70px; background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; position: relative; overflow: hidden;">
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 40px; background: #2271b1; border-radius: 3px; display: flex; justify-content: center; align-items: center;">
+                                        <span style="color: white; font-size: 9px;">Modal</span>
+                                    </div>
+                                </div>
+                                <input type="radio" name="cookiekit_settings[style]" value="modal" <?php checked($settings['style'], 'modal'); ?> style="margin-top: 5px;">
+                                <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['style'] === 'modal' ? 'bold' : 'normal'; ?>;">Modal</span>
+                            </label>
+                        </div>
+                        <p class="description">
+                            <strong>Banner:</strong> Full-width banner at the bottom of the screen<br>
+                            <strong>Popup:</strong> Compact popup in the bottom-left corner<br>
+                            <strong>Modal:</strong> Centered modal with overlay background
+                        </p>
+                        <script>
+                            jQuery(document).ready(function($) {
+                                // Add click handler to style option labels
+                                $('.consent-style-options label').on('click', function() {
+                                    // Remove selected styling from all options
+                                    $('.consent-style-options label').css({
+                                        'border-color': '#ddd',
+                                        'background': '#fff'
+                                    }).find('span').css('font-weight', 'normal');
+                                    
+                                    // Add selected styling to clicked option
+                                    $(this).css({
+                                        'border-color': '#2271b1',
+                                        'background': '#f0f6ff'
+                                    }).find('span').css('font-weight', 'bold');
+                                });
+                            });
+                        </script>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Theme</th>
+                    <td>
+                        <div class="theme-options" style="display: flex; gap: 20px; margin-bottom: 15px;">
+                            <label style="display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border: 2px solid <?php echo $settings['theme'] === 'light' ? '#2271b1' : '#ddd'; ?>; border-radius: 6px; width: 120px; background: <?php echo $settings['theme'] === 'light' ? '#f0f6ff' : '#fff'; ?>;">
+                                <div style="margin-bottom: 10px; width: 100px; height: 70px; background: #ffffff; border: 1px solid #ddd; border-radius: 4px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;">
+                                    <div style="height: 20px; background: #f0f0f0; border-top: 1px solid #ddd; display: flex; justify-content: center; align-items: center;">
+                                        <div style="width: 40px; height: 6px; background: #2271b1; border-radius: 3px;"></div>
+                                    </div>
+                                </div>
+                                <input type="radio" name="cookiekit_settings[theme]" value="light" <?php checked($settings['theme'], 'light'); ?> style="margin-top: 5px;">
+                                <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['theme'] === 'light' ? 'bold' : 'normal'; ?>;">Light</span>
+                            </label>
+                            
+                            <label style="display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border: 2px solid <?php echo $settings['theme'] === 'dark' ? '#2271b1' : '#ddd'; ?>; border-radius: 6px; width: 120px; background: <?php echo $settings['theme'] === 'dark' ? '#f0f6ff' : '#fff'; ?>;">
+                                <div style="margin-bottom: 10px; width: 100px; height: 70px; background: #1e1e1e; border: 1px solid #ddd; border-radius: 4px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;">
+                                    <div style="height: 20px; background: #2c2c2c; border-top: 1px solid #444; display: flex; justify-content: center; align-items: center;">
+                                        <div style="width: 40px; height: 6px; background: #3b82f6; border-radius: 3px;"></div>
+                                    </div>
+                                </div>
+                                <input type="radio" name="cookiekit_settings[theme]" value="dark" <?php checked($settings['theme'], 'dark'); ?> style="margin-top: 5px;">
+                                <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['theme'] === 'dark' ? 'bold' : 'normal'; ?>;">Dark</span>
+                            </label>
+                        </div>
+                        <p class="description">Choose between light and dark theme for the consent UI</p>
+                        <script>
+                            jQuery(document).ready(function($) {
+                                // Add click handler to theme option labels
+                                $('.theme-options label').on('click', function() {
+                                    // Remove selected styling from all options
+                                    $('.theme-options label').css({
+                                        'border-color': '#ddd',
+                                        'background': '#fff'
+                                    }).find('span').css('font-weight', 'normal');
+                                    
+                                    // Add selected styling to clicked option
+                                    $(this).css({
+                                        'border-color': '#2271b1',
+                                        'background': '#f0f6ff'
+                                    }).find('span').css('font-weight', 'bold');
+                                });
+                            });
+                        </script>
+                    </td>
+                </tr>
+                <tr>
                     <th scope="row">Cookie Expiration (days)</th>
                     <td>
                         <input type="number" name="cookiekit_settings[cookie_expiration]" 
                                value="<?php echo esc_attr($settings['cookie_expiration']); ?>" min="1" max="365">
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">Allowed Domains</th>
-                    <td>
-                        <textarea class="large-text" rows="4" 
-                                 name="cookiekit_settings[allowed_domains]"
-                                 placeholder="example.com&#10;api.example.com&#10;cdn.example.com"><?php 
-                            echo isset($settings['allowed_domains']) ? esc_textarea($settings['allowed_domains']) : ''; 
-                        ?></textarea>
-                        <p class="description">Enter one domain per line. These domains will not be blocked, even if consent is not given. Do not include http:// or https://</p>
                     </td>
                 </tr>
                 <tr>
@@ -395,6 +419,17 @@ function cookiekit_settings_page() {
                         <input type="text" name="cookiekit_settings[cookie_name]" 
                                value="<?php echo esc_attr($settings['cookie_name']); ?>">
                         <p class="description">The key name used to store cookie preferences in the browser's storage (e.g. "cookiekit_consent")</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Allowed Trackers</th>
+                    <td>
+                        <textarea class="large-text" rows="4" 
+                                 name="cookiekit_settings[allowed_domains]"
+                                 placeholder="example.com&#10;api.example.com&#10;cdn.example.com"><?php 
+                            echo isset($settings['allowed_domains']) ? esc_textarea($settings['allowed_domains']) : ''; 
+                        ?></textarea>
+                        <p class="description">Enter one domain per line. These domains will not be blocked, even if consent is not given. Do not include http:// or https://</p>
                     </td>
                 </tr>
                 <tr>
@@ -407,39 +442,15 @@ function cookiekit_settings_page() {
                                    placeholder="Enter your CookieKit ID"
                                    style="width: 100%; padding: 8px; margin-bottom: 10px;">
                             <p class="description" style="margin-bottom: 10px;">
-                                <strong>💡 Get 2,000 GDPR-compliant consent logs FREE every month!</strong>
+                                <strong>💡 Get 2,000 GDPR-compliant consent logs free every month</strong>
                             </p>
                             <p class="description" style="margin-bottom: 0;">
                                 1. Sign up for a free account at <a href="https://cookiekit.io" target="_blank">CookieKit.io</a><br>
                                 2. Create a new project<br>
-                                3. Copy your project ID and paste it here
+                                3. Copy your project ID and paste it above
+                                4. Become 100% GDPR compliant
                             </p>
                         </div>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">Consent Style</th>
-                    <td>
-                        <select name="cookiekit_settings[style]">
-                            <option value="banner" <?php selected($settings['style'], 'banner'); ?>>Banner</option>
-                            <option value="popup" <?php selected($settings['style'], 'popup'); ?>>Popup</option>
-                            <option value="modal" <?php selected($settings['style'], 'modal'); ?>>Modal</option>
-                        </select>
-                        <p class="description">
-                            Banner - Full-width banner at the bottom<br>
-                            Popup - Compact popup in the bottom-left corner<br>
-                            Modal - Centered modal with overlay
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">Theme</th>
-                    <td>
-                        <select name="cookiekit_settings[theme]">
-                            <option value="light" <?php selected($settings['theme'], 'light'); ?>>Light</option>
-                            <option value="dark" <?php selected($settings['theme'], 'dark'); ?>>Dark</option>
-                        </select>
-                        <p class="description">Choose between light and dark theme for the consent UI</p>
                     </td>
                 </tr>
             </table>
@@ -535,16 +546,47 @@ function cookiekit_settings_page() {
             <?php submit_button(); ?>
         </form>
         
-        <div style="margin-top: 20px; padding: 15px; background-color: #f8f8f8; border: 1px solid #ddd; border-radius: 4px;">
-            <h3><?php _e('Quick Export', 'cookiekit-gdpr-cookie-consent'); ?></h3>
-            <p><?php _e('Export your current settings to use on another site or for backup.', 'cookiekit-gdpr-cookie-consent'); ?></p>
-            <form method="post">
-                <?php submit_button(__('Export Settings', 'cookiekit-gdpr-cookie-consent'), 'primary', 'cookiekit_export_settings', false, array(
-                    'title' => __('Keyboard shortcut: Alt+E', 'cookiekit-gdpr-cookie-consent'),
-                    'accesskey' => 'e'
-                )); ?>
-                <p class="description"><?php _e('Tip: Use Alt+E (Windows) or Option+E (Mac) to quickly export settings.', 'cookiekit-gdpr-cookie-consent'); ?></p>
-            </form>
+        <!-- Import/Export Section (Moved to bottom) -->
+        <div class="card" style="max-width: 100%; margin-top: 30px; margin-bottom: 20px; padding: 20px; background-color: #fff; border: 1px solid #c3c4c7; border-radius: 4px; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
+            <h2 style="margin-top: 0;"><?php _e('Import/Export Settings', 'cookiekit-gdpr-cookie-consent'); ?></h2>
+            <p><?php _e('Quickly configure your plugin by importing settings from a JSON file or export your current settings for backup or use on another site.', 'cookiekit-gdpr-cookie-consent'); ?></p>
+            
+            <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                <!-- Import Settings -->
+                <div style="flex: 1; min-width: 300px;">
+                    <h3 style="margin-top: 0;"><?php _e('Import Settings', 'cookiekit-gdpr-cookie-consent'); ?></h3>
+                    <p><?php _e('Upload a JSON file to import settings. This will overwrite your current settings.', 'cookiekit-gdpr-cookie-consent'); ?></p>
+                    <ol style="margin-left: 1.5em;">
+                        <li><?php _e('Create a JSON file with your settings', 'cookiekit-gdpr-cookie-consent'); ?></li>
+                        <li><?php _e('Click "Choose File" and select your JSON file', 'cookiekit-gdpr-cookie-consent'); ?></li>
+                        <li><?php _e('Click "Import Settings" to apply the settings', 'cookiekit-gdpr-cookie-consent'); ?></li>
+                    </ol>
+                    <form method="post" enctype="multipart/form-data">
+                        <input type="file" name="cookiekit_import_file" accept=".json" style="margin-bottom: 10px; display: block;">
+                        <?php submit_button(__('Import Settings', 'cookiekit-gdpr-cookie-consent'), 'secondary', 'cookiekit_import_settings', false); ?>
+                    </form>
+                </div>
+                
+                <!-- Export Settings -->
+                <div style="flex: 1; min-width: 300px;">
+                    <h3 style="margin-top: 0;"><?php _e('Export Settings', 'cookiekit-gdpr-cookie-consent'); ?></h3>
+                    <p><?php _e('Download your current settings as a JSON file for backup or use on another site.', 'cookiekit-gdpr-cookie-consent'); ?></p>
+                    <form method="post" style="margin-bottom: 15px;">
+                        <?php submit_button(__('Export Current Settings', 'cookiekit-gdpr-cookie-consent'), 'primary', 'cookiekit_export_settings', false, array(
+                            'title' => __('Keyboard shortcut: Alt+E', 'cookiekit-gdpr-cookie-consent'),
+                            'accesskey' => 'e',
+                            'style' => 'position: relative;'
+                        )); ?>
+                        <p class="description"><?php _e('Tip: Use Alt+E (Windows) or Option+E (Mac) to quickly export settings.', 'cookiekit-gdpr-cookie-consent'); ?></p>
+                    </form>
+                    
+                    <h4><?php _e('Need a template?', 'cookiekit-gdpr-cookie-consent'); ?></h4>
+                    <p><?php _e('Download a sample settings file to use as a template for creating your own settings file.', 'cookiekit-gdpr-cookie-consent'); ?></p>
+                    <form method="post">
+                        <?php submit_button(__('Download Sample Template', 'cookiekit-gdpr-cookie-consent'), 'secondary', 'cookiekit_download_sample', false); ?>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -552,7 +594,6 @@ function cookiekit_settings_page() {
     jQuery(document).ready(function($) {
         // Add visual indicator for export button
         $('input[name="cookiekit_export_settings"]').css({
-            'position': 'relative',
             'animation': 'pulse 2s infinite'
         });
         

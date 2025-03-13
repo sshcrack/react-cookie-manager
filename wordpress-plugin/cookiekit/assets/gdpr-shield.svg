@@ -1,0 +1,31 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="90" cy="90" r="90" fill="#E1F0FF"/>
+  
+  <!-- Shield outline -->
+  <path d="M90 30L40 45V75C40 105.899 61.222 134.754 90 140C118.778 134.754 140 105.899 140 75V45L90 30Z" fill="#F5F9FF" stroke="#155EEF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Checkmark -->
+  <path d="M65 90L80 105L115 70" stroke="#155EEF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- EU Stars circle -->
+  <circle cx="90" cy="55" r="18" fill="#155EEF" opacity="0.1"/>
+  
+  <!-- EU Stars -->
+  <g transform="translate(72, 37)">
+    <!-- Top star -->
+    <path d="M18 0L19.8 5.5H25.5L20.8 8.9L22.6 14.4L18 11L13.4 14.4L15.2 8.9L10.5 5.5H16.2L18 0Z" fill="#155EEF"/>
+    
+    <!-- Right star -->
+    <path d="M30 18L31.8 23.5H37.5L32.8 26.9L34.6 32.4L30 29L25.4 32.4L27.2 26.9L22.5 23.5H28.2L30 18Z" fill="#155EEF"/>
+    
+    <!-- Bottom star -->
+    <path d="M18 36L19.8 41.5H25.5L20.8 44.9L22.6 50.4L18 47L13.4 50.4L15.2 44.9L10.5 41.5H16.2L18 36Z" fill="#155EEF"/>
+    
+    <!-- Left star -->
+    <path d="M6 18L7.8 23.5H13.5L8.8 26.9L10.6 32.4L6 29L1.4 32.4L3.2 26.9L-1.5 23.5H4.2L6 18Z" fill="#155EEF"/>
+  </g>
+  
+  <!-- GDPR Text -->
+  <text x="90" y="130" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#155EEF" text-anchor="middle">GDPR COMPLIANT</text>
+</svg> 

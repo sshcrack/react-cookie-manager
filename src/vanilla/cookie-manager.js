@@ -145,10 +145,134 @@ const blockTrackingScripts = (trackingKeywords) => {
     }
   });
 
-  // Prevent new tracking scripts from being injected
+  // Also block iframes from tracking domains (especially for YouTube embeds)
+  document.querySelectorAll("iframe").forEach((iframe) => {
+    if (
+      iframe.src &&
+      trackingKeywords.some((keyword) => iframe.src.includes(keyword))
+    ) {
+      console.debug(`[CookieKit] Blocking iframe: ${iframe.src}`);
+
+      // Get the original iframe dimensions - be more precise about capturing dimensions
+      let width = "100%";
+      let height = "315px";
+
+      // Try to get the most accurate dimensions possible
+      if (iframe.width) {
+        width =
+          iframe.width +
+          (iframe.width.toString().match(/^[0-9]+$/) ? "px" : "");
+      } else if (iframe.style.width) {
+        width = iframe.style.width;
+      } else if (iframe.getAttribute("width")) {
+        width =
+          iframe.getAttribute("width") +
+          (iframe.getAttribute("width").match(/^[0-9]+$/) ? "px" : "");
+      }
+
+      if (iframe.height) {
+        height =
+          iframe.height +
+          (iframe.height.toString().match(/^[0-9]+$/) ? "px" : "");
+      } else if (iframe.style.height) {
+        height = iframe.style.height;
+      } else if (iframe.getAttribute("height")) {
+        height =
+          iframe.getAttribute("height") +
+          (iframe.getAttribute("height").match(/^[0-9]+$/) ? "px" : "");
+      }
+
+      // For YouTube embeds in responsive containers, check for parent with padding-bottom style
+      if (iframe.parentElement) {
+        const parentStyle = window.getComputedStyle(iframe.parentElement);
+        if (parentStyle.paddingBottom && parentStyle.paddingBottom !== "0px") {
+          // Use the same aspect ratio as the container
+          height = "0";
+          width = "100%";
+
+          // Create a placeholder that preserves aspect ratio
+          const placeholder = document.createElement("div");
+          placeholder.className = "cookie-consent-blocked-iframe";
+          placeholder.style.cssText = `
+            position: relative;
+            width: ${width}; 
+            padding-bottom: ${parentStyle.paddingBottom}; 
+            background-color: rgba(31, 41, 55, 0.95);
+            border-radius: 6px;
+            border: 1px solid #4b5563;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+          `;
+
+          const content = document.createElement("div");
+          content.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #f3f4f6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+          `;
+
+          content.innerHTML = `
+            <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
+            <h3 style="font-size: 16px; margin: 0 0 10px 0; font-weight: bold; color: white;">Content Blocked</h3>
+            <p style="margin: 0 0 10px 0; font-size: 14px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+            <p style="margin: 0 0 10px 0; font-size: 14px;">Refresh the page to view this content after adjusting your cookie settings.</p>
+            <button onclick="window.CookieKit.showCustomizeModal()" style="margin-top: 10px; background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px;">
+              Manage Cookie Settings
+            </button>
+          `;
+
+          placeholder.appendChild(content);
+          iframe.parentNode?.replaceChild(placeholder, iframe);
+          return;
+        }
+      }
+
+      // Standard placeholder for non-responsive containers
+      const placeholder = document.createElement("div");
+      placeholder.className = "cookie-consent-blocked-iframe";
+      placeholder.style.cssText = `
+        width: ${width}; 
+        height: ${height}; 
+        background-color: rgba(31, 41, 55, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: 1px solid #4b5563;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        color: #f3f4f6;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      `;
+      placeholder.innerHTML = `
+        <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
+        <h3 style="font-size: 16px; margin: 0 0 10px 0; font-weight: bold; color: white;">Content Blocked</h3>
+        <p style="margin: 0 0 10px 0; font-size: 14px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+        <button onclick="window.CookieKit.showCustomizeModal()" style="margin-top: 10px; background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px;">
+          Manage Cookie Settings
+        </button>
+      `;
+      iframe.parentNode?.replaceChild(placeholder, iframe);
+    }
+  });
+
+  // Prevent new tracking scripts and iframes from being injected
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
+        // Handle script tags
         if (node instanceof HTMLElement && node.tagName === "SCRIPT") {
           const src = node.getAttribute("src");
           if (
@@ -156,6 +280,134 @@ const blockTrackingScripts = (trackingKeywords) => {
             trackingKeywords.some((keyword) => src.includes(keyword))
           ) {
             node.remove();
+          }
+        }
+
+        // Handle iframe tags (especially YouTube)
+        if (node instanceof HTMLElement && node.tagName === "IFRAME") {
+          const src = node.getAttribute("src");
+          if (
+            src &&
+            trackingKeywords.some((keyword) => src.includes(keyword))
+          ) {
+            console.debug(`[CookieKit] Blocking injected iframe: ${src}`);
+
+            // Get the original iframe dimensions - be more precise about capturing dimensions
+            let width = "100%";
+            let height = "315px";
+
+            // Try to get the most accurate dimensions possible
+            if (node.width) {
+              width =
+                node.width +
+                (node.width.toString().match(/^[0-9]+$/) ? "px" : "");
+            } else if (node.style.width) {
+              width = node.style.width;
+            } else if (node.getAttribute("width")) {
+              width =
+                node.getAttribute("width") +
+                (node.getAttribute("width").match(/^[0-9]+$/) ? "px" : "");
+            }
+
+            if (node.height) {
+              height =
+                node.height +
+                (node.height.toString().match(/^[0-9]+$/) ? "px" : "");
+            } else if (node.style.height) {
+              height = node.style.height;
+            } else if (node.getAttribute("height")) {
+              height =
+                node.getAttribute("height") +
+                (node.getAttribute("height").match(/^[0-9]+$/) ? "px" : "");
+            }
+
+            // For YouTube embeds in responsive containers, check for parent with padding-bottom style
+            if (node.parentElement) {
+              const parentStyle = window.getComputedStyle(node.parentElement);
+              if (
+                parentStyle.paddingBottom &&
+                parentStyle.paddingBottom !== "0px"
+              ) {
+                // Use the same aspect ratio as the container
+                height = "0";
+                width = "100%";
+
+                // Create a placeholder that preserves aspect ratio
+                const placeholder = document.createElement("div");
+                placeholder.className = "cookie-consent-blocked-iframe";
+                placeholder.style.cssText = `
+                  position: relative;
+                  width: ${width}; 
+                  padding-bottom: ${parentStyle.paddingBottom}; 
+                  background-color: rgba(31, 41, 55, 0.95);
+                  border-radius: 6px;
+                  border: 1px solid #4b5563;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                  overflow: hidden;
+                `;
+
+                const content = document.createElement("div");
+                content.style.cssText = `
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  justify-content: center;
+                  color: #f3f4f6;
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                  text-align: center;
+                  padding: 20px;
+                `;
+
+                content.innerHTML = `
+                  <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
+                  <h3 style="font-size: 16px; margin: 0 0 10px 0; font-weight: bold; color: white;">Content Blocked</h3>
+                  <p style="margin: 0 0 10px 0; font-size: 14px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+                  <p style="margin: 0 0 10px 0; font-size: 14px;">Refresh the page to view this content after adjusting your cookie settings.</p>
+                  <button onclick="window.CookieKit.showCustomizeModal()" style="margin-top: 10px; background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px;">
+                    Manage Cookie Settings
+                  </button>
+                `;
+
+                placeholder.appendChild(content);
+                node.parentNode?.replaceChild(placeholder, node);
+                return;
+              }
+            }
+
+            // Standard placeholder for non-responsive containers
+            const placeholder = document.createElement("div");
+            placeholder.className = "cookie-consent-blocked-iframe";
+            placeholder.style.cssText = `
+              width: ${width}; 
+              height: ${height}; 
+              background-color: rgba(31, 41, 55, 0.95);
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              border-radius: 6px;
+              border: 1px solid #4b5563;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+              color: #f3f4f6;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+              text-align: center;
+              padding: 20px;
+            `;
+            placeholder.innerHTML = `
+              <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
+              <h3 style="font-size: 16px; margin: 0 0 10px 0; font-weight: bold; color: white;">Content Blocked</h3>
+              <p style="margin: 0 0 10px 0; font-size: 14px;">This content requires cookies that are currently blocked by your privacy settings.</p>
+              <p style="margin: 0 0 10px 0; font-size: 14px;">Refresh the page to view this content after adjusting your cookie settings.</p>
+              <button onclick="window.CookieKit.showCustomizeModal()" style="margin-top: 10px; background-color: #3b82f6; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; font-size: 13px;">
+                Manage Cookie Settings
+              </button>
+            `;
+            node.parentNode?.replaceChild(placeholder, node);
           }
         }
       });
@@ -193,9 +445,9 @@ const restoreOriginalRequests = () => {
         theme: "light", // light or dark
         cookieKitId: "", // unique identifier
         categories: {
-          analytics: true,
-          marketing: true,
-          preferences: true,
+          analytics: false,
+          marketing: false,
+          preferences: false,
         },
         allowedDomains: [], // Domains that should never be blocked
         translations: {
@@ -348,6 +600,36 @@ const restoreOriginalRequests = () => {
     }
 
     saveConsent(categories) {
+      // Debug log to help diagnose issues
+      console.log(`Saving consent for style: ${this.config.style}`, categories);
+
+      // Animate out and then hide
+      if (this.wrapper) {
+        // For popup style, we need to handle it differently
+        if (this.config.style === "popup") {
+          // Immediately hide the wrapper
+          this.wrapper.style.display = "none";
+        } else {
+          // For banner and modal styles, use animation
+          const banner = this.wrapper.querySelector('div[class*="fixed"]');
+          if (banner) {
+            banner.classList.add("translate-y-full");
+            setTimeout(() => {
+              this.wrapper.style.display = "none";
+            }, 300); // Increased timeout to ensure animation completes
+          } else {
+            this.wrapper.style.display = "none";
+          }
+        }
+      }
+
+      if (this.modalWrapper) {
+        this.modalWrapper.classList.add("opacity-0");
+        setTimeout(() => {
+          this.modalWrapper.style.display = "none";
+        }, 300); // Increased timeout to ensure animation completes
+      }
+
       this.state = categories;
       this.setCookie(
         this.config.cookieName,
@@ -381,26 +663,6 @@ const restoreOriginalRequests = () => {
       // Reinitialize blocking based on new consent
       this.initializeBlocking();
 
-      // Animate out and then remove
-      if (this.wrapper) {
-        const banner = this.wrapper.querySelector('div[class*="fixed"]');
-        if (banner) {
-          banner.classList.add("translate-y-full");
-          setTimeout(() => {
-            this.wrapper.remove();
-          }, 500);
-        } else {
-          this.wrapper.remove();
-        }
-      }
-
-      if (this.modalWrapper) {
-        this.modalWrapper.classList.add("opacity-0");
-        setTimeout(() => {
-          this.modalWrapper.remove();
-        }, 300);
-      }
-
       this.applyConsent();
     }
 
@@ -427,6 +689,14 @@ const restoreOriginalRequests = () => {
     createBanner() {
       const wrapper = document.createElement("div");
       wrapper.className = "cookie-manager";
+
+      // If the style is modal, add an overlay background
+      if (this.config.style === "modal") {
+        const bannerOverlay = document.createElement("div");
+        bannerOverlay.className =
+          "fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]";
+        wrapper.appendChild(bannerOverlay);
+      }
 
       const banner = document.createElement("div");
       const isLight = this.config.theme === "light";
@@ -487,6 +757,7 @@ const restoreOriginalRequests = () => {
               this.config.style === "popup"
                 ? `
                 <div class="flex flex-col gap-3 w-full">
+                  <!-- Mobile buttons -->
                   <button class="accept-all w-full md:hidden px-4 py-2.5 text-sm font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
                     ${this.config.translations.buttonText}
                   </button>
@@ -497,6 +768,8 @@ const restoreOriginalRequests = () => {
                   } transition-all duration-200 hover:scale-105">
                     ${this.config.translations.declineButtonText}
                   </button>
+                  
+                  <!-- Desktop buttons -->
                   <div class="hidden md:flex items-center gap-3">
                     <button class="decline-all flex-1 px-3 py-1.5 text-xs font-medium rounded-md ${
                       isLight
@@ -509,6 +782,8 @@ const restoreOriginalRequests = () => {
                       ${this.config.translations.buttonText}
                     </button>
                   </div>
+                  
+                  <!-- Customize button -->
                   <button class="customize w-full px-4 py-2.5 md:px-3 md:py-1.5 text-sm md:text-xs font-medium rounded-md border border-blue-500 text-blue-500 bg-transparent hover:text-blue-600 hover:border-blue-600 transition-all duration-200 hover:scale-105">
                     ${this.config.translations.manageButtonText}
                   </button>
@@ -538,20 +813,27 @@ const restoreOriginalRequests = () => {
         </div>
       `;
 
-      banner.querySelector(".accept-all").addEventListener("click", () => {
-        this.saveConsent(this.config.categories);
-      });
-
-      banner.querySelector(".decline-all").addEventListener("click", () => {
-        this.saveConsent({
-          analytics: false,
-          marketing: false,
-          preferences: false,
+      // Add event listeners to all buttons with these classes
+      banner.querySelectorAll(".accept-all").forEach((button) => {
+        button.addEventListener("click", () => {
+          this.saveConsent(this.config.categories);
         });
       });
 
-      banner.querySelector(".customize").addEventListener("click", () => {
-        this.showCustomizeModal();
+      banner.querySelectorAll(".decline-all").forEach((button) => {
+        button.addEventListener("click", () => {
+          this.saveConsent({
+            analytics: false,
+            marketing: false,
+            preferences: false,
+          });
+        });
+      });
+
+      banner.querySelectorAll(".customize").forEach((button) => {
+        button.addEventListener("click", () => {
+          this.showCustomizeModal();
+        });
       });
 
       wrapper.appendChild(banner);
@@ -620,9 +902,7 @@ const restoreOriginalRequests = () => {
                   }">Help us understand how visitors interact with our website.</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" name="analytics" ${
-                    this.config.categories.analytics ? "checked" : ""
-                  } class="sr-only peer">
+                  <input type="checkbox" name="analytics" class="sr-only peer">
                   <div class="w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
                     ${
                       isLight
@@ -647,9 +927,7 @@ const restoreOriginalRequests = () => {
                   }">Allow us to personalize your experience and send you relevant content.</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" name="marketing" ${
-                    this.config.categories.marketing ? "checked" : ""
-                  } class="sr-only peer">
+                  <input type="checkbox" name="marketing" class="sr-only peer">
                   <div class="w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
                     ${
                       isLight
@@ -674,9 +952,7 @@ const restoreOriginalRequests = () => {
                   }">Remember your settings and provide enhanced functionality.</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" name="preferences" ${
-                    this.config.categories.preferences ? "checked" : ""
-                  } class="sr-only peer">
+                  <input type="checkbox" name="preferences" class="sr-only peer">
                   <div class="w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
                     ${
                       isLight
@@ -731,14 +1007,6 @@ const restoreOriginalRequests = () => {
           this.state.marketing;
         modal.querySelector('input[name="preferences"]').checked =
           this.state.preferences;
-      } else {
-        // Use default values from config
-        modal.querySelector('input[name="analytics"]').checked =
-          this.config.categories.analytics;
-        modal.querySelector('input[name="marketing"]').checked =
-          this.config.categories.marketing;
-        modal.querySelector('input[name="preferences"]').checked =
-          this.config.categories.preferences;
       }
 
       modalWrapper.appendChild(overlay);
@@ -756,17 +1024,21 @@ const restoreOriginalRequests = () => {
       }
       this.modal.classList.remove("hidden");
       this.overlay.classList.remove("hidden");
+
+      // If we're in modal style, make sure the body doesn't scroll
+      if (this.config.style === "modal") {
+        document.body.style.overflow = "hidden";
+      }
     }
 
     hideCustomizeModal() {
       if (this.modal) {
         this.modal.classList.add("hidden");
         this.overlay.classList.add("hidden");
-      }
-    }
 
-    hideBanner() {
-      this.banner.classList.add("hidden");
+        // Restore body scrolling
+        document.body.style.overflow = "";
+      }
     }
 
     init(config = {}) {
@@ -855,7 +1127,39 @@ const restoreOriginalRequests = () => {
     resetConsent: () => {
       document.cookie =
         "cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      location.reload();
+
+      // Instead of reloading the page, just show the banner again
+      if (window.CookieKit.manager) {
+        // Clear the state
+        window.CookieKit.manager.state = null;
+
+        // Remove existing banner and modal if they exist
+        if (window.CookieKit.manager.wrapper) {
+          document.body.removeChild(window.CookieKit.manager.wrapper);
+          window.CookieKit.manager.wrapper = null;
+          window.CookieKit.manager.banner = null;
+        }
+
+        if (window.CookieKit.manager.modalWrapper) {
+          document.body.removeChild(window.CookieKit.manager.modalWrapper);
+          window.CookieKit.manager.modalWrapper = null;
+          window.CookieKit.manager.modal = null;
+          window.CookieKit.manager.overlay = null;
+        }
+
+        // Show the banner again
+        window.CookieKit.showBanner();
+
+        // Reinitialize blocking
+        window.CookieKit.manager.initializeBlocking();
+
+        // Trigger the consent updated event
+        window.dispatchEvent(
+          new CustomEvent("cookiekit:consent-updated", {
+            detail: null,
+          })
+        );
+      }
     },
   };
 })();

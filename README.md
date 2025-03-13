@@ -30,6 +30,7 @@ A powerful, customizable React component for cookie consent management with buil
 
 - 🌐 Multiple display types (banner, popup, modal)
 - 🛡️ Automatic tracking prevention (Google Analytics, etc.)
+- 🎬 Smart iframe blocking for embedded content (YouTube, Vimeo, etc.)
 - 🎯 Granular cookie category controls (Analytics, Social, Advertising)
 - 🎨 Light and dark theme support
 - 📱 Responsive design
@@ -58,7 +59,7 @@ import { CookieManager } from "react-cookie-manager";
 function App() {
   return (
     <CookieManager
-      cookieKitId="your-cookie-kit-website-id" // Get this from cookiekit.io
+      cookieKitId="" // Get this from cookiekit.io
       translations={{
         title: "Cookie Preferences",
         message: "We use cookies to improve your experience.",
@@ -88,6 +89,25 @@ See React Cookie Manager in action and explore all its features in our interacti
 ## Automatically Disable Tracking
 
 Unlike other cookie consent managers and React components, this component automatically disables tracking for Google Analytics, Facebook Pixel, and other tracking services. This is done by blocking the tracking scripts from loading. Therefore, you don't need to manually disable tracking, saving you hours of work.
+
+### Embedded Content Blocking
+
+React Cookie Manager automatically blocks embedded iframes that would otherwise load cookies without consent, such as:
+
+- YouTube videos
+- Vimeo videos
+- Google Maps
+- Social media embeds (Twitter, Instagram, etc.)
+- Third-party widgets and tools
+
+When a user hasn't consented to the required cookies, these embeds are replaced with user-friendly placeholders that:
+
+- Explain why the content is blocked
+- Provide a button to manage cookie settings
+- Inform users to refresh the page after accepting cookies
+- Maintain the same dimensions as the original content
+
+This ensures your site remains GDPR-compliant while providing a seamless user experience.
 
 ## Installation
 
