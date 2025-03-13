@@ -407,15 +407,6 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     };
   }, [enableFloatingButton, detailedConsent]);
 
-  // Add debug logging
-  useEffect(() => {}, [
-    enableFloatingButton,
-    isFloatingButtonVisible,
-    isVisible,
-    showManageConsent,
-    detailedConsent,
-  ]);
-
   const value: CookieConsentContextValue = {
     hasConsent,
     isDeclined: hasConsent === false,
