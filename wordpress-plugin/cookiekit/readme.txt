@@ -1,9 +1,9 @@
 === CookieKit GDPR & Cookie Consent ===
 Contributors: hypership
-Tags: gdpr, ccpa, cookie consent, cookie notice, cookie banner, cookie law, privacy
+Tags: gdpr, ccpa, cookie banner, privacy, cookie
 Requires at least: 5.0
 Tested up to: 6.7
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html

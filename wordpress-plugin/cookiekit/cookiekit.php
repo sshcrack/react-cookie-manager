@@ -3,12 +3,12 @@
  * Plugin Name: CookieKit GDPR & Cookie Consent
  * Plugin URI: https://github.com/hypershiphq/react-cookie-manager
  * Description: 🍪 Professional GDPR & CCPA compliant cookie consent solution. Beautiful design, automatic script blocking, and complete cookie compliance for WordPress.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Hypership
  * Author URI: https://github.com/hypershiphq
  * License: GPL-2.0+
  * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain: cookiekit-gdpr-cookie-consent
+ * Text Domain: cookiekit
  *
  * CookieKit is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ if (!defined('WPINC')) {
     die;
 }
 
-define('COOKIEKIT_VERSION', '1.0.0');
+define('COOKIEKIT_VERSION', '1.1.0');
 define('COOKIEKIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('COOKIEKIT_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -37,7 +37,7 @@ define('COOKIEKIT_PLUGIN_URL', plugin_dir_url(__FILE__));
  * Add settings link to plugin page
  */
 function cookiekit_add_settings_link($links) {
-    $settings_link = '<a href="' . admin_url('options-general.php?page=cookiekit-settings') . '">' . __('Settings', 'cookiekit-gdpr-cookie-consent') . '</a>';
+    $settings_link = '<a href="' . admin_url('options-general.php?page=cookiekit-settings') . '">' . __('Settings', 'cookiekit') . '</a>';
     array_unshift($links, $settings_link);
     return $links;
 }
@@ -50,18 +50,18 @@ function cookiekit_enqueue_scripts() {
     // Load our plugin's JS first
     wp_enqueue_script(
         'cookiekit-main',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.6b8e2561.js',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.130f38a5.js',
         array(),
-        null, // Version will be part of the filename
+        COOKIEKIT_VERSION, // Add version parameter
         false // Load in header
     );
 
     // Then enqueue our plugin's CSS
     wp_enqueue_style(
         'cookiekit-styles',
-        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.6b8e2561.css',
+        COOKIEKIT_PLUGIN_URL . 'assets/cookie-manager.130f38a5.css',
         array(),
-        null // Version will be part of the filename
+        COOKIEKIT_VERSION // Add version parameter
     );
 }
 add_action('wp_enqueue_scripts', 'cookiekit_enqueue_scripts');
@@ -81,9 +81,10 @@ function cookiekit_admin_menu() {
 add_action('admin_menu', 'cookiekit_admin_menu');
 
 /**
- * Register settings
+ * Register settings without any dynamic arguments or sanitize_callback
  */
 function cookiekit_register_settings() {
+    // Register with absolutely minimal, static arguments
     register_setting('cookiekit_options', 'cookiekit_settings', array(
         'type' => 'object',
         'default' => array(
@@ -92,7 +93,6 @@ function cookiekit_register_settings() {
             'style' => 'banner',
             'theme' => 'light',
             'cookiekit_id' => '',
-            'version_hash' => 'v1_' . substr(md5(COOKIEKIT_VERSION . time()), 0, 8),
             'allowed_domains' => '',
             'text_settings' => array(
                 'title' => 'Would You Like A Cookie? 🍪',
@@ -106,47 +106,84 @@ function cookiekit_register_settings() {
                 'save_preferences' => 'Save Preferences',
                 'cancel' => 'Cancel'
             )
-        ),
-        'sanitize_callback' => 'cookiekit_sanitize_settings'
+        )
+        // No sanitize_callback at all
     ));
+    
+    // Instead hook into the pre_update filter for this specific option
+    add_filter('pre_update_option_cookiekit_settings', 'cookiekit_sanitize_settings_filter', 10, 2);
 }
 add_action('admin_init', 'cookiekit_register_settings');
 
 /**
- * Sanitize settings and preserve version hash
+ * Filter function to sanitize settings
+ * This replaces the sanitize_callback 
+ *
+ * @param mixed $new_value The new value
+ * @param mixed $old_value The old value
+ * @return mixed Sanitized value
  */
-function cookiekit_sanitize_settings($settings) {
-    $old_settings = get_option('cookiekit_settings');
+function cookiekit_sanitize_settings_filter($new_value, $old_value) {
+    // Only proceed if we have an array
+    if (!is_array($new_value)) {
+        return $old_value;
+    }
     
-    // Preserve version hash
-    if (isset($old_settings['version_hash'])) {
-        $settings['version_hash'] = $old_settings['version_hash'];
-    } else {
-        $settings['version_hash'] = 'v1_' . substr(md5(COOKIEKIT_VERSION . time()), 0, 8);
-    }
+    $sanitized = array();
+    
+    // Sanitize numeric values
+    $sanitized['cookie_expiration'] = isset($new_value['cookie_expiration']) ? 
+        intval($new_value['cookie_expiration']) : 365;
+    
+    // Sanitize strings
+    $sanitized['cookie_name'] = isset($new_value['cookie_name']) ? 
+        sanitize_text_field($new_value['cookie_name']) : 'cookiekit_consent';
+    
+    // Sanitize style (enum)
+    $valid_styles = array('banner', 'popup', 'modal');
+    $sanitized['style'] = isset($new_value['style']) && in_array($new_value['style'], $valid_styles) ? 
+        $new_value['style'] : 'banner';
+    
+    // Sanitize theme (enum)
+    $valid_themes = array('light', 'dark');
+    $sanitized['theme'] = isset($new_value['theme']) && in_array($new_value['theme'], $valid_themes) ? 
+        $new_value['theme'] : 'light';
+    
+    // Sanitize cookiekit ID
+    $sanitized['cookiekit_id'] = isset($new_value['cookiekit_id']) ? 
+        sanitize_text_field($new_value['cookiekit_id']) : '';
+    
+    // Sanitize allowed domains
+    $sanitized['allowed_domains'] = isset($new_value['allowed_domains']) ? 
+        sanitize_textarea_field($new_value['allowed_domains']) : '';
 
-    // Ensure text settings exist with defaults
-    if (!isset($settings['text_settings'])) {
-        $settings['text_settings'] = array(
-            'title' => 'Would You Like A Cookie? 🍪',
-            'message' => 'We use cookies to enhance your browsing experience and analyze our traffic.',
-            'accept_button' => 'Accept All',
-            'decline_button' => 'Decline All',
-            'customize_button' => 'Customize',
-            'privacy_policy_text' => 'Privacy Policy',
-            'modal_title' => 'Cookie Preferences',
-            'modal_message' => 'Choose which cookies you want to accept.',
-            'save_preferences' => 'Save Preferences',
-            'cancel' => 'Cancel'
-        );
+    // Sanitize text settings
+    $default_text_settings = array(
+        'title' => 'Would You Like A Cookie? 🍪',
+        'message' => 'We use cookies to enhance your browsing experience and analyze our traffic.',
+        'accept_button' => 'Accept All',
+        'decline_button' => 'Decline All',
+        'customize_button' => 'Customize',
+        'privacy_policy_text' => 'Privacy Policy',
+        'modal_title' => 'Cookie Preferences',
+        'modal_message' => 'Choose which cookies you want to accept.',
+        'save_preferences' => 'Save Preferences',
+        'cancel' => 'Cancel'
+    );
+    
+    // Initialize text_settings with defaults
+    $sanitized['text_settings'] = $default_text_settings;
+    
+    // Override with provided values if they exist
+    if (isset($new_value['text_settings']) && is_array($new_value['text_settings'])) {
+        foreach ($new_value['text_settings'] as $key => $text_value) {
+            if (isset($default_text_settings[$key])) {
+                $sanitized['text_settings'][$key] = sanitize_text_field($text_value);
+            }
+        }
     }
-
-    // Sanitize all text inputs
-    foreach ($settings['text_settings'] as $key => $value) {
-        $settings['text_settings'][$key] = sanitize_text_field($value);
-    }
-
-    return $settings;
+    
+    return $sanitized;
 }
 
 /**
@@ -155,12 +192,6 @@ function cookiekit_sanitize_settings($settings) {
 function cookiekit_settings_page() {
     // Get saved settings
     $settings = get_option('cookiekit_settings');
-
-    // Ensure version_hash exists
-    if (!isset($settings['version_hash'])) {
-        $settings['version_hash'] = 'v1_' . substr(md5(COOKIEKIT_VERSION . time()), 0, 8);
-        update_option('cookiekit_settings', $settings);
-    }
 
     // Ensure text settings exist with defaults
     if (!isset($settings['text_settings'])) {
@@ -180,98 +211,150 @@ function cookiekit_settings_page() {
 
     // Handle settings import
     if (isset($_FILES['cookiekit_import_file']) && !empty($_FILES['cookiekit_import_file']['tmp_name'])) {
-        $import_file = $_FILES['cookiekit_import_file']['tmp_name'];
-        $import_data = file_get_contents($import_file);
-        
-        if ($import_data) {
-            $imported_settings = json_decode($import_data, true);
-            
-            if (json_last_error() === JSON_ERROR_NONE && is_array($imported_settings)) {
-                // Preserve version hash
-                if (isset($settings['version_hash'])) {
-                    $imported_settings['version_hash'] = $settings['version_hash'];
+        // Verify nonce
+        if (!isset($_POST['cookiekit_import_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['cookiekit_import_nonce'])), 'cookiekit_import_action')) {
+            add_settings_error(
+                'cookiekit_settings',
+                'nonce_error',
+                __('Security check failed.', 'cookiekit'),
+                'error'
+            );
+        } else {
+            // Sanitize the file path
+            $import_file = sanitize_text_field($_FILES['cookiekit_import_file']['tmp_name']);
+            if (!empty($import_file) && file_exists($import_file)) {
+                $import_data = file_get_contents($import_file);
+                
+                if ($import_data) {
+                    $imported_settings = json_decode($import_data, true);
+                    
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($imported_settings)) {
+                        // Update settings
+                        update_option('cookiekit_settings', $imported_settings);
+                        
+                        // Refresh settings
+                        $settings = $imported_settings;
+                        
+                        // Show success message
+                        add_settings_error(
+                            'cookiekit_settings',
+                            'settings_updated',
+                            __('Settings imported successfully.', 'cookiekit'),
+                            'updated'
+                        );
+                    } else {
+                        // Show error message
+                        add_settings_error(
+                            'cookiekit_settings',
+                            'import_error',
+                            __('Invalid settings file. Please upload a valid JSON file.', 'cookiekit'),
+                            'error'
+                        );
+                    }
                 }
-                
-                // Update settings
-                update_option('cookiekit_settings', $imported_settings);
-                
-                // Refresh settings
-                $settings = $imported_settings;
-                
-                // Show success message
-                add_settings_error(
-                    'cookiekit_settings',
-                    'settings_updated',
-                    __('Settings imported successfully.', 'cookiekit-gdpr-cookie-consent'),
-                    'updated'
-                );
-            } else {
-                // Show error message
-                add_settings_error(
-                    'cookiekit_settings',
-                    'import_error',
-                    __('Invalid settings file. Please upload a valid JSON file.', 'cookiekit-gdpr-cookie-consent'),
-                    'error'
-                );
             }
         }
     }
     
     // Handle settings export
     if (isset($_POST['cookiekit_export_settings'])) {
-        // Instead of using headers directly, we'll use a JavaScript approach
-        $export_data = json_encode($settings, JSON_PRETTY_PRINT);
-        $filename = 'cookiekit-settings.json';
-        
-        // Store the export data in a transient
-        set_transient('cookiekit_export_data', $export_data, 60 * 5); // 5 minutes expiration
-        
-        // Set a flag to trigger the JavaScript download
-        $should_trigger_download = true;
+        // Verify nonce
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'cookiekit_options-options')) {
+            add_settings_error(
+                'cookiekit_settings',
+                'nonce_error',
+                __('Security check failed.', 'cookiekit'),
+                'error'
+            );
+        } else {
+            // Instead of using headers directly, we'll use a JavaScript approach
+            $export_data = json_encode($settings, JSON_PRETTY_PRINT);
+            $filename = 'cookiekit-settings.json';
+            
+            // Store the export data in a transient
+            set_transient('cookiekit_export_data', $export_data, 60 * 5); // 5 minutes expiration
+            
+            // Set a flag to trigger the JavaScript download
+            $should_trigger_download = true;
+        }
     }
     
     // Handle sample settings download
     if (isset($_POST['cookiekit_download_sample'])) {
-        $sample_settings = array(
-            'cookie_expiration' => 365,
-            'cookie_name' => 'cookiekit_consent',
-            'style' => 'banner',
-            'theme' => 'light',
-            'cookiekit_id' => 'YOUR_COOKIEKIT_ID_HERE',
-            'allowed_domains' => "example.com\napi.example.com",
-            'text_settings' => array(
-                'title' => 'Cookie Consent',
-                'message' => 'We use cookies to enhance your browsing experience and analyze our traffic.',
-                'accept_button' => 'Accept All',
-                'decline_button' => 'Decline All',
-                'customize_button' => 'Customize',
-                'privacy_policy_text' => 'Privacy Policy',
-                'modal_title' => 'Cookie Preferences',
-                'modal_message' => 'Choose which cookies you want to accept.',
-                'save_preferences' => 'Save Preferences',
-                'cancel' => 'Cancel'
-            )
-        );
-        
-        $sample_data = json_encode($sample_settings, JSON_PRETTY_PRINT);
-        $filename = 'cookiekit-sample-settings.json';
-        
-        // Store the sample data in a transient
-        set_transient('cookiekit_export_data', $sample_data, 60 * 5); // 5 minutes expiration
-        
-        // Set a flag to trigger the JavaScript download
-        $should_trigger_download = true;
+        // Verify nonce
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'cookiekit_options-options')) {
+            add_settings_error(
+                'cookiekit_settings',
+                'nonce_error',
+                __('Security check failed.', 'cookiekit'),
+                'error'
+            );
+        } else {
+            $sample_settings = array(
+                'cookie_expiration' => 365,
+                'cookie_name' => 'cookiekit_consent',
+                'style' => 'banner',
+                'theme' => 'light',
+                'cookiekit_id' => 'YOUR_COOKIEKIT_ID_HERE',
+                'allowed_domains' => "example.com\napi.example.com",
+                'text_settings' => array(
+                    'title' => 'Cookie Consent',
+                    'message' => 'We use cookies to enhance your browsing experience, analyze our traffic, and provide you with a better website experience.',
+                    'accept_button' => 'Accept All',
+                    'decline_button' => 'Decline All',
+                    'customize_button' => 'Manage Preferences',
+                    'privacy_policy_text' => 'Privacy Policy',
+                    'modal_title' => 'Cookie Preferences',
+                    'modal_message' => 'Choose which cookies you want to accept.',
+                    'save_preferences' => 'Save Preferences',
+                    'cancel' => 'Cancel'
+                )
+            );
+            
+            $sample_data = json_encode($sample_settings, JSON_PRETTY_PRINT);
+            $filename = 'cookiekit-sample-settings.json';
+            
+            // Store the sample data in a transient
+            set_transient('cookiekit_export_data', $sample_data, 60 * 5); // 5 minutes expiration
+            
+            // Set a flag to trigger the JavaScript download
+            $should_trigger_download = true;
+        }
     }
     ?>
     <div class="wrap">
         <!-- CookieKit Logo and Header -->
         <div style="display: flex; align-items: center; margin-bottom: 20px;">
             <div style="margin-right: 15px;">
-                <img src="<?php echo COOKIEKIT_PLUGIN_URL; ?>assets/cookiekit-logo.png" alt="CookieKit Logo" style="width: 60px; height: auto;" onerror="this.src='<?php echo COOKIEKIT_PLUGIN_URL; ?>assets/cookiekit-logo.png'; this.onerror=null;">
+                <?php 
+                $logo_attachment_id = get_option('cookiekit_logo_id', 0);
+                if ($logo_attachment_id) {
+                    echo wp_get_attachment_image($logo_attachment_id, array(60, 60), false, array(
+                        'alt' => 'CookieKit Logo',
+                        'style' => 'width: 60px; height: auto;'
+                    ));
+                } else {
+                    // Create img element using WordPress functions with properly escaped output
+                    $img_attr = array(
+                        'src' => esc_url(COOKIEKIT_PLUGIN_URL . 'assets/cookiekit-logo.png'),
+                        'alt' => 'CookieKit Logo',
+                        'style' => 'width: 60px; height: auto;',
+                        'class' => 'cookiekit-logo'
+                    );
+                    
+                    $img_html = '<img';
+                    foreach ($img_attr as $attr_key => $attr_value) {
+                        $img_html .= ' ' . esc_attr($attr_key) . '="' . esc_attr($attr_value) . '"';
+                    }
+                    $img_html .= ' />';
+                    
+                    echo wp_kses_post($img_html);
+                }
+                ?>
             </div>
             <div>
                 <h1 style="margin: 0;">CookieKit: GDPR & Cookie Consent</h1>
-                <p class="description">Version: <?php echo COOKIEKIT_VERSION; ?> | Hash: <?php echo esc_html($settings['version_hash']); ?></p>
+                <p class="description">Version: <?php echo esc_html(COOKIEKIT_VERSION); ?></p>
             </div>
         </div>
         
@@ -447,8 +530,8 @@ function cookiekit_settings_page() {
                             <p class="description" style="margin-bottom: 0;">
                                 1. Sign up for a free account at <a href="https://cookiekit.io" target="_blank">CookieKit.io</a><br>
                                 2. Create a new project<br>
-                                3. Copy your project ID and paste it above
-                                4. Become 100% GDPR compliant
+                                3. Copy your project ID and paste it above<br>
+                                4. Become GDPR compliant
                             </p>
                         </div>
                     </td>
@@ -548,42 +631,43 @@ function cookiekit_settings_page() {
         
         <!-- Import/Export Section (Moved to bottom) -->
         <div class="card" style="max-width: 100%; margin-top: 30px; margin-bottom: 20px; padding: 20px; background-color: #fff; border: 1px solid #c3c4c7; border-radius: 4px; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
-            <h2 style="margin-top: 0;"><?php _e('Import/Export Settings', 'cookiekit-gdpr-cookie-consent'); ?></h2>
-            <p><?php _e('Quickly configure your plugin by importing settings from a JSON file or export your current settings for backup or use on another site.', 'cookiekit-gdpr-cookie-consent'); ?></p>
+            <h2 style="margin-top: 0;"><?php esc_html_e('Import/Export Settings', 'cookiekit'); ?></h2>
+            <p><?php esc_html_e('Quickly configure your plugin by importing settings from a JSON file or export your current settings for backup or use on another site.', 'cookiekit'); ?></p>
             
             <div style="display: flex; gap: 30px; flex-wrap: wrap;">
                 <!-- Import Settings -->
                 <div style="flex: 1; min-width: 300px;">
-                    <h3 style="margin-top: 0;"><?php _e('Import Settings', 'cookiekit-gdpr-cookie-consent'); ?></h3>
-                    <p><?php _e('Upload a JSON file to import settings. This will overwrite your current settings.', 'cookiekit-gdpr-cookie-consent'); ?></p>
+                    <h3 style="margin-top: 0;"><?php esc_html_e('Import Settings', 'cookiekit'); ?></h3>
+                    <p><?php esc_html_e('Upload a JSON file to import settings. This will overwrite your current settings.', 'cookiekit'); ?></p>
                     <ol style="margin-left: 1.5em;">
-                        <li><?php _e('Create a JSON file with your settings', 'cookiekit-gdpr-cookie-consent'); ?></li>
-                        <li><?php _e('Click "Choose File" and select your JSON file', 'cookiekit-gdpr-cookie-consent'); ?></li>
-                        <li><?php _e('Click "Import Settings" to apply the settings', 'cookiekit-gdpr-cookie-consent'); ?></li>
+                        <li><?php esc_html_e('Create a JSON file with your settings', 'cookiekit'); ?></li>
+                        <li><?php esc_html_e('Click "Choose File" and select your JSON file', 'cookiekit'); ?></li>
+                        <li><?php esc_html_e('Click "Import Settings" to apply the settings', 'cookiekit'); ?></li>
                     </ol>
                     <form method="post" enctype="multipart/form-data">
+                        <?php wp_nonce_field('cookiekit_import_action', 'cookiekit_import_nonce'); ?>
                         <input type="file" name="cookiekit_import_file" accept=".json" style="margin-bottom: 10px; display: block;">
-                        <?php submit_button(__('Import Settings', 'cookiekit-gdpr-cookie-consent'), 'secondary', 'cookiekit_import_settings', false); ?>
+                        <?php submit_button(__('Import Settings', 'cookiekit'), 'secondary', 'cookiekit_import_settings', false); ?>
                     </form>
                 </div>
                 
                 <!-- Export Settings -->
                 <div style="flex: 1; min-width: 300px;">
-                    <h3 style="margin-top: 0;"><?php _e('Export Settings', 'cookiekit-gdpr-cookie-consent'); ?></h3>
-                    <p><?php _e('Download your current settings as a JSON file for backup or use on another site.', 'cookiekit-gdpr-cookie-consent'); ?></p>
+                    <h3 style="margin-top: 0;"><?php esc_html_e('Export Settings', 'cookiekit'); ?></h3>
+                    <p><?php esc_html_e('Download your current settings as a JSON file for backup or use on another site.', 'cookiekit'); ?></p>
                     <form method="post" style="margin-bottom: 15px;">
-                        <?php submit_button(__('Export Current Settings', 'cookiekit-gdpr-cookie-consent'), 'primary', 'cookiekit_export_settings', false, array(
-                            'title' => __('Keyboard shortcut: Alt+E', 'cookiekit-gdpr-cookie-consent'),
+                        <?php submit_button(__('Export Current Settings', 'cookiekit'), 'primary', 'cookiekit_export_settings', false, array(
+                            'title' => __('Keyboard shortcut: Alt+E', 'cookiekit'),
                             'accesskey' => 'e',
                             'style' => 'position: relative;'
                         )); ?>
-                        <p class="description"><?php _e('Tip: Use Alt+E (Windows) or Option+E (Mac) to quickly export settings.', 'cookiekit-gdpr-cookie-consent'); ?></p>
+                        <p class="description"><?php esc_html_e('Tip: Use Alt+E (Windows) or Option+E (Mac) to quickly export settings.', 'cookiekit'); ?></p>
                     </form>
                     
-                    <h4><?php _e('Need a template?', 'cookiekit-gdpr-cookie-consent'); ?></h4>
-                    <p><?php _e('Download a sample settings file to use as a template for creating your own settings file.', 'cookiekit-gdpr-cookie-consent'); ?></p>
+                    <h4><?php esc_html_e('Need a template?', 'cookiekit'); ?></h4>
+                    <p><?php esc_html_e('Download a sample settings file to use as a template for creating your own settings file.', 'cookiekit'); ?></p>
                     <form method="post">
-                        <?php submit_button(__('Download Sample Template', 'cookiekit-gdpr-cookie-consent'), 'secondary', 'cookiekit_download_sample', false); ?>
+                        <?php submit_button(__('Download Sample Template', 'cookiekit'), 'secondary', 'cookiekit_download_sample', false); ?>
                     </form>
                 </div>
             </div>
@@ -615,7 +699,7 @@ function cookiekit_settings_page() {
             url: ajaxurl,
             data: {
                 action: 'cookiekit_download_settings',
-                _wpnonce: '<?php echo wp_create_nonce('cookiekit_download_settings'); ?>'
+                _wpnonce: '<?php echo esc_attr(wp_create_nonce('cookiekit_download_settings')); ?>'
             },
             success: function(response) {
                 if (response.success) {
@@ -630,11 +714,11 @@ function cookiekit_settings_page() {
                     window.URL.revokeObjectURL(url);
                     a.remove();
                 } else {
-                    alert('<?php _e('Error downloading settings file.', 'cookiekit-gdpr-cookie-consent'); ?>');
+                    alert('<?php esc_html_e('Error downloading settings file.', 'cookiekit'); ?>');
                 }
             },
             error: function() {
-                alert('<?php _e('Error downloading settings file.', 'cookiekit-gdpr-cookie-consent'); ?>');
+                alert('<?php esc_html_e('Error downloading settings file.', 'cookiekit'); ?>');
             }
         });
         <?php endif; ?>
@@ -652,7 +736,7 @@ function cookiekit_download_settings_ajax() {
     
     // Check if user has permission
     if (!current_user_can('manage_options')) {
-        wp_send_json_error(array('message' => __('You do not have permission to download settings.', 'cookiekit-gdpr-cookie-consent')));
+        wp_send_json_error(array('message' => __('You do not have permission to download settings.', 'cookiekit')));
         return;
     }
     
@@ -675,7 +759,7 @@ function cookiekit_download_settings_ajax() {
             'filename' => $filename
         ));
     } else {
-        wp_send_json_error(array('message' => __('Export data not found or expired.', 'cookiekit-gdpr-cookie-consent')));
+        wp_send_json_error(array('message' => __('Export data not found or expired.', 'cookiekit')));
     }
 }
 add_action('wp_ajax_cookiekit_download_settings', 'cookiekit_download_settings_ajax');
@@ -769,7 +853,6 @@ function cookiekit_activate() {
             'style' => 'banner',
             'theme' => 'light',
             'cookiekit_id' => '',
-            'version_hash' => 'v1_' . substr(md5(COOKIEKIT_VERSION . time()), 0, 8),
             'allowed_domains' => '',
             'text_settings' => array(
                 'title' => 'Would You Like A Cookie? 🍪',
@@ -794,4 +877,45 @@ register_activation_hook(__FILE__, 'cookiekit_activate');
 function cookiekit_deactivate() {
     // Cleanup if needed
 }
-register_deactivation_hook(__FILE__, 'cookiekit_deactivate'); 
+register_deactivation_hook(__FILE__, 'cookiekit_deactivate');
+
+/**
+ * Register plugin logo for the admin area
+ */
+function cookiekit_register_logo() {
+    // Add logo to media library if it doesn't exist
+    $logo_attachment_id = get_option('cookiekit_logo_id', 0);
+    $logo_path = COOKIEKIT_PLUGIN_DIR . 'assets/cookiekit-logo.png';
+    $logo_url = COOKIEKIT_PLUGIN_URL . 'assets/cookiekit-logo.png';
+    
+    // Only continue if the logo file exists and we don't already have an attachment ID
+    if (file_exists($logo_path) && empty($logo_attachment_id)) {
+        // Try to find the attachment by URL - more efficient than meta_query
+        $logo_attachment_id = attachment_url_to_postid($logo_url);
+        
+        // If not found, add the logo to the media library
+        if (empty($logo_attachment_id)) {
+            $filetype = wp_check_filetype(basename($logo_path), null);
+            $attachment = array(
+                'guid' => $logo_url,
+                'post_mime_type' => $filetype['type'],
+                'post_title' => 'CookieKit Logo',
+                'post_content' => '',
+                'post_status' => 'inherit'
+            );
+            
+            $logo_attachment_id = wp_insert_attachment($attachment, $logo_path);
+            
+            if (!is_wp_error($logo_attachment_id)) {
+                // Generate attachment metadata
+                require_once(ABSPATH . 'wp-admin/includes/image.php');
+                $attachment_data = wp_generate_attachment_metadata($logo_attachment_id, $logo_path);
+                wp_update_attachment_metadata($logo_attachment_id, $attachment_data);
+            }
+        }
+        
+        // Store the attachment ID
+        update_option('cookiekit_logo_id', $logo_attachment_id);
+    }
+}
+add_action('admin_init', 'cookiekit_register_logo'); 
