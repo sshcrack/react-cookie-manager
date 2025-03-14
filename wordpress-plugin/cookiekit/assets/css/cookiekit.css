@@ -1,0 +1,203 @@
+/**
+ * CookieKit Frontend CSS
+ */
+
+.cookiekit-container {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.cookiekit-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 15px 20px;
+  background: #fff;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 99999;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+
+.cookiekit-banner.dark {
+  background: #333;
+  color: #fff;
+}
+
+.cookiekit-popup {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  max-width: 380px;
+  padding: 15px 20px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  z-index: 99999;
+}
+
+.cookiekit-popup.dark {
+  background: #333;
+  color: #fff;
+}
+
+.cookiekit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 99999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cookiekit-modal {
+  background: #fff;
+  border-radius: 6px;
+  padding: 20px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.cookiekit-modal.dark {
+  background: #333;
+  color: #fff;
+}
+
+.cookiekit-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 10px 0;
+}
+
+.cookiekit-message {
+  margin: 0 0 15px 0;
+}
+
+.cookiekit-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cookiekit-button {
+  padding: 8px 15px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.cookiekit-accept {
+  background: #4caf50;
+  color: white;
+}
+
+.cookiekit-decline {
+  background: #f44336;
+  color: white;
+}
+
+.cookiekit-customize {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: inherit;
+}
+
+.cookiekit-preferences-modal {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.cookiekit-preferences-modal.dark {
+  background: #333;
+  color: #fff;
+}
+
+.cookiekit-category {
+  margin-bottom: 15px;
+}
+
+.cookiekit-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.cookiekit-category-title {
+  font-weight: 600;
+}
+
+.cookiekit-toggle {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+}
+
+.cookiekit-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.cookiekit-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 20px;
+  transition: 0.4s;
+}
+
+.cookiekit-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.4s;
+}
+
+.cookiekit-toggle input:checked + .cookiekit-toggle-slider {
+  background-color: #4caf50;
+}
+
+.cookiekit-toggle input:checked + .cookiekit-toggle-slider:before {
+  transform: translateX(18px);
+}
+
+.cookiekit-privacy-link {
+  margin-left: 10px;
+  font-size: 13px;
+  text-decoration: underline;
+  color: inherit;
+  opacity: 0.8;
+}

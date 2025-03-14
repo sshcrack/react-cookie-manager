@@ -82,7 +82,7 @@ Visit [cookiekit.io](https://cookiekit.io) to get started for free!
 
 ## 🎮 Try it out!
 
-### [🔗 Live Demo](https://react-cookie-manager.hypership.dev/)
+### [🔗 Live Demo](https://cookiekit.io/playground)
 
 See React Cookie Manager in action and explore all its features in our interactive demo.
 

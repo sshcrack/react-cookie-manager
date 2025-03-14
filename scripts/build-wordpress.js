@@ -4,8 +4,13 @@ import path from "path";
 import crypto from "crypto";
 
 const WORDPRESS_PLUGIN_DIR = "wordpress-plugin/cookiekit/assets";
+const PLUGIN_SLUG = "cookiekit-gdpr-cookie-consent";
 // Define logo files that should be preserved during build
-const PRESERVE_FILES = ["cookiekit-logo.svg", "gdpr-shield.svg"];
+const PRESERVE_FILES = [
+  "cookiekit-logo.svg",
+  "gdpr-shield.svg",
+  "cookiekit-logo.png",
+];
 
 async function buildWordPress() {
   try {
@@ -57,30 +62,50 @@ async function buildWordPress() {
       path.join(WORDPRESS_PLUGIN_DIR, cssFilename)
     );
 
-    // Update the PHP file with new filenames
-    const phpFile = "wordpress-plugin/cookiekit/cookiekit.php";
-    let phpContent = await fs.readFile(phpFile, "utf8");
+    // Update PHP files with new filenames
+    console.log("✏️ Updating PHP files with new asset paths...");
 
-    // Update asset paths in PHP file using more specific regex
-    phpContent = phpContent.replace(
-      /'assets\/cookie-manager(?:\.[a-f0-9]+)?\.js'/g,
-      `'assets/${jsFilename}'`
-    );
-    phpContent = phpContent.replace(
-      /'assets\/cookie-manager(?:\.[a-f0-9]+)?\.css'/g,
-      `'assets/${cssFilename}'`
-    );
+    // Define both old and new PHP filenames
+    const phpFiles = [
+      `wordpress-plugin/cookiekit/${PLUGIN_SLUG}.php`, // New filename
+      "wordpress-plugin/cookiekit/cookiekit.php", // Old filename (for backward compatibility)
+    ];
 
-    await fs.writeFile(phpFile, phpContent);
+    // Process each PHP file that exists
+    for (const phpFile of phpFiles) {
+      try {
+        const fileExists = await fileExistsAsync(phpFile);
+
+        if (fileExists) {
+          console.log(`Updating asset paths in ${phpFile}...`);
+          let phpContent = await fs.readFile(phpFile, "utf8");
+
+          // Update asset paths in PHP file using more specific regex
+          phpContent = phpContent.replace(
+            /'assets\/cookie-manager(?:\.[a-f0-9]+)?\.js'/g,
+            `'assets/${jsFilename}'`
+          );
+          phpContent = phpContent.replace(
+            /'assets\/cookie-manager(?:\.[a-f0-9]+)?\.css'/g,
+            `'assets/${cssFilename}'`
+          );
+
+          await fs.writeFile(phpFile, phpContent);
+          console.log(`✅ Updated ${phpFile}`);
+        }
+      } catch (err) {
+        console.log(`⚠️ Skipping ${phpFile}: ${err.message}`);
+      }
+    }
 
     // Create WordPress plugin zip
     console.log("🗜️  Creating WordPress plugin zip...");
     await execCommand(
-      "cd wordpress-plugin && rm -f cookiekit.zip && zip -r cookiekit.zip cookiekit/"
+      `cd wordpress-plugin && rm -f ${PLUGIN_SLUG}.zip && zip -r ${PLUGIN_SLUG}.zip cookiekit/`
     );
 
     console.log("✅ WordPress plugin built successfully!");
-    console.log("📁 Plugin zip location: wordpress-plugin/cookiekit.zip");
+    console.log(`📁 Plugin zip location: wordpress-plugin/${PLUGIN_SLUG}.zip`);
   } catch (error) {
     console.error("❌ Build failed:", error);
     process.exit(1);
@@ -101,6 +126,16 @@ function execCommand(command) {
       resolve(stdout);
     });
   });
+}
+
+// Helper function to check if a file exists
+async function fileExistsAsync(filePath) {
+  try {
+    await fs.access(filePath, fs.constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 buildWordPress();
