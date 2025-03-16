@@ -469,6 +469,49 @@ const restoreOriginalRequests = () => {
         ...configWithoutTranslations,
       };
 
+      // Add compatibility for alternative translation keys
+      if (
+        this.config.translations.modalTitle &&
+        !this.config.translations.manageTitle
+      ) {
+        this.config.translations.manageTitle =
+          this.config.translations.modalTitle;
+      }
+      if (
+        this.config.translations.modalMessage &&
+        !this.config.translations.manageMessage
+      ) {
+        this.config.translations.manageMessage =
+          this.config.translations.modalMessage;
+      }
+      if (
+        this.config.translations.savePreferencesText &&
+        !this.config.translations.savePreferences
+      ) {
+        this.config.translations.savePreferences =
+          this.config.translations.savePreferencesText;
+      }
+      if (
+        this.config.translations.cancelText &&
+        !this.config.translations.cancel
+      ) {
+        this.config.translations.cancel = this.config.translations.cancelText;
+      }
+      if (
+        this.config.translations.manageSaveButtonText &&
+        !this.config.translations.savePreferences
+      ) {
+        this.config.translations.savePreferences =
+          this.config.translations.manageSaveButtonText;
+      }
+      if (
+        this.config.translations.manageCancelButtonText &&
+        !this.config.translations.cancel
+      ) {
+        this.config.translations.cancel =
+          this.config.translations.manageCancelButtonText;
+      }
+
       this.state = this.loadConsent();
 
       // Store original functions if not already stored
@@ -851,6 +894,19 @@ const restoreOriginalRequests = () => {
 
       const isLight = this.config.theme === "light";
 
+      // Define button labels with fallbacks
+      const saveButtonText =
+        this.config.translations.savePreferences ||
+        this.config.translations.savePreferencesText ||
+        this.config.translations.manageSaveButtonText ||
+        "Save Preferences";
+
+      const cancelButtonText =
+        this.config.translations.cancel ||
+        this.config.translations.cancelText ||
+        this.config.translations.manageCancelButtonText ||
+        "Cancel";
+
       const modal = document.createElement("div");
       modal.className =
         "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-lg z-[10000] hidden";
@@ -864,10 +920,18 @@ const restoreOriginalRequests = () => {
             <div>
               <h3 class="text-sm font-semibold mb-2 ${
                 isLight ? "text-gray-900" : "text-white"
-              }">${this.config.translations.manageTitle}</h3>
+              }">${
+        this.config.translations.manageTitle ||
+        this.config.translations.modalTitle ||
+        "Cookie Preferences"
+      }</h3>
               <p class="text-xs ${
                 isLight ? "text-gray-700" : "text-gray-200"
-              }">${this.config.translations.manageMessage}</p>
+              }">${
+        this.config.translations.manageMessage ||
+        this.config.translations.modalMessage ||
+        "Choose which cookies you want to accept."
+      }</p>
             </div>
 
             <div class="flex flex-col gap-4">
@@ -969,10 +1033,10 @@ const restoreOriginalRequests = () => {
 
             <div class="flex justify-end gap-3">
               <button class="cancel px-3 py-1.5 text-xs font-medium rounded-md border border-gray-500 text-gray-500 bg-transparent hover:text-gray-600 hover:border-gray-600 transition-all duration-200 hover:scale-105">
-                ${this.config.translations.cancel}
+                ${cancelButtonText}
               </button>
               <button class="save-preferences px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 hover:bg-blue-600 text-white transition-all duration-200 hover:scale-105">
-                ${this.config.translations.savePreferences}
+                ${saveButtonText}
               </button>
             </div>
           </div>

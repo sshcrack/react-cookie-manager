@@ -18,7 +18,7 @@ CookieKit is a professional-grade cookie consent solution that helps you comply 
 
 * Beautiful, responsive cookie consent banner
 * Automatic script blocking for non-consented categories
-* GDPR & CCPA compliant
+* GDPR compliant
 * Multiple design options (banner, popup, modal)
 * Light and dark themes
 * Customizable text and translations
@@ -30,7 +30,6 @@ CookieKit is a professional-grade cookie consent solution that helps you comply 
 * Advanced consent logging and analytics
 * Geographic targeting
 * Custom branding
-* Advanced script blocking
 * Priority support
 
 == Installation ==
@@ -40,6 +39,9 @@ CookieKit is a professional-grade cookie consent solution that helps you comply 
 3. Go to Settings > CookieKit to configure the plugin
 4. Sign up at CookieKit.io for a free account to enable consent logging
 5. Copy your CookieKit ID from CookieKit.io and paste it in the plugin settings
+
+== Screenshots ==
+1. Cookie consent banner
 
 == Frequently Asked Questions ==
 

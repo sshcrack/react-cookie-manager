@@ -26,6 +26,8 @@ async function buildWordPress() {
 
     // Ensure WordPress plugin assets directory exists
     await fs.mkdir(WORDPRESS_PLUGIN_DIR, { recursive: true });
+    await fs.mkdir(path.join(WORDPRESS_PLUGIN_DIR, "js"), { recursive: true });
+    await fs.mkdir(path.join(WORDPRESS_PLUGIN_DIR, "css"), { recursive: true });
 
     // Clean up old files but preserve logo files
     console.log("🧹 Cleaning up old files (preserving logo files)...");
@@ -40,6 +42,36 @@ async function buildWordPress() {
         .map((file) => fs.unlink(path.join(WORDPRESS_PLUGIN_DIR, file)))
     );
 
+    // Clean up old JS files
+    try {
+      const oldJsFiles = await fs.readdir(
+        path.join(WORDPRESS_PLUGIN_DIR, "js")
+      );
+      await Promise.all(
+        oldJsFiles
+          .filter((file) => file.match(/cookie-manager\.[a-f0-9]+\.js/))
+          .map((file) => fs.unlink(path.join(WORDPRESS_PLUGIN_DIR, "js", file)))
+      );
+    } catch (err) {
+      console.log("No old JS files to clean up");
+    }
+
+    // Clean up old CSS files
+    try {
+      const oldCssFiles = await fs.readdir(
+        path.join(WORDPRESS_PLUGIN_DIR, "css")
+      );
+      await Promise.all(
+        oldCssFiles
+          .filter((file) => file.match(/cookie-manager\.[a-f0-9]+\.css/))
+          .map((file) =>
+            fs.unlink(path.join(WORDPRESS_PLUGIN_DIR, "css", file))
+          )
+      );
+    } catch (err) {
+      console.log("No old CSS files to clean up");
+    }
+
     // Run WordPress build
     console.log("🏗️  Building WordPress bundle...");
     await execCommand("npm run build:wordpress");
@@ -52,14 +84,14 @@ async function buildWordPress() {
     const files = await fs.readdir("dist/wordpress");
     console.log("Built files:", files);
 
-    // Copy the files with versioned names
+    // Copy the files with versioned names to proper directories
     await fs.copyFile(
       "dist/wordpress/cookie-manager.js",
-      path.join(WORDPRESS_PLUGIN_DIR, jsFilename)
+      path.join(WORDPRESS_PLUGIN_DIR, "js", jsFilename)
     );
     await fs.copyFile(
       "dist/wordpress/cookie-manager.css",
-      path.join(WORDPRESS_PLUGIN_DIR, cssFilename)
+      path.join(WORDPRESS_PLUGIN_DIR, "css", cssFilename)
     );
 
     // Update PHP files with new filenames
@@ -80,14 +112,14 @@ async function buildWordPress() {
           console.log(`Updating asset paths in ${phpFile}...`);
           let phpContent = await fs.readFile(phpFile, "utf8");
 
-          // Update asset paths in PHP file using more specific regex
+          // Update asset paths in PHP file using more specific regex for js and css directories
           phpContent = phpContent.replace(
-            /'assets\/cookie-manager(?:\.[a-f0-9]+)?\.js'/g,
-            `'assets/${jsFilename}'`
+            /'assets\/(?:js\/)?cookie-manager(?:\.[a-f0-9]+)?\.js'/g,
+            `'assets/js/${jsFilename}'`
           );
           phpContent = phpContent.replace(
-            /'assets\/cookie-manager(?:\.[a-f0-9]+)?\.css'/g,
-            `'assets/${cssFilename}'`
+            /'assets\/(?:css\/)?cookie-manager(?:\.[a-f0-9]+)?\.css'/g,
+            `'assets/css/${cssFilename}'`
           );
 
           await fs.writeFile(phpFile, phpContent);
