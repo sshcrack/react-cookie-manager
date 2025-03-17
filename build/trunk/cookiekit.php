@@ -103,6 +103,7 @@ function cookiekit_enqueue_scripts() {
         'privacyPolicy' => get_privacy_policy_url(),
         'style' => isset($settings['style']) ? $settings['style'] : 'banner',
         'theme' => isset($settings['theme']) ? $settings['theme'] : 'light',
+        'main_color' => isset($settings['main_color']) ? $settings['main_color'] : '#3b82f6',
         'cookieKitId' => isset($settings['cookiekit_id']) ? $settings['cookiekit_id'] : '',
         'allowedDomains' => isset($settings['allowed_domains']) && !empty($settings['allowed_domains']) 
             ? array_filter(array_map('trim', explode("\n", $settings['allowed_domains'])))
@@ -148,11 +149,15 @@ function cookiekit_admin_enqueue_scripts($hook) {
         return;
     }
     
+    // Enqueue WordPress color picker
+    wp_enqueue_style('wp-color-picker');
+    wp_enqueue_script('wp-color-picker');
+    
     // Register and enqueue admin styles
     wp_register_style(
         'cookiekit-admin-css',
         COOKIEKIT_PLUGIN_URL . 'assets/css/cookiekit-admin.css',
-        array(),
+        array('wp-color-picker'),
         COOKIEKIT_VERSION
     );
     wp_enqueue_style('cookiekit-admin-css');
@@ -161,7 +166,7 @@ function cookiekit_admin_enqueue_scripts($hook) {
     wp_register_script(
         'cookiekit-admin-js',
         COOKIEKIT_PLUGIN_URL . 'assets/js/cookiekit-admin.js',
-        array('jquery'),
+        array('jquery', 'wp-color-picker'),
         COOKIEKIT_VERSION,
         true
     );
@@ -284,6 +289,7 @@ function cookiekit_register_settings() {
             'cookie_name' => 'cookiekit_consent',
             'style' => 'banner',
             'theme' => 'light',
+            'main_color' => '#3b82f6', // Default blue color
             'cookiekit_id' => '',
             'allowed_domains' => '',
             'text_settings' => array(
@@ -319,6 +325,7 @@ function cookiekit_sanitize_settings($input) {
     $sanitized['cookie_name'] = isset($input['cookie_name']) ? sanitize_text_field($input['cookie_name']) : 'cookiekit_consent';
     $sanitized['style'] = isset($input['style']) && in_array($input['style'], array('banner', 'popup', 'modal')) ? $input['style'] : 'banner';
     $sanitized['theme'] = isset($input['theme']) && in_array($input['theme'], array('light', 'dark')) ? $input['theme'] : 'light';
+    $sanitized['main_color'] = isset($input['main_color']) ? sanitize_hex_color($input['main_color']) : '#3b82f6';
     $sanitized['cookiekit_id'] = isset($input['cookiekit_id']) ? sanitize_text_field($input['cookiekit_id']) : '';
     $sanitized['allowed_domains'] = isset($input['allowed_domains']) ? sanitize_textarea_field($input['allowed_domains']) : '';
     
@@ -583,6 +590,15 @@ function cookiekit_settings_page() {
                     </td>
                 </tr>
                 <tr>
+                    <th scope="row">Main Color</th>
+                    <td>
+                        <input type="text" name="cookiekit_settings[main_color]" 
+                               value="<?php echo esc_attr(isset($settings['main_color']) ? $settings['main_color'] : '#3b82f6'); ?>" 
+                               class="cookiekit-color-picker" data-default-color="#3b82f6">
+                        <p class="description">Choose the main color for buttons and accents in the cookie consent UI</p>
+                    </td>
+                </tr>
+                <tr>
                     <th scope="row">Cookie Name</th>
                     <td>
                         <input type="text" name="cookiekit_settings[cookie_name]" 
@@ -810,6 +826,7 @@ function cookiekit_activate() {
             'cookie_name' => 'cookiekit_consent',
             'style' => 'banner',
             'theme' => 'light',
+            'main_color' => '#3b82f6', // Default blue color
             'cookiekit_id' => '',
             'allowed_domains' => '',
             'text_settings' => array(

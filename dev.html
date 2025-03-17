@@ -35,9 +35,6 @@
           ga("set", "transport", "beacon"); // Use navigator.sendBeacon
           ga("send", "pageview");
           ga.loaded = true; // Mark as initialized
-          console.log("✅ Analytics initialized with test configuration");
-        } else {
-          console.error("❌ GA not available for initialization");
         }
       }
     </script>
@@ -177,6 +174,15 @@
             <option value="dark">Dark</option>
           </select>
         </div>
+        <div class="config-group">
+          <label for="mainColor">Main Color:</label>
+          <input
+            type="color"
+            id="mainColor"
+            value="#FF5733"
+            onchange="updateConfig()"
+          />
+        </div>
       </div>
 
       <!-- YouTube Embed Test Section -->
@@ -226,9 +232,6 @@
       <div class="debug-panel">
         <h2>Debug Panel</h2>
         <button onclick="window.CookieKit.showBanner()">Show Banner</button>
-        <button onclick="window.CookieKit.showCustomizeModal()">
-          Show Customize Modal
-        </button>
         <button onclick="window.CookieKit.resetConsent()">Reset Consent</button>
         <button
           onclick="reloadYouTubeEmbed()"
@@ -293,7 +296,6 @@
                 analyticsScript.type = "text/javascript";
                 // Wait for script to load then initialize
                 analyticsScript.onload = function () {
-                  console.log("Analytics script loaded, initializing...");
                   initializeAnalytics();
                 };
                 // Trigger script load by re-adding it to the document
@@ -331,6 +333,7 @@
       async function updateConfig() {
         const displayType = document.getElementById("displayType").value;
         const theme = document.getElementById("theme").value;
+        const mainColor = document.getElementById("mainColor").value;
 
         // Instead of resetting consent and reloading, update the configuration directly
         try {
@@ -355,14 +358,13 @@
           // Update the configuration
           window.CookieKit.manager.config.style = displayType;
           window.CookieKit.manager.config.theme = theme;
+          window.CookieKit.manager.config.main_color = mainColor;
 
           // Show the banner with the new configuration
           window.CookieKit.showBanner();
 
           // Update the cookie state display
           updateCookieState();
-
-          console.log("✅ CookieKit display updated successfully");
         } catch (error) {
           console.error("❌ Failed to update CookieKit display:", error);
         }
@@ -374,17 +376,17 @@
           // Get the initial display type and theme from the select elements
           const displayType = document.getElementById("displayType").value;
           const theme = document.getElementById("theme").value;
+          const mainColor = document.getElementById("mainColor").value;
 
           await window.CookieKit.init({
             style: displayType,
             theme: theme,
             cookieKitId: "james",
+            mainColor: mainColor,
           });
-          console.log("✅ CookieKit initialized successfully");
 
           // Set up cookie state update listener
           document.addEventListener("cookiekit:consent-updated", () => {
-            console.log("🔄 Consent updated, refreshing state");
             updateCookieState();
           });
 
@@ -400,11 +402,9 @@
         const youtubeIframe = document.querySelector(".video-container iframe");
         if (youtubeIframe) {
           const currentSrc = youtubeIframe.src;
-          console.log("🔄 Reloading YouTube embed:", currentSrc);
           youtubeIframe.src = "about:blank";
           setTimeout(() => {
             youtubeIframe.src = currentSrc;
-            console.log("✅ YouTube embed reloaded");
           }, 100);
         } else {
           console.error("❌ YouTube iframe not found");

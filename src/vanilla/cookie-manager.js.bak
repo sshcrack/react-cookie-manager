@@ -625,30 +625,7 @@ const restoreOriginalRequests = () => {
 
     loadConsent() {
       const consent = this.getCookie(this.config.cookieName);
-      if (!consent) return null;
-
-      try {
-        const parsedConsent = JSON.parse(consent);
-
-        // Check if we have the new format with capitalized keys and nested objects
-        if (
-          parsedConsent.Analytics &&
-          typeof parsedConsent.Analytics === "object"
-        ) {
-          // Convert from the new format to the internal format
-          return {
-            analytics: parsedConsent.Analytics.consented === true,
-            marketing: parsedConsent.Social.consented === true,
-            preferences: parsedConsent.Advertising.consented === true,
-          };
-        }
-
-        // If it's already in the old format, return as is
-        return parsedConsent;
-      } catch (e) {
-        console.error("Error parsing consent cookie:", e);
-        return null;
-      }
+      return consent ? JSON.parse(consent) : null;
     }
 
     setCookie(name, value, days) {
@@ -672,6 +649,8 @@ const restoreOriginalRequests = () => {
 
     saveConsent(categories) {
       // Debug log to help diagnose issues
+      console.log(`Saving consent for style: ${this.config.style}`, categories);
+
       // Animate out and then hide
       if (this.wrapper) {
         // For popup style, we need to handle it differently
@@ -699,28 +678,10 @@ const restoreOriginalRequests = () => {
         }, 300); // Increased timeout to ensure animation completes
       }
 
-      // Create the new format with timestamps
-      const timestamp = new Date().toISOString();
-      const formattedCategories = {
-        Analytics: {
-          consented: categories.analytics === true,
-          timestamp: timestamp,
-        },
-        Social: {
-          consented: categories.marketing === true,
-          timestamp: timestamp,
-        },
-        Advertising: {
-          consented: categories.preferences === true,
-          timestamp: timestamp,
-        },
-      };
-
-      // Store both formats - the detailed one for the cookie and the simple one for internal state
       this.state = categories;
       this.setCookie(
         this.config.cookieName,
-        JSON.stringify(formattedCategories),
+        JSON.stringify(categories),
         this.config.cookieExpiration
       );
 
@@ -1153,18 +1114,24 @@ const restoreOriginalRequests = () => {
         // Find the label that contains this toggle
         const label = toggle.closest("label");
         if (!label) {
+          console.log("Toggle label not found for:", toggle.name);
           return;
         }
 
         // Find the toggle wrapper (the div with the background)
         const wrapper = label.querySelector("div[data-bg-checked]");
         if (!wrapper) {
+          console.log(
+            "Toggle wrapper not found inside label for:",
+            toggle.name
+          );
           return;
         }
 
         // Find the knob (the div that slides)
         const knob = wrapper.querySelector("div[data-translate-x]");
         if (!knob) {
+          console.log("Toggle knob not found for:", toggle.name);
           return;
         }
 
@@ -1177,6 +1144,8 @@ const restoreOriginalRequests = () => {
         toggle.addEventListener(
           "change",
           function () {
+            console.log(`Toggle ${toggle.name} changed to: ${toggle.checked}`);
+
             if (toggle.checked) {
               // Set background color based on the main color
               const bgColor =
@@ -1206,40 +1175,48 @@ const restoreOriginalRequests = () => {
 
       // Load previous state if exists
       const state = this.loadConsent();
-
+      
       // Set default positions for all toggle switches (OFF)
       const toggles = {
         analytics: modal.querySelector('input[name="analytics"]'),
         marketing: modal.querySelector('input[name="marketing"]'),
-        preferences: modal.querySelector('input[name="preferences"]'),
+        preferences: modal.querySelector('input[name="preferences"]')
       };
-
+      
       // Make sure all toggles start in OFF position
       Object.entries(toggles).forEach(([key, toggle]) => {
         if (toggle) {
           toggle.checked = false;
           toggle.dispatchEvent(new Event("change"));
+          console.log(`Set ${key} toggle default to OFF`);
+        } else {
+          console.log(`${key} toggle not found`);
         }
       });
-
+      
       // Override with saved preferences if they exist
       if (state) {
+        console.log("Loading previous consent state:", state);
+
         // Analytics toggle
         if (toggles.analytics) {
           toggles.analytics.checked = state.analytics === true;
           toggles.analytics.dispatchEvent(new Event("change"));
+          console.log("Set analytics toggle to:", toggles.analytics.checked);
         }
 
         // Marketing toggle
         if (toggles.marketing) {
           toggles.marketing.checked = state.marketing === true;
           toggles.marketing.dispatchEvent(new Event("change"));
+          console.log("Set marketing toggle to:", toggles.marketing.checked);
         }
 
         // Preferences toggle
         if (toggles.preferences) {
           toggles.preferences.checked = state.preferences === true;
           toggles.preferences.dispatchEvent(new Event("change"));
+          console.log("Set preferences toggle to:", toggles.preferences.checked);
         }
       }
 
@@ -1307,8 +1284,7 @@ const restoreOriginalRequests = () => {
         if (
           this.config.allowedDomains.some((domain) =>
             urlString.includes(domain)
-          )
-        ) {
+          ) {
           return false;
         }
       }

@@ -5,6 +5,14 @@
   "use strict";
 
   $(document).ready(function () {
+    // Initialize the color picker
+    $(".cookiekit-color-picker").wpColorPicker({
+      change: function (event, ui) {
+        // Update the preview elements with the selected color
+        $(".color-preview").css("background-color", ui.color.toString());
+      },
+    });
+
     // Add visual indicator for export button
     $('input[name="cookiekit_export_settings"]').addClass("pulse-animation");
 
