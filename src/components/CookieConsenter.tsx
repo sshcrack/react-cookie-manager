@@ -69,8 +69,8 @@ const MobileModal: React.FC<
           isExiting
             ? "translate-y-full"
             : isEntering
-              ? "translate-y-full"
-              : "translate-y-0"
+            ? "translate-y-full"
+            : "translate-y-0"
         }
       `}
       >
@@ -98,13 +98,17 @@ const MobileModal: React.FC<
             <div className="flex flex-col gap-3">
               {title && (
                 <h3
-                  className={`font-semibold my-0 ${theme === "light" ? "text-gray-900" : "text-white"}`}
+                  className={`font-semibold my-0 ${
+                    theme === "light" ? "text-gray-900" : "text-white"
+                  }`}
                 >
                   {title}
                 </h3>
               )}
               <p
-                className={`text-sm ${theme === "light" ? "text-gray-700" : "text-gray-200"}`}
+                className={`text-sm ${
+                  theme === "light" ? "text-gray-700" : "text-gray-200"
+                }`}
               >
                 {tFunction("message")}
               </p>
@@ -140,7 +144,11 @@ const MobileModal: React.FC<
                   href={privacyPolicyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-xs ${theme === "light" ? "text-gray-500 hover:text-gray-700" : "text-gray-400 hover:text-gray-200"}`}
+                  className={`text-xs ${
+                    theme === "light"
+                      ? "text-gray-500 hover:text-gray-700"
+                      : "text-gray-400 hover:text-gray-200"
+                  }`}
                 >
                   {tFunction("privacyPolicyText")}
                 </a>
@@ -309,8 +317,8 @@ const CookieConsenter: React.FC<
       isExiting
         ? "opacity-0 scale-95"
         : isEntering
-          ? "opacity-0 scale-95"
-          : "opacity-100 scale-100"
+        ? "opacity-0 scale-95"
+        : "opacity-100 scale-100"
     }
   `;
 
@@ -328,8 +336,8 @@ const CookieConsenter: React.FC<
       isExiting
         ? "opacity-0 transform translate-y-full"
         : isEntering
-          ? "opacity-0 transform translate-y-full"
-          : "opacity-100 transform translate-y-0"
+        ? "opacity-0 transform translate-y-full"
+        : "opacity-100 transform translate-y-0"
     }
   `;
 

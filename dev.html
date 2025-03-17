@@ -72,6 +72,7 @@
         margin: 0;
         padding: 20px;
         line-height: 1.6;
+        transition: background-color 0.3s ease, color 0.3s ease;
       }
       .container {
         max-width: 800px;
@@ -151,11 +152,55 @@
         border-radius: 4px;
         margin-top: 8px;
       }
+
+      /* New styles for theme controls */
+      .theme-indicator {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 9999;
+      }
+
+      /* Dark theme overrides when using the page theme */
+      html.dark .config-panel,
+      html[data-theme="dark"] .config-panel {
+        background: #2d3748;
+        color: #f7fafc;
+      }
+
+      html.dark .debug-panel,
+      html[data-theme="dark"] .debug-panel {
+        background: #1a202c;
+        color: #e2e8f0;
+      }
+
+      html.dark .state-panel,
+      html[data-theme="dark"] .state-panel {
+        background: #2d3748;
+        color: #e2e8f0;
+      }
+
+      html.dark pre,
+      html[data-theme="dark"] pre {
+        background: #1a202c;
+        color: #e2e8f0;
+        border: 1px solid #4a5568;
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>Cookie Manager Development</h1>
+
+      <!-- Theme indicator -->
+      <div id="themeIndicator" class="theme-indicator">
+        Current Theme: <span id="currentThemeValue">loading...</span>
+      </div>
 
       <div class="config-panel">
         <h2>Configuration</h2>
@@ -168,10 +213,19 @@
           </select>
         </div>
         <div class="config-group">
-          <label for="theme">Theme:</label>
+          <label for="theme">Cookie Manager Theme:</label>
           <select id="theme" onchange="updateConfig()">
             <option value="light">Light</option>
             <option value="dark">Dark</option>
+            <option value="auto">Auto-detect</option>
+          </select>
+        </div>
+        <div class="config-group">
+          <label for="pageTheme">Page Theme (sets data-theme):</label>
+          <select id="pageTheme" onchange="updatePageTheme()">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="none">No Theme (Remove data-theme)</option>
           </select>
         </div>
         <div class="config-group">
@@ -329,6 +383,81 @@
         }
       }
 
+      // Function to update the page's data-theme attribute
+      function updatePageTheme() {
+        const pageTheme = document.getElementById("pageTheme").value;
+        const htmlElement = document.documentElement;
+
+        // Remove existing data-theme attribute
+        htmlElement.removeAttribute("data-theme");
+
+        // If a theme is selected, set the attribute
+        if (pageTheme !== "none") {
+          htmlElement.setAttribute("data-theme", pageTheme);
+        }
+
+        // Optionally also add a class for broader CSS support
+        htmlElement.classList.remove("light", "dark");
+        if (pageTheme !== "none") {
+          htmlElement.classList.add(pageTheme);
+        }
+
+        // If auto theme is enabled, update CookieKit theme
+        if (
+          document.getElementById("theme").value === "auto" &&
+          window.CookieKit.manager
+        ) {
+          window.CookieKit.updateTheme();
+        }
+
+        // For demo purposes, add a visual indicator
+        document.body.style.transition = "background-color 0.3s ease";
+        if (pageTheme === "dark") {
+          document.body.style.backgroundColor = "#1a1a1a";
+          document.body.style.color = "#f5f5f5";
+        } else {
+          document.body.style.backgroundColor = "#ffffff";
+          document.body.style.color = "#333333";
+        }
+
+        // Update the theme indicator
+        updateThemeIndicator();
+      }
+
+      // Function to update the theme indicator
+      function updateThemeIndicator() {
+        const indicator = document.getElementById("currentThemeValue");
+        if (!indicator) return;
+
+        // Check what the current detected theme would be
+        const detectedTheme =
+          window.CookieKit &&
+          typeof window.CookieKit.manager?.config?.theme === "string"
+            ? window.CookieKit.manager.config.theme
+            : window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+
+        // Check if auto-detection is enabled
+        const isAuto =
+          window.CookieKit &&
+          window.CookieKit.manager?.config?.autoDetectTheme === true;
+
+        indicator.textContent = isAuto
+          ? `${detectedTheme} (auto-detected)`
+          : `${detectedTheme} (manually set)`;
+
+        // Update indicator style
+        const indicatorElement = document.getElementById("themeIndicator");
+        if (indicatorElement) {
+          indicatorElement.style.backgroundColor =
+            detectedTheme === "dark"
+              ? "rgba(0, 0, 0, 0.8)"
+              : "rgba(59, 130, 246, 0.9)";
+        }
+      }
+
       // Function to update configuration
       async function updateConfig() {
         const displayType = document.getElementById("displayType").value;
@@ -357,7 +486,17 @@
 
           // Update the configuration
           window.CookieKit.manager.config.style = displayType;
-          window.CookieKit.manager.config.theme = theme;
+
+          // Handle auto theme setting
+          if (theme === "auto") {
+            window.CookieKit.manager.config.autoDetectTheme = true;
+            // Let the manager detect the theme
+            window.CookieKit.updateTheme();
+          } else {
+            window.CookieKit.manager.config.autoDetectTheme = false;
+            window.CookieKit.manager.config.theme = theme;
+          }
+
           window.CookieKit.manager.config.main_color = mainColor;
 
           // Show the banner with the new configuration
@@ -365,6 +504,9 @@
 
           // Update the cookie state display
           updateCookieState();
+
+          // Update the theme indicator
+          updateThemeIndicator();
         } catch (error) {
           console.error("❌ Failed to update CookieKit display:", error);
         }
@@ -380,7 +522,8 @@
 
           await window.CookieKit.init({
             style: displayType,
-            theme: theme,
+            theme: theme === "auto" ? undefined : theme, // Use undefined to trigger auto-detection
+            autoDetectTheme: theme === "auto",
             cookieKitId: "james",
             mainColor: mainColor,
           });
@@ -392,6 +535,9 @@
 
           // Initial cookie state update
           updateCookieState();
+
+          // Update theme indicator
+          updateThemeIndicator();
         } catch (error) {
           console.error("❌ Failed to initialize CookieKit:", error);
         }

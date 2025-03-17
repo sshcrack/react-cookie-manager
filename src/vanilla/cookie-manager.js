@@ -16,6 +16,66 @@ const resolveCountryFromTimezone = (timeZone) => {
   return entry?.c?.[0] ?? "Unknown";
 };
 
+// Detect system preferred color scheme
+const detectSystemColorScheme = () => {
+  return window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+};
+
+// Detect the page theme by checking common CSS classes and styles
+const detectPageTheme = () => {
+  // Check if any of these selectors exist, which often indicate a dark theme
+  const darkSelectors = [
+    "html.dark",
+    "body.dark",
+    'html[data-theme="dark"]',
+    'body[data-theme="dark"]',
+    '[data-bs-theme="dark"]',
+    '[data-mode="dark"]',
+  ];
+
+  for (const selector of darkSelectors) {
+    if (document.querySelector(selector)) {
+      return "dark";
+    }
+  }
+
+  // Check document/body background color
+  const bodyEl = document.body;
+  const htmlEl = document.documentElement;
+
+  const bodyBgColor = window.getComputedStyle(bodyEl).backgroundColor;
+  const htmlBgColor = window.getComputedStyle(htmlEl).backgroundColor;
+
+  // Simple color brightness check (approximation)
+  const isDarkColor = (color) => {
+    if (!color || color === "rgba(0, 0, 0, 0)" || color === "transparent") {
+      return false;
+    }
+
+    // Extract RGB values
+    const rgb = color.match(/\d+/g);
+    if (!rgb || rgb.length < 3) return false;
+
+    // Calculate brightness (simple formula)
+    const brightness =
+      (parseInt(rgb[0]) * 299 +
+        parseInt(rgb[1]) * 587 +
+        parseInt(rgb[2]) * 114) /
+      1000;
+    return brightness < 128; // Less than 128 is considered dark
+  };
+
+  if (isDarkColor(bodyBgColor) || isDarkColor(htmlBgColor)) {
+    return "dark";
+  }
+
+  // Default to system preference if no page indicators found
+  return detectSystemColorScheme();
+};
+
 const postConsentToAnalytics = async (
   kitId,
   sessionId,
@@ -438,10 +498,11 @@ const restoreOriginalRequests = () => {
       delete configWithoutTranslations.translations;
 
       this.config = {
-        cookieName: "cookie_consent",
+        cookieName: "cookie-consent",
         cookieExpiration: 365,
         style: "banner", // banner, modal, or popup
         theme: "light", // light or dark
+        autoDetectTheme: true, // Enable theme auto-detection by default
         main_color: "#3b82f6", // Primary color (blue default)
         cookieKitId: "", // unique identifier
         categories: {
@@ -472,6 +533,26 @@ const restoreOriginalRequests = () => {
       // Handle mainColor camelCase variant
       if (configWithoutTranslations.mainColor && !this.config.main_color) {
         this.config.main_color = configWithoutTranslations.mainColor;
+      }
+
+      // Auto-detect theme if enabled and no explicit theme is set
+      if (this.config.autoDetectTheme && config?.theme === undefined) {
+        this.config.theme = detectPageTheme();
+
+        // Watch for system color scheme changes
+        if (window.matchMedia) {
+          const colorSchemeQuery = window.matchMedia(
+            "(prefers-color-scheme: dark)"
+          );
+          if (colorSchemeQuery.addEventListener) {
+            colorSchemeQuery.addEventListener("change", (e) => {
+              if (this.config.autoDetectTheme) {
+                this.config.theme = detectPageTheme();
+                this.updateTheme();
+              }
+            });
+          }
+        }
       }
 
       // Add compatibility for alternative translation keys
@@ -1287,6 +1368,11 @@ const restoreOriginalRequests = () => {
         this.config.main_color = config.mainColor;
       }
 
+      // Auto-detect theme if enabled and no explicit theme is set in init config
+      if (this.config.autoDetectTheme && config.theme === undefined) {
+        this.config.theme = detectPageTheme();
+      }
+
       // Create UI elements if no consent exists
       const consent = this.loadConsent();
 
@@ -1390,6 +1476,31 @@ const restoreOriginalRequests = () => {
         iframe.style.display = "none";
       });
     }
+
+    // Update theme for existing UI elements
+    updateTheme() {
+      // Only attempt to update if banner or modal exists
+      if (this.wrapper || this.modalWrapper) {
+        // Remove existing UI elements
+        if (this.wrapper) {
+          document.body.removeChild(this.wrapper);
+          this.wrapper = null;
+          this.banner = null;
+        }
+
+        if (this.modalWrapper) {
+          document.body.removeChild(this.modalWrapper);
+          this.modalWrapper = null;
+          this.modal = null;
+          this.overlay = null;
+        }
+
+        // Recreate UI with new theme
+        if (!this.state) {
+          this.createBanner();
+        }
+      }
+    }
   }
 
   // Expose to global scope
@@ -1419,6 +1530,11 @@ const restoreOriginalRequests = () => {
         // Clear the state
         window.CookieKit.manager.state = null;
 
+        // Auto-detect theme again if enabled
+        if (window.CookieKit.manager.config.autoDetectTheme) {
+          window.CookieKit.manager.config.theme = detectPageTheme();
+        }
+
         // Remove existing banner and modal if they exist
         if (window.CookieKit.manager.wrapper) {
           document.body.removeChild(window.CookieKit.manager.wrapper);
@@ -1445,6 +1561,21 @@ const restoreOriginalRequests = () => {
             detail: null,
           })
         );
+      }
+    },
+    // Add method to manually update theme
+    updateTheme: (theme) => {
+      if (window.CookieKit.manager) {
+        if (theme) {
+          // If theme is provided, disable auto-detection
+          window.CookieKit.manager.config.autoDetectTheme = false;
+          window.CookieKit.manager.config.theme = theme;
+        } else {
+          // If no theme is provided, enable auto-detection and detect theme
+          window.CookieKit.manager.config.autoDetectTheme = true;
+          window.CookieKit.manager.config.theme = detectPageTheme();
+        }
+        window.CookieKit.manager.updateTheme();
       }
     },
   };
