@@ -1054,7 +1054,7 @@ const restoreOriginalRequests = () => {
                       isLight ? "#e5e7eb" : "#4b5563"
                     }; border: none; transition: all 0.3s ease-in-out;"
                     data-bg-checked="${this.config.main_color}">
-                    <div class="absolute top-0.5 left-[2px] bg-white rounded-full h-5 w-5 transition-all" style="transform: translateX(0);" data-translate-x="18px"></div>
+                    <div class="absolute top-0.5 left-[2px] bg-white rounded-full h-5 w-5 transition-all" style="transform: translateX(0);" data-translate-x="20px"></div>
                   </div>
                 </label>
               </div>
@@ -1076,7 +1076,7 @@ const restoreOriginalRequests = () => {
                       isLight ? "#e5e7eb" : "#4b5563"
                     }; border: none; transition: all 0.3s ease-in-out;"
                     data-bg-checked="${this.config.main_color}">
-                    <div class="absolute top-0.5 left-[2px] bg-white rounded-full h-5 w-5 transition-all" style="transform: translateX(0);" data-translate-x="18px"></div>
+                    <div class="absolute top-0.5 left-[2px] bg-white rounded-full h-5 w-5 transition-all" style="transform: translateX(0);" data-translate-x="20px"></div>
                   </div>
                 </label>
               </div>
@@ -1098,7 +1098,7 @@ const restoreOriginalRequests = () => {
                       isLight ? "#e5e7eb" : "#4b5563"
                     }; border: none; transition: all 0.3s ease-in-out;"
                     data-bg-checked="${this.config.main_color}">
-                    <div class="absolute top-0.5 left-[2px] bg-white rounded-full h-5 w-5 transition-all" style="transform: translateX(0);" data-translate-x="18px"></div>
+                    <div class="absolute top-0.5 left-[2px] bg-white rounded-full h-5 w-5 transition-all" style="transform: translateX(0);" data-translate-x="20px"></div>
                   </div>
                 </label>
               </div>
