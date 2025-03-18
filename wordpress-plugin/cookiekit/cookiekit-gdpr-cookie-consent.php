@@ -102,7 +102,8 @@ function cookiekit_enqueue_scripts() {
         'cookieExpiration' => isset($settings['cookie_expiration']) ? intval($settings['cookie_expiration']) : 365,
         'privacyPolicy' => get_privacy_policy_url(),
         'style' => isset($settings['style']) ? $settings['style'] : 'banner',
-        'theme' => isset($settings['theme']) ? $settings['theme'] : 'light',
+        'autoDetectTheme' => isset($settings['theme']) && $settings['theme'] === 'auto',
+        'theme' => isset($settings['theme']) && $settings['theme'] !== 'auto' ? $settings['theme'] : null,
         'main_color' => isset($settings['main_color']) ? $settings['main_color'] : '#3b82f6',
         'cookieKitId' => isset($settings['cookiekit_id']) ? $settings['cookiekit_id'] : '',
         'allowedDomains' => isset($settings['allowed_domains']) && !empty($settings['allowed_domains']) 
@@ -110,7 +111,7 @@ function cookiekit_enqueue_scripts() {
             : array(),
         'translations' => array(
             'title' => isset($text_settings['title']) ? $text_settings['title'] : 'Would You Like A Cookie? 🍪',
-            'message' => isset($text_settings['message']) ? $text_settings['message'] : 'We use cookies to enhance your browsing experience and analyze our traffic.',
+            'message' => isset($text_settings['message']) ? $text_settings['message'] : 'We use cookies to improve your browsing experience by remembering your preferences, optimising site performance, and providing personalised content.',
             'buttonText' => isset($text_settings['accept_button']) ? $text_settings['accept_button'] : 'Accept All',
             'declineButtonText' => isset($text_settings['decline_button']) ? $text_settings['decline_button'] : 'Decline All',
             'manageButtonText' => isset($text_settings['customize_button']) ? $text_settings['customize_button'] : 'Customize',
@@ -126,7 +127,7 @@ function cookiekit_enqueue_scripts() {
         ),
     );
 
-    // Instead of localizing the script, add an inline script to initialize it
+    // When theme is 'auto', we pass autoDetectTheme=true and theme=null to let the JavaScript detect system preference
     wp_add_inline_script('cookiekit-js', '
         window.addEventListener("load", function() {
             if (typeof window.CookieKit !== "undefined") {
@@ -288,7 +289,7 @@ function cookiekit_register_settings() {
             'cookie_expiration' => 365,
             'cookie_name' => 'cookiekit_consent',
             'style' => 'banner',
-            'theme' => 'light',
+            'theme' => 'light', // Options: 'light', 'dark', or 'auto' to detect system preference
             'main_color' => '#3b82f6', // Default blue color
             'cookiekit_id' => '',
             'allowed_domains' => '',
@@ -324,7 +325,7 @@ function cookiekit_sanitize_settings($input) {
     $sanitized['cookie_expiration'] = isset($input['cookie_expiration']) ? absint($input['cookie_expiration']) : 365;
     $sanitized['cookie_name'] = isset($input['cookie_name']) ? sanitize_text_field($input['cookie_name']) : 'cookiekit_consent';
     $sanitized['style'] = isset($input['style']) && in_array($input['style'], array('banner', 'popup', 'modal')) ? $input['style'] : 'banner';
-    $sanitized['theme'] = isset($input['theme']) && in_array($input['theme'], array('light', 'dark')) ? $input['theme'] : 'light';
+    $sanitized['theme'] = isset($input['theme']) && in_array($input['theme'], array('light', 'dark', 'auto')) ? $input['theme'] : 'light';
     $sanitized['main_color'] = isset($input['main_color']) ? sanitize_hex_color($input['main_color']) : '#3b82f6';
     $sanitized['cookiekit_id'] = isset($input['cookiekit_id']) ? sanitize_text_field($input['cookiekit_id']) : '';
     $sanitized['allowed_domains'] = isset($input['allowed_domains']) ? sanitize_textarea_field($input['allowed_domains']) : '';
@@ -463,7 +464,7 @@ function cookiekit_settings_page() {
                 'cookie_expiration' => 365,
                 'cookie_name' => 'cookiekit_consent',
                 'style' => 'banner',
-                'theme' => 'light',
+                'theme' => 'light', // Options: 'light', 'dark', or 'auto' to detect system preference
                 'cookiekit_id' => 'YOUR_COOKIEKIT_ID_HERE',
                 'allowed_domains' => "example.com\napi.example.com",
                 'text_settings' => array(
@@ -578,8 +579,20 @@ function cookiekit_settings_page() {
                                 <input type="radio" name="cookiekit_settings[theme]" value="dark" <?php checked($settings['theme'], 'dark'); ?> style="margin-top: 5px;">
                                 <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['theme'] === 'dark' ? 'bold' : 'normal'; ?>;">Dark</span>
                             </label>
+                            
+                            <label style="display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border: 2px solid <?php echo $settings['theme'] === 'auto' ? '#2271b1' : '#ddd'; ?>; border-radius: 6px; width: 120px; background: <?php echo $settings['theme'] === 'auto' ? '#f0f6ff' : '#fff'; ?>;">
+                                <div style="margin-bottom: 10px; width: 100px; height: 70px; background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;">
+                                    <div style="position: absolute; top: 0; left: 0; width: 50%; height: 100%; background: #ffffff;"></div>
+                                    <div style="position: absolute; top: 0; right: 0; width: 50%; height: 100%; background: #1e1e1e;"></div>
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(90deg, #ffffff 0%, #ffffff 50%, #1e1e1e 50%, #1e1e1e 100%); display: flex; justify-content: center; align-items: center; z-index: 1;">
+                                        <span style="font-size: 16px;">⚙️</span>
+                                    </div>
+                                </div>
+                                <input type="radio" name="cookiekit_settings[theme]" value="auto" <?php checked($settings['theme'], 'auto'); ?> style="margin-top: 5px;">
+                                <span style="font-size: 13px; margin-top: 5px; font-weight: <?php echo $settings['theme'] === 'auto' ? 'bold' : 'normal'; ?>;">Auto</span>
+                            </label>
                         </div>
-                        <p class="description">Choose between light and dark theme for the consent UI</p>
+                        <p class="description">Choose between light, dark, or auto-detect theme for the consent UI</p>
                     </td>
                 </tr>
                 <tr>
@@ -825,7 +838,7 @@ function cookiekit_activate() {
             'cookie_expiration' => 365,
             'cookie_name' => 'cookiekit_consent',
             'style' => 'banner',
-            'theme' => 'light',
+            'theme' => 'light', // Options: 'light', 'dark', or 'auto' to detect system preference
             'main_color' => '#3b82f6', // Default blue color
             'cookiekit_id' => '',
             'allowed_domains' => '',
