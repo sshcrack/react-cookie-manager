@@ -56,11 +56,6 @@
   },
   "scripts": {
     "build": "vite build",
-    "build:wordpress": "vite build --config vite.wordpress.config.ts",
-    "wordpress": "node scripts/build-wordpress.js",
-    "deploy:wordpress": "node scripts/deploy-wordpress.js",
-    "dev": "vite build --config vite.wordpress.config.ts --watch",
-    "dev:server": "node dev-server.js",
     "postinstall": "node scripts/postinstall.js",
     "publish-npm": "node scripts/publish.js"
   },
