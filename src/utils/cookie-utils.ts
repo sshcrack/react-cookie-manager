@@ -5,6 +5,7 @@
  * @param days Number of days until the cookie expires
  */
 export const setCookie = (name: string, value: string, days: number): void => {
+  if (typeof window === "undefined") return; // SSR-safe
   const date = new Date();
   date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
   document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/;SameSite=Lax`;
@@ -16,6 +17,7 @@ export const setCookie = (name: string, value: string, days: number): void => {
  * @returns The cookie value or null if not found
  */
 export const getCookie = (name: string): string | null => {
+  if (typeof window === "undefined") return null; // SSR-safe
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) {
@@ -29,6 +31,7 @@ export const getCookie = (name: string): string | null => {
  * @param name The name of the cookie to delete
  */
 export const deleteCookie = (name: string): void => {
+  if (typeof window === "undefined") return; // SSR-safe
   document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
 };
 
@@ -38,6 +41,7 @@ export const deleteCookie = (name: string): void => {
  * @returns True if the cookie exists, false otherwise
  */
 export const cookieExists = (name: string): boolean => {
+  if (typeof window === "undefined") return false; // SSR-safe
   return getCookie(name) !== null;
 };
 
@@ -46,6 +50,7 @@ export const cookieExists = (name: string): boolean => {
  * @returns An object with cookie names as keys and values as values
  */
 export const getAllCookies = (): Record<string, string> => {
+  if (typeof window === "undefined") return {}; // SSR-safe
   const cookies: Record<string, string> = {};
   document.cookie.split(";").forEach((cookie) => {
     const [name, value] = cookie.trim().split("=");
@@ -60,6 +65,7 @@ export const getAllCookies = (): Record<string, string> => {
  * Clears all cookies from the current domain
  */
 export const clearAllCookies = (): void => {
+  if (typeof window === "undefined") return; // SSR-safe
   const cookies = getAllCookies();
   Object.keys(cookies).forEach((name) => {
     deleteCookie(name);
