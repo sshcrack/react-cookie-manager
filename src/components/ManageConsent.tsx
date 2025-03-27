@@ -268,6 +268,21 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
           {tFunction("manageSaveButtonText")}
         </button>
       </div>
+
+      <div className="text-center mt-4">
+        <a
+          href="https://cookiekit.io"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`text-xs transition-opacity duration-200 ${
+            theme === "light"
+              ? "text-gray-500 hover:text-gray-700"
+              : "text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          Powered by CookieKit
+        </a>
+      </div>
     </div>
   );
 };
