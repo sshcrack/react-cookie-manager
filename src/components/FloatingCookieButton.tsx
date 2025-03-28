@@ -19,7 +19,7 @@ export const FloatingCookieButton: React.FC<FloatingCookieButtonProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={`
-        absolute bottom-6 left-6 z-[99999]
+        fixed bottom-6 left-6 z-[99999]
         w-12 h-12 rounded-full
         flex items-center justify-center
         transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
