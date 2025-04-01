@@ -7,6 +7,7 @@ import {
 } from "../types/types";
 import { TFunction } from "../utils/translations";
 import { ManageConsent } from "./ManageConsent";
+import { cn } from "../utils/cn";
 
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -37,6 +38,7 @@ const MobileModal: React.FC<
     handleCancelManage: () => void;
     initialPreferences?: CookieCategories;
     detailedConsent?: DetailedCookieConsent | null;
+    classNames?: CookieConsenterProps["classNames"];
   }
 > = ({
   showManageButton,
@@ -54,6 +56,7 @@ const MobileModal: React.FC<
   displayType = "banner",
   initialPreferences,
   detailedConsent,
+  classNames,
 }) => {
   const title = tFunction("title");
   return (
@@ -62,28 +65,24 @@ const MobileModal: React.FC<
         <div className="fixed inset-0 z-[99999] bg-black/40 backdrop-blur-sm" />
       )}
       <div
-        className={`
-        fixed inset-x-0 bottom-0 px-4 pb-4 pt-2 z-[99999]
-        transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-        ${
+        className={cn(
+          "fixed inset-x-0 bottom-0 px-4 pb-4 pt-2 z-[99999]",
+          "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
           isExiting
             ? "translate-y-full"
             : isEntering
             ? "translate-y-full"
             : "translate-y-0"
-        }
-      `}
+        )}
       >
         <div
-          className={`
-            p-4 mx-auto max-w-[calc(100vw-32px)]
-            ${
-              theme === "light"
-                ? "bg-white/95 ring-1 ring-black/10"
-                : "bg-black/95 ring-1 ring-white/10"
-            }
-            rounded-2xl backdrop-blur-sm backdrop-saturate-150
-          `}
+          className={cn(
+            "p-4 mx-auto max-w-[calc(100vw-32px)]",
+            theme === "light"
+              ? "bg-white/95 ring-1 ring-black/10"
+              : "bg-black/95 ring-1 ring-white/10",
+            "rounded-2xl backdrop-blur-sm backdrop-saturate-150"
+          )}
         >
           {isManaging ? (
             <ManageConsent
@@ -98,35 +97,47 @@ const MobileModal: React.FC<
             <div className="flex flex-col gap-3">
               {title && (
                 <h3
-                  className={`font-semibold my-0 ${
+                  className={cn(
+                    "font-semibold my-0",
                     theme === "light" ? "text-gray-900" : "text-white"
-                  }`}
+                  )}
                 >
                   {title}
                 </h3>
               )}
               <p
-                className={`text-sm ${
+                className={cn(
+                  "text-sm",
                   theme === "light" ? "text-gray-700" : "text-gray-200"
-                }`}
+                )}
               >
                 {tFunction("message")}
               </p>
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleAccept}
-                  className="w-full px-3 py-2.5 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus-visible:outline-none focus:outline-none focus-visible:outline-transparent focus:outline-transparent"
+                  className={
+                    classNames?.acceptButton
+                      ? cn(classNames.acceptButton)
+                      : cn(
+                          "w-full px-3 py-2.5 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus-visible:outline-none focus:outline-none focus-visible:outline-transparent focus:outline-transparent"
+                        )
+                  }
                 >
                   {tFunction("buttonText")}
                 </button>
                 <button
                   onClick={handleDecline}
-                  className={`w-full px-3 py-2.5 text-sm font-medium rounded-lg focus-visible:outline-none focus:outline-none focus-visible:outline-transparent focus:outline-transparent
-                    ${
-                      theme === "light"
-                        ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                        : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-                    }`}
+                  className={
+                    classNames?.declineButton
+                      ? cn(classNames.declineButton)
+                      : cn(
+                          "w-full px-3 py-2.5 text-sm font-medium rounded-lg focus-visible:outline-none focus:outline-none focus-visible:outline-transparent focus:outline-transparent",
+                          theme === "light"
+                            ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                            : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                        )
+                  }
                 >
                   {tFunction("declineButtonText")}
                 </button>
@@ -144,11 +155,12 @@ const MobileModal: React.FC<
                   href={privacyPolicyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-xs ${
+                  className={cn(
+                    "text-xs",
                     theme === "light"
                       ? "text-gray-500 hover:text-gray-700"
                       : "text-gray-400 hover:text-gray-200"
-                  }`}
+                  )}
                 >
                   {tFunction("privacyPolicyText")}
                 </a>
@@ -179,6 +191,7 @@ const CookieConsenter: React.FC<
   },
   detailedConsent,
   isManaging = false,
+  classNames,
 }) => {
   const [isExiting, setIsExiting] = useState(false);
   const [isEntering, setIsEntering] = useState(true);
@@ -264,154 +277,144 @@ const CookieConsenter: React.FC<
           displayType,
           initialPreferences,
           detailedConsent,
+          classNames,
         }}
       />,
       document.body
     );
   }
 
-  const modalBaseClasses = `
-    fixed inset-0 flex items-center justify-center p-4
-    ${
-      theme === "light"
-        ? "bg-black/20 backdrop-blur-sm"
-        : "bg-black/40 backdrop-blur-sm"
-    }
-    transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-    z-[99999]
-    ${isExiting ? "opacity-0" : isEntering ? "opacity-0" : "opacity-100"}
-  `;
+  const modalBaseClasses = cn(
+    "fixed inset-0 flex items-center justify-center p-4",
+    theme === "light"
+      ? "bg-black/20 backdrop-blur-sm"
+      : "bg-black/40 backdrop-blur-sm",
+    "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+    "z-[99999]",
+    isExiting ? "opacity-0" : isEntering ? "opacity-0" : "opacity-100"
+  );
 
-  const modalContentClasses = `
-    w-full max-w-lg rounded-xl p-6
-    ${
-      theme === "light"
-        ? "bg-white/95 ring-2 ring-gray-200"
-        : "bg-black/95 ring-1 ring-white/10"
-    }
-    ${isExiting ? "scale-95" : isEntering ? "scale-95" : "scale-100"}
-    transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-  `;
+  const modalContentClasses = cn(
+    "w-full max-w-lg rounded-xl p-6",
+    theme === "light"
+      ? "bg-white/95 ring-2 ring-gray-200"
+      : "bg-black/95 ring-1 ring-white/10",
+    isExiting ? "scale-95" : isEntering ? "scale-95" : "scale-100",
+    "transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+  );
 
-  const modalTitleClasses = `
-    text-lg font-semibold mb-3
-    ${theme === "light" ? "text-gray-900" : "text-white"}
-  `;
+  const modalTitleClasses = cn(
+    "text-lg font-semibold mb-3",
+    theme === "light" ? "text-gray-900" : "text-white"
+  );
 
-  const modalMessageClasses = `
-    text-sm font-medium mb-6
-    ${theme === "light" ? "text-gray-700" : "text-gray-200"}
-  `;
+  const modalMessageClasses = cn(
+    "text-sm font-medium mb-6",
+    theme === "light" ? "text-gray-700" : "text-gray-200"
+  );
 
-  const popupBaseClasses = `
-    fixed bottom-4 left-4 w-80
-    ${
-      theme === "light"
-        ? "bg-white/95 ring-1 ring-black/10 shadow-lg"
-        : "bg-black/95 ring-1 ring-white/10"
-    }
-    rounded-lg backdrop-blur-sm backdrop-saturate-150 
-    transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-    z-[99999] hover:-translate-y-2
-    ${
-      isExiting
-        ? "opacity-0 scale-95"
-        : isEntering
-        ? "opacity-0 scale-95"
-        : "opacity-100 scale-100"
-    }
-  `;
+  const popupBaseClasses = cn(
+    "fixed bottom-4 left-4 w-80",
+    theme === "light"
+      ? "bg-white/95 ring-1 ring-black/10 shadow-lg"
+      : "bg-black/95 ring-1 ring-white/10",
+    "rounded-lg backdrop-blur-sm backdrop-saturate-150",
+    "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+    "z-[99999] hover:-translate-y-2",
+    isExiting
+      ? "opacity-0 scale-95"
+      : isEntering
+      ? "opacity-0 scale-95"
+      : "opacity-100 scale-100"
+  );
 
-  const bannerBaseClasses = `
-    fixed bottom-4 left-1/2 -translate-x-1/2 w-full md:max-w-2xl
-    ${
-      theme === "light"
-        ? "bg-white/95 border border-black/10 shadow-lg"
-        : "bg-black/95 ring-1 ring-white/10"
-    }
-    rounded-lg backdrop-blur-sm backdrop-saturate-150 
-    transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-    z-[99999] hover:-translate-y-2
-    ${
-      isExiting
-        ? "opacity-0 transform translate-y-full"
-        : isEntering
-        ? "opacity-0 transform translate-y-full"
-        : "opacity-100 transform translate-y-0"
-    }
-  `;
+  const bannerBaseClasses = cn(
+    "fixed bottom-4 left-1/2 -translate-x-1/2 w-full md:max-w-2xl",
+    theme === "light"
+      ? "bg-white/95 border border-black/10 shadow-lg"
+      : "bg-black/95 ring-1 ring-white/10",
+    "rounded-lg backdrop-blur-sm backdrop-saturate-150",
+    "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+    "z-[99999] hover:-translate-y-2",
+    isExiting
+      ? "opacity-0 transform translate-y-full"
+      : isEntering
+      ? "opacity-0 transform translate-y-full"
+      : "opacity-100 transform translate-y-0"
+  );
 
-  const bannerContentClasses = `
-    flex flex-col gap-4 p-4
-    ${theme === "light" ? "text-gray-600" : "text-gray-300"}
-  `;
+  const bannerContentClasses = cn(
+    "flex flex-col gap-4 p-4",
+    theme === "light" ? "text-gray-600" : "text-gray-300"
+  );
 
-  const popupContentClasses = `
-    flex flex-col items-start gap-4 p-4
-    ${theme === "light" ? "text-gray-600" : "text-gray-300"}
-  `;
+  const popupContentClasses = cn(
+    "flex flex-col items-start gap-4 p-4",
+    theme === "light" ? "text-gray-600" : "text-gray-300"
+  );
 
-  const bannerTitleClasses = `
-    text-sm font-semibold mb-1
-    ${theme === "light" ? "text-gray-900" : "text-white"}
-  `;
+  const bannerTitleClasses = cn(
+    "text-sm font-semibold mb-1",
+    theme === "light" ? "text-gray-900" : "text-white"
+  );
 
-  const popupTitleClasses = `
-    text-sm font-semibold mb-2
-    ${theme === "light" ? "text-gray-900" : "text-white"}
-  `;
+  const popupTitleClasses = cn(
+    "text-sm font-semibold mb-2",
+    theme === "light" ? "text-gray-900" : "text-white"
+  );
 
-  const bannerMessageClasses = `
-    text-xs sm:text-sm font-medium text-center sm:text-left
-    ${theme === "light" ? "text-gray-700" : "text-gray-200"}
-  `;
+  const bannerMessageClasses = cn(
+    "text-xs sm:text-sm font-medium text-center sm:text-left",
+    theme === "light" ? "text-gray-700" : "text-gray-200"
+  );
 
-  const popupMessageClasses = `
-    text-xs font-medium
-    ${theme === "light" ? "text-gray-700" : "text-gray-200"}
-  `;
+  const popupMessageClasses = cn(
+    "text-xs font-medium",
+    theme === "light" ? "text-gray-700" : "text-gray-200"
+  );
 
-  const acceptButtonClasses = `
-    px-3 py-1.5 text-xs font-medium rounded-md
-    bg-blue-500 hover:bg-blue-600 text-white
-    transition-all duration-200
-    hover:scale-105 focus-visible:outline-none focus:outline-none
-    focus-visible:outline-transparent focus:outline-transparent
-    ${displayType === "popup" ? "flex-1" : ""}
-  `;
+  const acceptButtonClasses = classNames?.acceptButton
+    ? cn(classNames.acceptButton)
+    : cn(
+        "px-3 py-1.5 text-xs font-medium rounded-md",
+        "bg-blue-500 hover:bg-blue-600 text-white",
+        "transition-all duration-200",
+        "hover:scale-105 focus-visible:outline-none focus:outline-none",
+        "focus-visible:outline-transparent focus:outline-transparent",
+        displayType === "popup" ? "flex-1" : ""
+      );
 
-  const declineButtonClasses = `
-    px-3 py-1.5 text-xs font-medium rounded-md
-    ${
-      theme === "light"
-        ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
-        : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-    }
-    transition-all duration-200
-    hover:scale-105 focus-visible:outline-none focus:outline-none
-    focus-visible:outline-transparent focus:outline-transparent
-    ${displayType === "popup" ? "flex-1" : ""}
-  `;
+  const declineButtonClasses = classNames?.declineButton
+    ? cn(classNames.declineButton)
+    : cn(
+        "px-3 py-1.5 text-xs font-medium rounded-md",
+        theme === "light"
+          ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+          : "bg-gray-800 hover:bg-gray-700 text-gray-300",
+        "transition-all duration-200",
+        "hover:scale-105 focus-visible:outline-none focus:outline-none",
+        "focus-visible:outline-transparent focus:outline-transparent",
+        displayType === "popup" ? "flex-1" : ""
+      );
 
-  const manageButtonClasses = `
-    px-3 py-1.5 text-xs font-medium rounded-md
-    border border-blue-500 text-blue-500
-    bg-transparent
-    hover:text-blue-600 hover:border-blue-600
-    transition-all duration-200
-    hover:scale-105 focus-visible:outline-none focus:outline-none
-    focus-visible:outline-transparent focus:outline-transparent
-  `;
+  const manageButtonClasses = cn(
+    "px-3 py-1.5 text-xs font-medium rounded-md",
+    "border border-blue-500 text-blue-500",
+    "bg-transparent",
+    "hover:text-blue-600 hover:border-blue-600",
+    "transition-all duration-200",
+    "hover:scale-105 focus-visible:outline-none focus:outline-none",
+    "focus-visible:outline-transparent focus:outline-transparent",
+    displayType === "popup" ? "flex-1" : ""
+  );
 
-  const privacyLinkClasses = `
-    text-xs font-medium
-    ${
-      theme === "light"
-        ? "text-gray-500 hover:text-gray-700"
-        : "text-gray-400 hover:text-gray-200"
-    }
-    transition-colors duration-200
-  `;
+  const privacyLinkClasses = cn(
+    "text-xs font-medium",
+    theme === "light"
+      ? "text-gray-500 hover:text-gray-700"
+      : "text-gray-400 hover:text-gray-200",
+    "transition-colors duration-200"
+  );
 
   const getBaseClasses = () => {
     switch (displayType) {
@@ -463,8 +466,8 @@ const CookieConsenter: React.FC<
       return (
         <div className="flex flex-col gap-4">
           <div>
-            {title && <p className={getTitleClasses().trim()}>{title}</p>}
-            <p className={getMessageClasses().trim()}>{tFunction("message")}</p>
+            {title && <p className={getTitleClasses()}>{title}</p>}
+            <p className={getMessageClasses()}>{tFunction("message")}</p>
           </div>
           <div className="flex items-center justify-between w-full">
             {privacyPolicyUrl && (
@@ -472,7 +475,7 @@ const CookieConsenter: React.FC<
                 href={privacyPolicyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={privacyLinkClasses.trim()}
+                className={privacyLinkClasses}
               >
                 {tFunction("privacyPolicyText")}
               </a>
@@ -481,20 +484,20 @@ const CookieConsenter: React.FC<
               {showManageButton && (
                 <button
                   onClick={handleManageClick}
-                  className={manageButtonClasses.trim()}
+                  className={manageButtonClasses}
                 >
                   {tFunction("manageButtonText")}
                 </button>
               )}
               <button
                 onClick={handleDeclineClick}
-                className={declineButtonClasses.trim()}
+                className={declineButtonClasses}
               >
                 {tFunction("declineButtonText")}
               </button>
               <button
                 onClick={handleAcceptClick}
-                className={acceptButtonClasses.trim()}
+                className={acceptButtonClasses}
               >
                 {tFunction("buttonText")}
               </button>
@@ -505,8 +508,8 @@ const CookieConsenter: React.FC<
     }
     return (
       <div className="flex flex-col">
-        {title && <p className={getTitleClasses().trim()}>{title}</p>}
-        <p className={getMessageClasses().trim()}>{tFunction("message")}</p>
+        {title && <p className={getTitleClasses()}>{title}</p>}
+        <p className={getMessageClasses()}>{tFunction("message")}</p>
       </div>
     );
   };
@@ -518,14 +521,11 @@ const CookieConsenter: React.FC<
           <div className="flex items-center gap-3">
             <button
               onClick={handleDeclineClick}
-              className={declineButtonClasses.trim()}
+              className={declineButtonClasses}
             >
               {tFunction("declineButtonText")}
             </button>
-            <button
-              onClick={handleAcceptClick}
-              className={acceptButtonClasses.trim()}
-            >
+            <button onClick={handleAcceptClick} className={acceptButtonClasses}>
               {tFunction("buttonText")}
             </button>
           </div>
@@ -533,7 +533,7 @@ const CookieConsenter: React.FC<
             {showManageButton && (
               <button
                 onClick={handleManageClick}
-                className={`${manageButtonClasses.trim()} w-full justify-center`}
+                className={`${manageButtonClasses} w-full justify-center`}
               >
                 {tFunction("manageButtonText")}
               </button>
@@ -543,7 +543,7 @@ const CookieConsenter: React.FC<
                 href={privacyPolicyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={privacyLinkClasses.trim()}
+                className={privacyLinkClasses}
               >
                 {tFunction("privacyPolicyText")}
               </a>
@@ -562,7 +562,7 @@ const CookieConsenter: React.FC<
                 href={privacyPolicyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={privacyLinkClasses.trim()}
+                className={privacyLinkClasses}
               >
                 {tFunction("privacyPolicyText")}
               </a>
@@ -571,20 +571,20 @@ const CookieConsenter: React.FC<
               {showManageButton && (
                 <button
                   onClick={handleManageClick}
-                  className={manageButtonClasses.trim()}
+                  className={manageButtonClasses}
                 >
                   {tFunction("manageButtonText")}
                 </button>
               )}
               <button
                 onClick={handleDeclineClick}
-                className={declineButtonClasses.trim()}
+                className={declineButtonClasses}
               >
                 {tFunction("declineButtonText")}
               </button>
               <button
                 onClick={handleAcceptClick}
-                className={acceptButtonClasses.trim()}
+                className={acceptButtonClasses}
               >
                 {tFunction("buttonText")}
               </button>
@@ -599,14 +599,14 @@ const CookieConsenter: React.FC<
 
   const content = (
     <div className="cookie-manager">
-      <div className={getBaseClasses().trim()}>
+      <div className={getBaseClasses()}>
         {displayType === "modal" ? (
-          <div className={getContentClasses().trim()}>
+          <div className={getContentClasses()}>
             {renderContent()}
             {renderButtons()}
           </div>
         ) : (
-          <div className={getContentClasses().trim()}>
+          <div className={getContentClasses()}>
             {renderContent()}
             {renderButtons()}
           </div>

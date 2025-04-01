@@ -1,3 +1,8 @@
+export interface CookieConsenterClassNames {
+  acceptButton?: string;
+  declineButton?: string;
+}
+
 export interface CookieCategories {
   Analytics: boolean;
   Social: boolean;
@@ -188,6 +193,11 @@ export interface CookieConsenterProps {
    * @default 'light'
    */
   theme?: "light" | "dark";
+
+  /**
+   * Custom class names for the cookie consent UI
+   */
+  classNames?: CookieConsenterClassNames;
 
   /**
    * Initial cookie category preferences
