@@ -7,6 +7,7 @@ import "../../dist/style.css";
 import { CookieCategories } from "../../dist/types/types";
 import App from "./App.tsx";
 import "./index.css";
+import "./globals.css";
 
 const useI18next = true;
 const translationI18NextPrefix = "cookies";
