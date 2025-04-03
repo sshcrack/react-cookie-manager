@@ -63,7 +63,7 @@ export const FloatingCookieButton: React.FC<FloatingCookieButtonProps> = ({
             classNames?.floatingButtonCloseButton
               ? cn(classNames.floatingButtonCloseButton)
               : cn(`
-                  absolute -top-2 -right-2
+                  fixed -top-2 -right-2
                   w-6 h-6 rounded-full
                   flex items-center justify-center
                   transition-all duration-300
