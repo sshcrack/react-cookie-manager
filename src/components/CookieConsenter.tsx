@@ -144,7 +144,7 @@ const MobileModal: React.FC<
                   href={privacyPolicyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-xs ${
+                  className={`text-xs text-right ${
                     theme === "light"
                       ? "text-gray-500 hover:text-gray-700"
                       : "text-gray-400 hover:text-gray-200"
@@ -477,7 +477,7 @@ const CookieConsenter: React.FC<
                 {tFunction("privacyPolicyText")}
               </a>
             )}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 ml-auto">
               {showManageButton && (
                 <button
                   onClick={handleManageClick}
@@ -515,7 +515,7 @@ const CookieConsenter: React.FC<
     if (displayType === "popup") {
       return (
         <div className="flex flex-col gap-3 w-full">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 justify-end">
             <button
               onClick={handleDeclineClick}
               className={declineButtonClasses.trim()}
@@ -543,7 +543,7 @@ const CookieConsenter: React.FC<
                 href={privacyPolicyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={privacyLinkClasses.trim()}
+                className={`${privacyLinkClasses.trim()} text-right`}
               >
                 {tFunction("privacyPolicyText")}
               </a>
@@ -556,13 +556,13 @@ const CookieConsenter: React.FC<
     if (displayType === "modal") {
       return (
         <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-end">
             {privacyPolicyUrl && (
               <a
                 href={privacyPolicyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={privacyLinkClasses.trim()}
+                className={`${privacyLinkClasses.trim()} mr-auto`}
               >
                 {tFunction("privacyPolicyText")}
               </a>
