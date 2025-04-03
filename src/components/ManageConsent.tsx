@@ -1,6 +1,11 @@
 import React, { useState } from "react";
-import { CookieCategories, DetailedCookieConsent } from "../types/types";
+import {
+  CookieCategories,
+  DetailedCookieConsent,
+  CookieConsenterClassNames,
+} from "../types/types";
 import { TFunction } from "../utils/translations";
+import { cn } from "../utils/cn";
 
 interface ManageConsentProps {
   theme?: "light" | "dark";
@@ -9,6 +14,7 @@ interface ManageConsentProps {
   onCancel?: () => void;
   initialPreferences?: CookieCategories;
   detailedConsent?: DetailedCookieConsent | null;
+  classNames?: CookieConsenterClassNames;
 }
 
 export const ManageConsent: React.FC<ManageConsentProps> = ({
@@ -22,6 +28,7 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
     Advertising: false,
   },
   detailedConsent,
+  classNames,
 }) => {
   const [consent, setConsent] = useState<CookieCategories>(initialPreferences);
 
@@ -57,9 +64,14 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
     const status = detailedConsent[category];
     return (
       <p
-        className={`text-xs mt-1 text-left ${
-          theme === "light" ? "text-gray-500" : "text-gray-500"
-        }`}
+        className={
+          classNames?.manageCookieStatusText
+            ? cn(classNames.manageCookieStatusText)
+            : cn(
+                "text-xs mt-1 text-left",
+                theme === "light" ? "text-gray-500" : "text-gray-500"
+              )
+        }
       >
         {tFunction("manageCookiesStatus", {
           status: status.consented
@@ -72,19 +84,35 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div
+      className={
+        classNames?.manageCookieContainer
+          ? cn(classNames.manageCookieContainer)
+          : "flex flex-col gap-6"
+      }
+    >
       <div>
         <h3
-          className={`text-sm font-semibold mb-2 ${
-            theme === "light" ? "text-gray-900" : "text-white"
-          }`}
+          className={
+            classNames?.manageCookieTitle
+              ? cn(classNames.manageCookieTitle)
+              : cn(
+                  "text-sm font-semibold mb-2",
+                  theme === "light" ? "text-gray-900" : "text-white"
+                )
+          }
         >
           {tFunction("manageTitle")}
         </h3>
         <p
-          className={`text-xs ${
-            theme === "light" ? "text-gray-700" : "text-gray-200"
-          }`}
+          className={
+            classNames?.manageCookieMessage
+              ? cn(classNames.manageCookieMessage)
+              : cn(
+                  "text-xs",
+                  theme === "light" ? "text-gray-700" : "text-gray-200"
+                )
+          }
         >
           {tFunction("manageMessage")}
         </p>
@@ -92,26 +120,47 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
 
       <div className="flex flex-col gap-4">
         {/* Essential Cookies - Always enabled */}
-        <div className="flex items-start justify-between">
+        <div
+          className={
+            classNames?.manageCookieCategory
+              ? cn(classNames.manageCookieCategory)
+              : "flex items-start justify-between"
+          }
+        >
           <div>
             <h4
-              className={`text-xs font-medium text-left ${
-                theme === "light" ? "text-gray-900" : "text-white"
-              }`}
+              className={
+                classNames?.manageCookieCategoryTitle
+                  ? cn(classNames.manageCookieCategoryTitle)
+                  : cn(
+                      "text-xs font-medium text-left",
+                      theme === "light" ? "text-gray-900" : "text-white"
+                    )
+              }
             >
               {tFunction("manageEssentialTitle")}
             </h4>
             <p
-              className={`text-xs text-left ${
-                theme === "light" ? "text-gray-600" : "text-gray-400"
-              }`}
+              className={
+                classNames?.manageCookieCategorySubtitle
+                  ? cn(classNames.manageCookieCategorySubtitle)
+                  : cn(
+                      "text-xs text-left",
+                      theme === "light" ? "text-gray-600" : "text-gray-400"
+                    )
+              }
             >
               {tFunction("manageEssentialSubtitle")}
             </p>
             <p
-              className={`text-xs mt-1 text-left ${
-                theme === "light" ? "text-gray-500" : "text-gray-500"
-              }`}
+              className={
+                classNames?.manageCookieStatusText
+                  ? cn(classNames.manageCookieStatusText)
+                  : cn(
+                      "text-xs mt-1 text-left",
+                      theme === "light" ? "text-gray-500" : "text-gray-500"
+                    )
+              }
             >
               {tFunction("manageEssentialStatus")}
             </p>
@@ -128,19 +177,35 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
         </div>
 
         {/* Analytics Cookies */}
-        <div className="flex items-start justify-between">
+        <div
+          className={
+            classNames?.manageCookieCategory
+              ? cn(classNames.manageCookieCategory)
+              : "flex items-start justify-between"
+          }
+        >
           <div>
             <h4
-              className={`text-xs font-medium text-left ${
-                theme === "light" ? "text-gray-900" : "text-white"
-              }`}
+              className={
+                classNames?.manageCookieCategoryTitle
+                  ? cn(classNames.manageCookieCategoryTitle)
+                  : cn(
+                      "text-xs font-medium text-left",
+                      theme === "light" ? "text-gray-900" : "text-white"
+                    )
+              }
             >
               {tFunction("manageAnalyticsTitle")}
             </h4>
             <p
-              className={`text-xs text-left ${
-                theme === "light" ? "text-gray-600" : "text-gray-400"
-              }`}
+              className={
+                classNames?.manageCookieCategorySubtitle
+                  ? cn(classNames.manageCookieCategorySubtitle)
+                  : cn(
+                      "text-xs text-left",
+                      theme === "light" ? "text-gray-600" : "text-gray-400"
+                    )
+              }
             >
               {tFunction("manageAnalyticsSubtitle")}
             </p>
@@ -154,33 +219,56 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
               className="sr-only peer"
             />
             <div
-              className={`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
-              ${
-                theme === "light"
-                  ? "bg-gray-200 peer-checked:bg-blue-500"
-                  : "bg-gray-700 peer-checked:bg-blue-500"
-              } 
-              peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
-              after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
-              after:transition-all`}
+              className={
+                classNames?.manageCookieToggle
+                  ? cn(
+                      classNames.manageCookieToggle,
+                      consent.Analytics && classNames.manageCookieToggleChecked
+                    )
+                  : cn(`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
+                ${
+                  theme === "light"
+                    ? "bg-gray-200 peer-checked:bg-blue-500"
+                    : "bg-gray-700 peer-checked:bg-blue-500"
+                } 
+                peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
+                after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
+                after:transition-all`)
+              }
             ></div>
           </label>
         </div>
 
         {/* Social Cookies */}
-        <div className="flex items-start justify-between">
+        <div
+          className={
+            classNames?.manageCookieCategory
+              ? cn(classNames.manageCookieCategory)
+              : "flex items-start justify-between"
+          }
+        >
           <div>
             <h4
-              className={`text-xs font-medium text-left ${
-                theme === "light" ? "text-gray-900" : "text-white"
-              }`}
+              className={
+                classNames?.manageCookieCategoryTitle
+                  ? cn(classNames.manageCookieCategoryTitle)
+                  : cn(
+                      "text-xs font-medium text-left",
+                      theme === "light" ? "text-gray-900" : "text-white"
+                    )
+              }
             >
               {tFunction("manageSocialTitle")}
             </h4>
             <p
-              className={`text-xs text-left ${
-                theme === "light" ? "text-gray-600" : "text-gray-400"
-              }`}
+              className={
+                classNames?.manageCookieCategorySubtitle
+                  ? cn(classNames.manageCookieCategorySubtitle)
+                  : cn(
+                      "text-xs text-left",
+                      theme === "light" ? "text-gray-600" : "text-gray-400"
+                    )
+              }
             >
               {tFunction("manageSocialSubtitle")}
             </p>
@@ -194,33 +282,56 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
               className="sr-only peer"
             />
             <div
-              className={`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
-              ${
-                theme === "light"
-                  ? "bg-gray-200 peer-checked:bg-blue-500"
-                  : "bg-gray-700 peer-checked:bg-blue-500"
-              } 
-              peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
-              after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
-              after:transition-all`}
+              className={
+                classNames?.manageCookieToggle
+                  ? cn(
+                      classNames.manageCookieToggle,
+                      consent.Social && classNames.manageCookieToggleChecked
+                    )
+                  : cn(`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
+                ${
+                  theme === "light"
+                    ? "bg-gray-200 peer-checked:bg-blue-500"
+                    : "bg-gray-700 peer-checked:bg-blue-500"
+                } 
+                peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
+                after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
+                after:transition-all`)
+              }
             ></div>
           </label>
         </div>
 
         {/* Advertising Cookies */}
-        <div className="flex items-start justify-between">
+        <div
+          className={
+            classNames?.manageCookieCategory
+              ? cn(classNames.manageCookieCategory)
+              : "flex items-start justify-between"
+          }
+        >
           <div>
             <h4
-              className={`text-xs font-medium text-left ${
-                theme === "light" ? "text-gray-900" : "text-white"
-              }`}
+              className={
+                classNames?.manageCookieCategoryTitle
+                  ? cn(classNames.manageCookieCategoryTitle)
+                  : cn(
+                      "text-xs font-medium text-left",
+                      theme === "light" ? "text-gray-900" : "text-white"
+                    )
+              }
             >
               {tFunction("manageAdvertTitle")}
             </h4>
             <p
-              className={`text-xs text-left ${
-                theme === "light" ? "text-gray-600" : "text-gray-400"
-              }`}
+              className={
+                classNames?.manageCookieCategorySubtitle
+                  ? cn(classNames.manageCookieCategorySubtitle)
+                  : cn(
+                      "text-xs text-left",
+                      theme === "light" ? "text-gray-600" : "text-gray-400"
+                    )
+              }
             >
               {tFunction("manageAdvertSubtitle")}
             </p>
@@ -234,15 +345,23 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
               className="sr-only peer"
             />
             <div
-              className={`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
-              ${
-                theme === "light"
-                  ? "bg-gray-200 peer-checked:bg-blue-500"
-                  : "bg-gray-700 peer-checked:bg-blue-500"
-              } 
-              peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
-              after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
-              after:transition-all`}
+              className={
+                classNames?.manageCookieToggle
+                  ? cn(
+                      classNames.manageCookieToggle,
+                      consent.Advertising &&
+                        classNames.manageCookieToggleChecked
+                    )
+                  : cn(`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
+                ${
+                  theme === "light"
+                    ? "bg-gray-200 peer-checked:bg-blue-500"
+                    : "bg-gray-700 peer-checked:bg-blue-500"
+                } 
+                peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
+                after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
+                after:transition-all`)
+              }
             ></div>
           </label>
         </div>
@@ -252,18 +371,28 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
         {onCancel && (
           <button
             onClick={onCancel}
-            className={`w-full sm:w-auto px-3 py-2 sm:py-1.5 text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105 ${
-              theme === "light"
-                ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
-                : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-            }`}
+            className={
+              classNames?.manageCancelButton
+                ? cn(classNames.manageCancelButton)
+                : cn(
+                    `w-full sm:w-auto px-3 py-2 sm:py-1.5 text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105 ${
+                      theme === "light"
+                        ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                        : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                    }`
+                  )
+            }
           >
             {tFunction("manageCancelButtonText")}
           </button>
         )}
         <button
           onClick={handleSave}
-          className="w-full sm:w-auto px-3 py-2 sm:py-1.5 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105"
+          className={
+            classNames?.manageSaveButton
+              ? cn(classNames.manageSaveButton)
+              : "w-full sm:w-auto px-3 py-2 sm:py-1.5 text-xs font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:scale-105"
+          }
         >
           {tFunction("manageSaveButtonText")}
         </button>
@@ -274,11 +403,17 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
           href="https://cookiekit.io"
           target="_blank"
           rel="noopener noreferrer"
-          className={`text-xs transition-opacity duration-200 ${
-            theme === "light"
-              ? "text-gray-500 hover:text-gray-700"
-              : "text-gray-400 hover:text-gray-200"
-          }`}
+          className={
+            classNames?.poweredByLink
+              ? cn(classNames.poweredByLink)
+              : cn(
+                  `text-xs transition-opacity duration-200 ${
+                    theme === "light"
+                      ? "text-gray-500 hover:text-gray-700"
+                      : "text-gray-400 hover:text-gray-200"
+                  }`
+                )
+          }
         >
           Powered by CookieKit
         </a>

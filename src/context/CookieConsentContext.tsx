@@ -481,6 +481,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
                       : undefined
                   }
                   detailedConsent={detailedConsent}
+                  classNames={props.classNames}
                 />
               </div>
             </div>
@@ -501,6 +502,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
               onClose={() => {
                 setIsFloatingButtonVisible(false);
               }}
+              classNames={props.classNames}
             />
           </div>,
           document.body
