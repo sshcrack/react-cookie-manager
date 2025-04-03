@@ -20,8 +20,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
         enableFloatingButton={true}
         showManageButton={true}
         translations={i18n.t}
-        displayType="banner"
+        displayType="popup"
         theme="light"
+        onAccept={() => {
+          console.log("accept");
+        }}
+        onDecline={() => {
+          console.log("decline");
+        }}
+        onManage={() => {
+          console.log("manage");
+        }}
       >
         {children}
       </CookieManager>

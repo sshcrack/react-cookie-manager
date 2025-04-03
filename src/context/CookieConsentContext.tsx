@@ -47,6 +47,8 @@ export interface CookieManagerProps
   cookieKitId?: string;
   userId?: string;
   onManage?: (preferences?: CookieCategories) => void;
+  onAccept?: () => void;
+  onDecline?: () => void;
   disableAutomaticBlocking?: boolean;
   blockedDomains?: string[];
   expirationDays?: number;
@@ -110,6 +112,8 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
   translations,
   translationI18NextPrefix,
   onManage,
+  onAccept,
+  onDecline,
   disableAutomaticBlocking = false,
   blockedDomains = [],
   expirationDays = 365,
@@ -300,6 +304,11 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
         );
       }
     }
+
+    // Call the onAccept callback if provided
+    if (onAccept) {
+      onAccept();
+    }
   };
 
   const declineCookies = async () => {
@@ -327,6 +336,11 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
           userId
         );
       }
+    }
+
+    // Call the onDecline callback if provided
+    if (onDecline) {
+      onDecline();
     }
   };
 
