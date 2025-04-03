@@ -226,7 +226,7 @@ function App() {
       privacyPolicyUrl="https://example.com/privacy"
       theme="light"
       displayType="popup"
-      cookieKitId="your-cookie-kit-id" // Optional: Enable CookieKit.io integration
+      cookieKitId="" // Optional: Enable CookieKit.io integration
       onManage={(preferences) => {
         if (preferences) {
           console.log("Cookie preferences updated:", preferences);
