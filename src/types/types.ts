@@ -71,7 +71,7 @@ export type TranslationKey =
   | "privacyPolicyText"
   /**
    * Optional title for the cookie consent
-   * @default ''
+   * @default 'We use cookies'
    */
   | "title"
   /**

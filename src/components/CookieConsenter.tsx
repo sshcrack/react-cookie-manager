@@ -187,9 +187,9 @@ const MobileModal: React.FC<
 const CookieConsenter: React.FC<
   CookieConsenterProps & { tFunction: TFunction }
 > = ({
-  showManageButton = false,
+  showManageButton = true,
   privacyPolicyUrl,
-  displayType = "banner",
+  displayType = "popup",
   theme = "light",
   tFunction,
   onAccept,

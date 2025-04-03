@@ -6,8 +6,28 @@ A powerful, customizable React component for cookie consent management with buil
 
 ![React Cookie Manager](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/react-cookie-manager.gif?raw=true)
 
+## Quick Start
+
+Get up and running quickly with React Cookie Manager:
+
+```jsx
+import { CookieManager } from "react-cookie-manager";
+import "react-cookie-manager/style.css";
+
+createRoot(document.getElementById("root")).render(
+  <StrictMode>
+    <CookieManager>
+      <App />
+    </CookieManager>
+  </StrictMode>
+);
+```
+
+The CookieManager component needs to wrap your entire application to properly manage cookie consent across all components and pages.
+
 ## Contents
 
+- [Quick Start](#quick-start)
 - [Features](#features)
 - [Try it out](#-try-it-out)
 - [CookieKit Integration](#cookiekit-integration)

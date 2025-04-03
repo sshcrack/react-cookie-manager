@@ -6,8 +6,9 @@ import {
 } from "../types/types";
 
 const DEFAULT_TRANSLATIONS: FullTranslationObject = {
-  title: "",
-  message: "This website uses cookies to enhance your experience.",
+  title: "We use cookies",
+  message:
+    "We use cookies to ensure the best experience, understand how the site is used, and support basic functionality. You can choose to accept all cookies or adjust your settings.",
   buttonText: "Accept",
   declineButtonText: "Decline",
   manageButtonText: "Manage Cookies",
