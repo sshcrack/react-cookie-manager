@@ -92,13 +92,14 @@ const MobileModal: React.FC<
               onCancel={handleCancelManage}
               initialPreferences={initialPreferences}
               detailedConsent={detailedConsent}
+              classNames={classNames}
             />
           ) : (
             <div className="flex flex-col gap-3">
               {title && (
                 <h3
                   className={cn(
-                    "font-semibold my-0",
+                    classNames?.bannerTitle || "font-semibold my-0",
                     theme === "light" ? "text-gray-900" : "text-white"
                   )}
                 >
@@ -107,7 +108,7 @@ const MobileModal: React.FC<
               )}
               <p
                 className={cn(
-                  "text-sm",
+                  classNames?.bannerMessage || "text-sm",
                   theme === "light" ? "text-gray-700" : "text-gray-200"
                 )}
               >
@@ -144,7 +145,13 @@ const MobileModal: React.FC<
                 {showManageButton && (
                   <button
                     onClick={handleManage}
-                    className="w-full px-3 py-2.5 text-sm font-medium bg-transparent text-blue-500 border border-blue-500 rounded-lg hover:text-blue-400 hover:border-blue-400 focus-visible:outline-none focus:outline-none focus-visible:outline-transparent focus:outline-transparent"
+                    className={
+                      classNames?.manageButton
+                        ? cn(classNames.manageButton)
+                        : cn(
+                            "w-full px-3 py-2.5 text-sm font-medium bg-transparent text-blue-500 border border-blue-500 rounded-lg hover:text-blue-400 hover:border-blue-400 focus-visible:outline-none focus:outline-none focus-visible:outline-transparent focus:outline-transparent"
+                          )
+                    }
                   >
                     {tFunction("manageButtonText")}
                   </button>
@@ -155,11 +162,16 @@ const MobileModal: React.FC<
                   href={privacyPolicyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`text-xs text-right ${
-                    theme === "light"
-                      ? "text-gray-500 hover:text-gray-700"
-                      : "text-gray-400 hover:text-gray-200"
-                  }`}
+                  className={
+                    classNames?.privacyPolicyLink
+                      ? cn(classNames.privacyPolicyLink)
+                      : cn(
+                          "text-xs text-right",
+                          theme === "light"
+                            ? "text-gray-500 hover:text-gray-700"
+                            : "text-gray-400 hover:text-gray-200"
+                        )
+                  }
                 >
                   {tFunction("privacyPolicyText")}
                 </a>
@@ -283,95 +295,6 @@ const CookieConsenter: React.FC<
     );
   }
 
-  const modalBaseClasses = cn(
-    "fixed inset-0 flex items-center justify-center p-4",
-    theme === "light"
-      ? "bg-black/20 backdrop-blur-sm"
-      : "bg-black/40 backdrop-blur-sm",
-    "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
-    "z-[99999]",
-    isExiting ? "opacity-0" : isEntering ? "opacity-0" : "opacity-100"
-  );
-
-  const modalContentClasses = cn(
-    "w-full max-w-lg rounded-xl p-6",
-    theme === "light"
-      ? "bg-white/95 ring-2 ring-gray-200"
-      : "bg-black/95 ring-1 ring-white/10",
-    isExiting ? "scale-95" : isEntering ? "scale-95" : "scale-100",
-    "transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
-  );
-
-  const modalTitleClasses = cn(
-    "text-lg font-semibold mb-3",
-    theme === "light" ? "text-gray-900" : "text-white"
-  );
-
-  const modalMessageClasses = cn(
-    "text-sm font-medium mb-6",
-    theme === "light" ? "text-gray-700" : "text-gray-200"
-  );
-
-  const popupBaseClasses = cn(
-    "fixed bottom-4 left-4 w-80",
-    theme === "light"
-      ? "bg-white/95 ring-1 ring-black/10 shadow-lg"
-      : "bg-black/95 ring-1 ring-white/10",
-    "rounded-lg backdrop-blur-sm backdrop-saturate-150",
-    "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
-    "z-[99999] hover:-translate-y-2",
-    isExiting
-      ? "opacity-0 scale-95"
-      : isEntering
-      ? "opacity-0 scale-95"
-      : "opacity-100 scale-100"
-  );
-
-  const bannerBaseClasses = cn(
-    "fixed bottom-4 left-1/2 -translate-x-1/2 w-full md:max-w-2xl",
-    theme === "light"
-      ? "bg-white/95 border border-black/10 shadow-lg"
-      : "bg-black/95 ring-1 ring-white/10",
-    "rounded-lg backdrop-blur-sm backdrop-saturate-150",
-    "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
-    "z-[99999] hover:-translate-y-2",
-    isExiting
-      ? "opacity-0 transform translate-y-full"
-      : isEntering
-      ? "opacity-0 transform translate-y-full"
-      : "opacity-100 transform translate-y-0"
-  );
-
-  const bannerContentClasses = cn(
-    "flex flex-col gap-4 p-4",
-    theme === "light" ? "text-gray-600" : "text-gray-300"
-  );
-
-  const popupContentClasses = cn(
-    "flex flex-col items-start gap-4 p-4",
-    theme === "light" ? "text-gray-600" : "text-gray-300"
-  );
-
-  const bannerTitleClasses = cn(
-    "text-sm font-semibold mb-1",
-    theme === "light" ? "text-gray-900" : "text-white"
-  );
-
-  const popupTitleClasses = cn(
-    "text-sm font-semibold mb-2",
-    theme === "light" ? "text-gray-900" : "text-white"
-  );
-
-  const bannerMessageClasses = cn(
-    "text-xs sm:text-sm font-medium text-center sm:text-left",
-    theme === "light" ? "text-gray-700" : "text-gray-200"
-  );
-
-  const popupMessageClasses = cn(
-    "text-xs font-medium",
-    theme === "light" ? "text-gray-700" : "text-gray-200"
-  );
-
   const acceptButtonClasses = classNames?.acceptButton
     ? cn(classNames.acceptButton)
     : cn(
@@ -396,24 +319,141 @@ const CookieConsenter: React.FC<
         displayType === "popup" ? "flex-1" : ""
       );
 
-  const manageButtonClasses = cn(
-    "px-3 py-1.5 text-xs font-medium rounded-md",
-    "border border-blue-500 text-blue-500",
-    "bg-transparent",
-    "hover:text-blue-600 hover:border-blue-600",
-    "transition-all duration-200",
-    "hover:scale-105 focus-visible:outline-none focus:outline-none",
-    "focus-visible:outline-transparent focus:outline-transparent",
-    displayType === "popup" ? "flex-1" : ""
-  );
+  const manageButtonClasses = classNames?.manageButton
+    ? cn(classNames.manageButton)
+    : cn(
+        "px-3 py-1.5 text-xs font-medium rounded-md",
+        "border border-blue-500 text-blue-500",
+        "bg-transparent",
+        "hover:text-blue-600 hover:border-blue-600",
+        "transition-all duration-200",
+        "hover:scale-105 focus-visible:outline-none focus:outline-none",
+        "focus-visible:outline-transparent focus:outline-transparent",
+        displayType === "popup" ? "flex-1" : ""
+      );
 
-  const privacyLinkClasses = cn(
-    "text-xs font-medium",
-    theme === "light"
-      ? "text-gray-500 hover:text-gray-700"
-      : "text-gray-400 hover:text-gray-200",
-    "transition-colors duration-200"
-  );
+  const privacyLinkClasses = classNames?.privacyPolicyLink
+    ? cn(classNames.privacyPolicyLink)
+    : cn(
+        "text-xs font-medium",
+        theme === "light"
+          ? "text-gray-500 hover:text-gray-700"
+          : "text-gray-400 hover:text-gray-200",
+        "transition-colors duration-200"
+      );
+
+  const modalBaseClasses = classNames?.modalContainer
+    ? cn(classNames.modalContainer)
+    : cn(
+        "fixed inset-0 flex items-center justify-center p-4",
+        theme === "light"
+          ? "bg-black/20 backdrop-blur-sm"
+          : "bg-black/40 backdrop-blur-sm",
+        "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+        "z-[99999]",
+        isExiting ? "opacity-0" : isEntering ? "opacity-0" : "opacity-100"
+      );
+
+  const modalContentClasses = classNames?.modalContent
+    ? cn(classNames.modalContent)
+    : cn(
+        "w-full max-w-lg rounded-xl p-6",
+        theme === "light"
+          ? "bg-white/95 ring-2 ring-gray-200"
+          : "bg-black/95 ring-1 ring-white/10",
+        isExiting ? "scale-95" : isEntering ? "scale-95" : "scale-100",
+        "transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+      );
+
+  const modalTitleClasses = classNames?.modalTitle
+    ? cn(classNames.modalTitle)
+    : cn(
+        "text-lg font-semibold mb-3",
+        theme === "light" ? "text-gray-900" : "text-white"
+      );
+
+  const modalMessageClasses = classNames?.modalMessage
+    ? cn(classNames.modalMessage)
+    : cn(
+        "text-sm font-medium mb-6",
+        theme === "light" ? "text-gray-700" : "text-gray-200"
+      );
+
+  const popupBaseClasses = classNames?.popupContainer
+    ? cn(classNames.popupContainer)
+    : cn(
+        "fixed bottom-4 left-4 w-80",
+        theme === "light"
+          ? "bg-white/95 ring-1 ring-black/10 shadow-lg"
+          : "bg-black/95 ring-1 ring-white/10",
+        "rounded-lg backdrop-blur-sm backdrop-saturate-150",
+        "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+        "z-[99999] hover:-translate-y-2",
+        isExiting
+          ? "opacity-0 scale-95"
+          : isEntering
+          ? "opacity-0 scale-95"
+          : "opacity-100 scale-100"
+      );
+
+  const bannerBaseClasses = classNames?.bannerContainer
+    ? cn(classNames.bannerContainer)
+    : cn(
+        "fixed bottom-4 left-1/2 -translate-x-1/2 w-full md:max-w-2xl",
+        theme === "light"
+          ? "bg-white/95 border border-black/10 shadow-lg"
+          : "bg-black/95 ring-1 ring-white/10",
+        "rounded-lg backdrop-blur-sm backdrop-saturate-150",
+        "transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]",
+        "z-[99999] hover:-translate-y-2",
+        isExiting
+          ? "opacity-0 transform translate-y-full"
+          : isEntering
+          ? "opacity-0 transform translate-y-full"
+          : "opacity-100 transform translate-y-0"
+      );
+
+  const bannerContentClasses = classNames?.bannerContent
+    ? cn(classNames.bannerContent)
+    : cn(
+        "flex flex-col gap-4 p-4",
+        theme === "light" ? "text-gray-600" : "text-gray-300"
+      );
+
+  const popupContentClasses = classNames?.popupContent
+    ? cn(classNames.popupContent)
+    : cn(
+        "flex flex-col items-start gap-4 p-4",
+        theme === "light" ? "text-gray-600" : "text-gray-300"
+      );
+
+  const bannerTitleClasses = classNames?.bannerTitle
+    ? cn(classNames.bannerTitle)
+    : cn(
+        "text-sm font-semibold mb-1",
+        theme === "light" ? "text-gray-900" : "text-white"
+      );
+
+  const popupTitleClasses = classNames?.popupTitle
+    ? cn(classNames.popupTitle)
+    : cn(
+        "text-sm font-semibold mb-2",
+        theme === "light" ? "text-gray-900" : "text-white"
+      );
+
+  const bannerMessageClasses = classNames?.bannerMessage
+    ? cn(classNames.bannerMessage)
+    : cn(
+        "text-xs sm:text-sm font-medium text-center sm:text-left",
+        theme === "light" ? "text-gray-700" : "text-gray-200"
+      );
+
+  const popupMessageClasses = classNames?.popupMessage
+    ? cn(classNames.popupMessage)
+    : cn(
+        "text-xs font-medium",
+        theme === "light" ? "text-gray-700" : "text-gray-200"
+      );
 
   const getBaseClasses = () => {
     switch (displayType) {

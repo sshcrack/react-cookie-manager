@@ -1,6 +1,34 @@
 export interface CookieConsenterClassNames {
   acceptButton?: string;
   declineButton?: string;
+  manageButton?: string;
+  privacyPolicyLink?: string;
+  modalContainer?: string;
+  modalContent?: string;
+  modalTitle?: string;
+  modalMessage?: string;
+  popupContainer?: string;
+  popupContent?: string;
+  popupTitle?: string;
+  popupMessage?: string;
+  bannerContainer?: string;
+  bannerContent?: string;
+  bannerTitle?: string;
+  bannerMessage?: string;
+  floatingButton?: string;
+  floatingButtonCloseButton?: string;
+  manageCancelButton?: string;
+  manageSaveButton?: string;
+  manageCookieContainer?: string;
+  manageCookieTitle?: string;
+  manageCookieMessage?: string;
+  manageCookieCategory?: string;
+  manageCookieCategoryTitle?: string;
+  manageCookieCategorySubtitle?: string;
+  manageCookieStatusText?: string;
+  manageCookieToggle?: string;
+  manageCookieToggleChecked?: string;
+  poweredByLink?: string;
 }
 
 export interface CookieCategories {

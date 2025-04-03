@@ -19,6 +19,10 @@ A powerful, customizable React component for cookie consent management with buil
 - [Full Usage](#full-usage)
 - [Advanced Usage with Hook](#advanced-usage-with-hook)
 - [Props](#props)
+- [CSS Customization](#css-customization)
+  - [Available classNames](#available-classnames)
+  - [CSS Framework Compatibility](#css-framework-compatibility)
+  - [Element Groups](#element-groups)
 - [Cookie Categories](#cookie-categories)
 - [Hook API](#hook-api)
 - [i18next support](#i18next-support)
@@ -363,6 +367,152 @@ The floating button is fully accessible:
 | `onManage`                 | (preferences?: CookieCategories) => void | -                | Callback when preferences are updated     |
 | `onAccept`                 | () => void                               | -                | Callback when all cookies are accepted    |
 | `onDecline`                | () => void                               | -                | Callback when all cookies are declined    |
+| `classNames`               | CookieConsenterClassNames                | -                | Custom class names for styling            |
+
+## CSS Customization
+
+React Cookie Manager provides extensive styling customization through the `classNames` prop. You can override the default styling for each element of the cookie consent UI.
+
+### Available classNames
+
+```tsx
+<CookieManager
+  classNames={{
+    // Main action buttons
+    acceptButton:
+      "bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg",
+    declineButton:
+      "bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg",
+    manageButton:
+      "border-2 border-blue-500 text-blue-500 font-bold py-2 px-4 rounded-lg hover:bg-blue-50",
+
+    // Banner style (bottom of screen)
+    bannerContainer:
+      "bg-white/90 border-2 border-blue-200 shadow-xl rounded-xl",
+    bannerContent: "p-6 space-y-4",
+    bannerTitle: "text-lg font-bold text-blue-800",
+    bannerMessage: "text-sm text-gray-700",
+
+    // Popup style (bottom left corner)
+    popupContainer: "bg-white/90 border-2 border-blue-200 shadow-xl rounded-xl",
+    popupContent: "p-6 space-y-4",
+    popupTitle: "text-lg font-bold text-blue-800",
+    popupMessage: "text-sm text-gray-700",
+
+    // Modal style (center of screen)
+    modalContainer: "bg-black/50 backdrop-blur-sm",
+    modalContent: "bg-white p-8 rounded-xl max-w-lg mx-auto",
+    modalTitle: "text-xl font-bold text-gray-900",
+    modalMessage: "text-gray-600 my-4",
+
+    // Floating cookie button (appears after consent is given)
+    floatingButton: "bg-blue-500 text-white shadow-lg hover:bg-blue-600",
+    floatingButtonCloseButton: "bg-red-500 text-white",
+
+    // Manage Cookie UI elements
+    manageCookieContainer: "space-y-6",
+    manageCookieTitle: "text-xl font-bold text-blue-800",
+    manageCookieMessage: "text-gray-700",
+    manageCookieCategory: "border-b border-gray-200 pb-4",
+    manageCookieCategoryTitle: "font-bold text-gray-800",
+    manageCookieCategorySubtitle: "text-gray-600",
+    manageCookieStatusText: "text-xs text-gray-500 italic",
+    manageCookieToggle: "bg-gray-300",
+    manageCookieToggleChecked: "bg-green-500",
+    manageCancelButton:
+      "bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded",
+    manageSaveButton:
+      "bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded",
+
+    // Other elements
+    privacyPolicyLink: "text-blue-600 underline hover:text-blue-800",
+    poweredByLink: "text-gray-400 hover:text-gray-600",
+  }}
+>
+  {children}
+</CookieManager>
+```
+
+### CSS Framework Compatibility
+
+The `classNames` prop is compatible with any CSS framework. Here are some examples:
+
+#### Tailwind CSS
+
+```tsx
+<CookieManager
+  classNames={{
+    acceptButton:
+      "bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded",
+    declineButton:
+      "bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded",
+    bannerContainer: "bg-white shadow-lg rounded-lg border border-gray-200",
+  }}
+>
+  {children}
+</CookieManager>
+```
+
+#### Bootstrap
+
+```tsx
+<CookieManager
+  classNames={{
+    acceptButton: "btn btn-success",
+    declineButton: "btn btn-danger",
+    manageButton: "btn btn-outline-primary",
+    bannerContainer: "card",
+    bannerContent: "card-body",
+    bannerTitle: "card-title",
+    bannerMessage: "card-text",
+  }}
+>
+  {children}
+</CookieManager>
+```
+
+### Element Groups
+
+The classNames are organized by component type:
+
+#### Button Elements
+
+- `acceptButton`: Style for the Accept/Allow cookies button
+- `declineButton`: Style for the Decline/Reject cookies button
+- `manageButton`: Style for the Manage Cookies button
+- `manageCancelButton`: Style for the Cancel button in the manage preferences view
+- `manageSaveButton`: Style for the Save Preferences button
+
+#### Container Elements
+
+- `bannerContainer`: Main container for the banner-style consent UI
+- `popupContainer`: Main container for the popup-style consent UI
+- `modalContainer`: Main container for the modal-style consent UI
+- `manageCookieContainer`: Container for the manage preferences UI
+
+#### Content Elements
+
+- `bannerContent`, `popupContent`, `modalContent`: Content containers for each display type
+- `bannerTitle`, `popupTitle`, `modalTitle`: Title elements for each display type
+- `bannerMessage`, `popupMessage`, `modalMessage`: Message elements for each display type
+
+#### Manage Cookie UI Elements
+
+- `manageCookieTitle`: Title for the manage cookie preferences UI
+- `manageCookieMessage`: Description text in the manage preferences UI
+- `manageCookieCategory`: Container for each cookie category
+- `manageCookieCategoryTitle`: Title for each cookie category
+- `manageCookieCategorySubtitle`: Description for each cookie category
+- `manageCookieStatusText`: Status text showing consent status and date
+- `manageCookieToggle`: Toggle switch for cookie categories
+- `manageCookieToggleChecked`: Style applied to the toggle when checked
+
+#### Other Elements
+
+- `privacyPolicyLink`: Style for the privacy policy link
+- `floatingButton`: Style for the floating cookie button
+- `floatingButtonCloseButton`: Style for the close button on the floating cookie button
+- `poweredByLink`: Style for the "Powered by CookieKit" link
 
 ## Cookie Categories
 

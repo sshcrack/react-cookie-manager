@@ -21,10 +21,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
         showManageButton={true}
         translations={i18n.t}
         displayType="popup"
-        classNames={{
-          acceptButton: "bg-blue-500",
-          declineButton: "bg-blue-500 text-white py-2 px-4",
-        }}
         theme="light"
         onAccept={() => {
           console.log("accept");
