@@ -22,6 +22,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
         translations={i18n.t}
         displayType="banner"
         theme="light"
+        onAccept={() => {
+          console.log("accept");
+        }}
+        onDecline={() => {
+          console.log("decline");
+        }}
+        onManage={() => {
+          console.log("manage");
+        }}
       >
         {children}
       </CookieManager>

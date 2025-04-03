@@ -232,6 +232,14 @@ function App() {
           console.log("Cookie preferences updated:", preferences);
         }
       }}
+      onAccept={() => {
+        console.log("User accepted all cookies");
+        // Analytics tracking can be initialized here
+      }}
+      onDecline={() => {
+        console.log("User declined all cookies");
+        // Handle declined state if needed
+      }}
     >
       <AppContent />
     </CookieManager>
@@ -353,6 +361,8 @@ The floating button is fully accessible:
 | `blockedDomains`           | string[]                                 | []               | Additional domains to block               |
 | `cookieKitId`              | string                                   | undefined        | Your CookieKit.io integration ID          |
 | `onManage`                 | (preferences?: CookieCategories) => void | -                | Callback when preferences are updated     |
+| `onAccept`                 | () => void                               | -                | Callback when all cookies are accepted    |
+| `onDecline`                | () => void                               | -                | Callback when all cookies are declined    |
 
 ## Cookie Categories
 
@@ -381,6 +391,53 @@ interface CookieConsentHook {
   updateDetailedConsent: (preferences: CookieCategories) => void;
 }
 ```
+
+## Event Callbacks
+
+The CookieManager component provides callback props that allow you to respond to user interactions with the consent UI:
+
+| Callback    | Triggered when                       | Parameters                       |
+| ----------- | ------------------------------------ | -------------------------------- |
+| `onAccept`  | User accepts all cookies             | None                             |
+| `onDecline` | User declines all cookies            | None                             |
+| `onManage`  | User saves custom cookie preferences | `preferences?: CookieCategories` |
+
+### Usage Example
+
+```jsx
+<CookieManager
+  onAccept={() => {
+    console.log("All cookies accepted");
+    // Initialize analytics tools
+    window.gtag?.("consent", "update", { analytics_storage: "granted" });
+  }}
+  onDecline={() => {
+    console.log("All cookies declined");
+    // Ensure tracking is disabled
+    window.gtag?.("consent", "update", { analytics_storage: "denied" });
+  }}
+  onManage={(preferences) => {
+    console.log("Custom preferences saved:", preferences);
+    // Handle granular consent
+    if (preferences?.Analytics) {
+      // Enable analytics
+    }
+    if (preferences?.Advertising) {
+      // Enable ad personalization
+    }
+  }}
+>
+  {children}
+</CookieManager>
+```
+
+### Common Use Cases
+
+- **Analytics Initialization**: Only initialize tracking tools after receiving explicit consent
+- **Ad Personalization**: Enable or disable personalized advertising based on user preferences
+- **Social Media Integration**: Load social widgets only when Social cookies are accepted
+- **Consent Logging**: Record user consent choices for compliance purposes
+- **UI Updates**: Update the UI based on user consent status (e.g., showing alternative content)
 
 ## i18next support
 

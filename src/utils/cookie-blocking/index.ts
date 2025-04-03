@@ -23,19 +23,11 @@ export class CookieBlockingManager {
   public initialize(blockedHosts: string[], blockedKeywords: string[]): void {
     // Block network requests
     if (blockedHosts.length > 0) {
-      console.debug(
-        "[CookieKit] Blocking tracking requests for domains:",
-        blockedHosts
-      );
       blockTrackingRequests(blockedHosts);
     }
 
     // Block scripts and iframes
     if (blockedKeywords.length > 0) {
-      console.debug(
-        "[CookieKit] Blocking tracking scripts and iframes for keywords:",
-        blockedKeywords
-      );
       this.observerRef = blockTrackingScripts(blockedKeywords);
 
       // Set up periodic check to ensure placeholders remain visible
