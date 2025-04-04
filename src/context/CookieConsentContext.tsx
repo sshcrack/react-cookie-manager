@@ -26,6 +26,44 @@ import {
   postSessionToAnalytics,
 } from "../utils/session-utils";
 
+// Helper function to check if running on localhost
+const isLocalhost = (): boolean => {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    return (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.startsWith("192.168.") ||
+      hostname.startsWith("10.")
+    );
+  }
+  return false;
+};
+
+// Helper function to post to analytics if not on localhost
+const postToAnalyticsIfNotLocalhost = async (
+  cookieKitId: string,
+  sessionId: string,
+  action?: string,
+  preferences?: CookieCategories,
+  userId?: string
+) => {
+  if (isLocalhost()) {
+    console.log(
+      "[CookieKit] Running on localhost - consent data will be sent when deployed to production"
+    );
+    return;
+  }
+
+  await postSessionToAnalytics(
+    cookieKitId,
+    sessionId,
+    action,
+    preferences,
+    userId
+  );
+};
+
 interface CookieConsentContextValue {
   hasConsent: boolean | null;
   isDeclined: boolean;
@@ -189,7 +227,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
           setCookie(sessionKey, sessionId, 1);
           const savedSessionId = getCookie(sessionKey);
           if (savedSessionId && isMounted) {
-            await postSessionToAnalytics(
+            await postToAnalyticsIfNotLocalhost(
               cookieKitId,
               sessionId,
               undefined,
@@ -291,7 +329,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       const sessionKey = `${cookieKey}-session`;
       const sessionId = getCookie(sessionKey);
       if (sessionId) {
-        await postSessionToAnalytics(
+        await postToAnalyticsIfNotLocalhost(
           cookieKitId,
           sessionId,
           "accept",
@@ -324,7 +362,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       const sessionKey = `${cookieKey}-session`;
       const sessionId = getCookie(sessionKey);
       if (sessionId) {
-        await postSessionToAnalytics(
+        await postToAnalyticsIfNotLocalhost(
           cookieKitId,
           sessionId,
           "decline",
@@ -362,7 +400,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       const sessionKey = `${cookieKey}-session`;
       const sessionId = getCookie(sessionKey);
       if (sessionId) {
-        await postSessionToAnalytics(
+        await postToAnalyticsIfNotLocalhost(
           cookieKitId,
           sessionId,
           "save_preferences",
