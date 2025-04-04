@@ -10,6 +10,12 @@ A powerful, customizable React component for cookie consent management with buil
 
 Get up and running quickly with React Cookie Manager:
 
+```bash
+npm install react-cookie-manager
+# or
+yarn add react-cookie-manager
+```
+
 ```jsx
 import { CookieManager } from "react-cookie-manager";
 import "react-cookie-manager/style.css";
