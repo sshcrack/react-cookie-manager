@@ -14,6 +14,7 @@ interface ManageConsentProps {
   onCancel?: () => void;
   initialPreferences?: CookieCategories;
   detailedConsent?: DetailedCookieConsent | null;
+  cookieCategories?: CookieCategories;
   classNames?: CookieConsenterClassNames;
 }
 
@@ -26,6 +27,11 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
     Analytics: false,
     Social: false,
     Advertising: false,
+  },
+  cookieCategories = {
+    Analytics: true,
+    Social: true,
+    Advertising: true,
   },
   detailedConsent,
   classNames,
@@ -177,55 +183,57 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
         </div>
 
         {/* Analytics Cookies */}
-        <div
-          className={
-            classNames?.manageCookieCategory
-              ? cn(classNames.manageCookieCategory)
-              : "flex items-start justify-between"
-          }
-        >
-          <div>
-            <h4
-              className={
-                classNames?.manageCookieCategoryTitle
-                  ? cn(classNames.manageCookieCategoryTitle)
-                  : cn(
-                      "text-xs font-medium text-left",
-                      theme === "light" ? "text-gray-900" : "text-white"
-                    )
-              }
-            >
-              {tFunction("manageAnalyticsTitle")}
-            </h4>
-            <p
-              className={
-                classNames?.manageCookieCategorySubtitle
-                  ? cn(classNames.manageCookieCategorySubtitle)
-                  : cn(
-                      "text-xs text-left",
-                      theme === "light" ? "text-gray-600" : "text-gray-400"
-                    )
-              }
-            >
-              {tFunction("manageAnalyticsSubtitle")}
-            </p>
-            {renderConsentStatus("Analytics")}
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={consent.Analytics}
-              onChange={() => handleToggle("Analytics")}
-              className="sr-only peer"
-            />
-            <div
-              className={
-                classNames?.manageCookieToggle
-                  ? cn(
-                      classNames.manageCookieToggle,
-                      consent.Analytics && classNames.manageCookieToggleChecked
-                    )
-                  : cn(`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
+        {cookieCategories.Analytics !== false && (
+          <div
+            className={
+              classNames?.manageCookieCategory
+                ? cn(classNames.manageCookieCategory)
+                : "flex items-start justify-between"
+            }
+          >
+            <div>
+              <h4
+                className={
+                  classNames?.manageCookieCategoryTitle
+                    ? cn(classNames.manageCookieCategoryTitle)
+                    : cn(
+                        "text-xs font-medium text-left",
+                        theme === "light" ? "text-gray-900" : "text-white"
+                      )
+                }
+              >
+                {tFunction("manageAnalyticsTitle")}
+              </h4>
+              <p
+                className={
+                  classNames?.manageCookieCategorySubtitle
+                    ? cn(classNames.manageCookieCategorySubtitle)
+                    : cn(
+                        "text-xs text-left",
+                        theme === "light" ? "text-gray-600" : "text-gray-400"
+                      )
+                }
+              >
+                {tFunction("manageAnalyticsSubtitle")}
+              </p>
+              {renderConsentStatus("Analytics")}
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={consent.Analytics}
+                onChange={() => handleToggle("Analytics")}
+                className="sr-only peer"
+              />
+              <div
+                className={
+                  classNames?.manageCookieToggle
+                    ? cn(
+                        classNames.manageCookieToggle,
+                        consent.Analytics &&
+                          classNames.manageCookieToggleChecked
+                      )
+                    : cn(`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
                 ${
                   theme === "light"
                     ? "bg-gray-200 peer-checked:bg-blue-500"
@@ -234,61 +242,63 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
                 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
                 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
                 after:transition-all`)
-              }
-            ></div>
-          </label>
-        </div>
+                }
+              ></div>
+            </label>
+          </div>
+        )}
 
         {/* Social Cookies */}
-        <div
-          className={
-            classNames?.manageCookieCategory
-              ? cn(classNames.manageCookieCategory)
-              : "flex items-start justify-between"
-          }
-        >
-          <div>
-            <h4
-              className={
-                classNames?.manageCookieCategoryTitle
-                  ? cn(classNames.manageCookieCategoryTitle)
-                  : cn(
-                      "text-xs font-medium text-left",
-                      theme === "light" ? "text-gray-900" : "text-white"
-                    )
-              }
-            >
-              {tFunction("manageSocialTitle")}
-            </h4>
-            <p
-              className={
-                classNames?.manageCookieCategorySubtitle
-                  ? cn(classNames.manageCookieCategorySubtitle)
-                  : cn(
-                      "text-xs text-left",
-                      theme === "light" ? "text-gray-600" : "text-gray-400"
-                    )
-              }
-            >
-              {tFunction("manageSocialSubtitle")}
-            </p>
-            {renderConsentStatus("Social")}
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={consent.Social}
-              onChange={() => handleToggle("Social")}
-              className="sr-only peer"
-            />
-            <div
-              className={
-                classNames?.manageCookieToggle
-                  ? cn(
-                      classNames.manageCookieToggle,
-                      consent.Social && classNames.manageCookieToggleChecked
-                    )
-                  : cn(`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
+        {cookieCategories.Social !== false && (
+          <div
+            className={
+              classNames?.manageCookieCategory
+                ? cn(classNames.manageCookieCategory)
+                : "flex items-start justify-between"
+            }
+          >
+            <div>
+              <h4
+                className={
+                  classNames?.manageCookieCategoryTitle
+                    ? cn(classNames.manageCookieCategoryTitle)
+                    : cn(
+                        "text-xs font-medium text-left",
+                        theme === "light" ? "text-gray-900" : "text-white"
+                      )
+                }
+              >
+                {tFunction("manageSocialTitle")}
+              </h4>
+              <p
+                className={
+                  classNames?.manageCookieCategorySubtitle
+                    ? cn(classNames.manageCookieCategorySubtitle)
+                    : cn(
+                        "text-xs text-left",
+                        theme === "light" ? "text-gray-600" : "text-gray-400"
+                      )
+                }
+              >
+                {tFunction("manageSocialSubtitle")}
+              </p>
+              {renderConsentStatus("Social")}
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={consent.Social}
+                onChange={() => handleToggle("Social")}
+                className="sr-only peer"
+              />
+              <div
+                className={
+                  classNames?.manageCookieToggle
+                    ? cn(
+                        classNames.manageCookieToggle,
+                        consent.Social && classNames.manageCookieToggleChecked
+                      )
+                    : cn(`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
                 ${
                   theme === "light"
                     ? "bg-gray-200 peer-checked:bg-blue-500"
@@ -297,62 +307,64 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
                 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
                 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
                 after:transition-all`)
-              }
-            ></div>
-          </label>
-        </div>
+                }
+              ></div>
+            </label>
+          </div>
+        )}
 
         {/* Advertising Cookies */}
-        <div
-          className={
-            classNames?.manageCookieCategory
-              ? cn(classNames.manageCookieCategory)
-              : "flex items-start justify-between"
-          }
-        >
-          <div>
-            <h4
-              className={
-                classNames?.manageCookieCategoryTitle
-                  ? cn(classNames.manageCookieCategoryTitle)
-                  : cn(
-                      "text-xs font-medium text-left",
-                      theme === "light" ? "text-gray-900" : "text-white"
-                    )
-              }
-            >
-              {tFunction("manageAdvertTitle")}
-            </h4>
-            <p
-              className={
-                classNames?.manageCookieCategorySubtitle
-                  ? cn(classNames.manageCookieCategorySubtitle)
-                  : cn(
-                      "text-xs text-left",
-                      theme === "light" ? "text-gray-600" : "text-gray-400"
-                    )
-              }
-            >
-              {tFunction("manageAdvertSubtitle")}
-            </p>
-            {renderConsentStatus("Advertising")}
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={consent.Advertising}
-              onChange={() => handleToggle("Advertising")}
-              className="sr-only peer"
-            />
-            <div
-              className={
-                classNames?.manageCookieToggle
-                  ? cn(
-                      classNames.manageCookieToggle,
-                      consent.Advertising &&
-                        classNames.manageCookieToggleChecked
-                    )
-                  : cn(`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
+        {cookieCategories.Advertising !== false && (
+          <div
+            className={
+              classNames?.manageCookieCategory
+                ? cn(classNames.manageCookieCategory)
+                : "flex items-start justify-between"
+            }
+          >
+            <div>
+              <h4
+                className={
+                  classNames?.manageCookieCategoryTitle
+                    ? cn(classNames.manageCookieCategoryTitle)
+                    : cn(
+                        "text-xs font-medium text-left",
+                        theme === "light" ? "text-gray-900" : "text-white"
+                      )
+                }
+              >
+                {tFunction("manageAdvertTitle")}
+              </h4>
+              <p
+                className={
+                  classNames?.manageCookieCategorySubtitle
+                    ? cn(classNames.manageCookieCategorySubtitle)
+                    : cn(
+                        "text-xs text-left",
+                        theme === "light" ? "text-gray-600" : "text-gray-400"
+                      )
+                }
+              >
+                {tFunction("manageAdvertSubtitle")}
+              </p>
+              {renderConsentStatus("Advertising")}
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={consent.Advertising}
+                onChange={() => handleToggle("Advertising")}
+                className="sr-only peer"
+              />
+              <div
+                className={
+                  classNames?.manageCookieToggle
+                    ? cn(
+                        classNames.manageCookieToggle,
+                        consent.Advertising &&
+                          classNames.manageCookieToggleChecked
+                      )
+                    : cn(`w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-500 
                 ${
                   theme === "light"
                     ? "bg-gray-200 peer-checked:bg-blue-500"
@@ -361,10 +373,11 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
                 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 
                 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 
                 after:transition-all`)
-              }
-            ></div>
-          </label>
-        </div>
+                }
+              ></div>
+            </label>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mt-2 sm:justify-end">
