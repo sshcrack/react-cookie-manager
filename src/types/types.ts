@@ -234,6 +234,13 @@ export interface CookieConsenterProps {
   initialPreferences?: CookieCategories;
 
   /**
+   * Specifies which cookie categories should be displayed in the "Manage Preferences" view.
+   * This does not affect essential cookies, which are always shown.
+   * @default { Analytics: true, Social: true, Advertising: true }
+   */
+  cookieCategories?: CookieCategories;
+
+  /**
    * Detailed consent information including timestamps
    */
   detailedConsent?: DetailedCookieConsent | null;

@@ -146,6 +146,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
   children,
   cookieKey = "cookie-consent",
   cookieKitId,
+  cookieCategories,
   userId,
   translations,
   translationI18NextPrefix,
@@ -162,8 +163,6 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   const [showManageConsent, setShowManageConsent] = useState(false);
   const [isFloatingButtonVisible, setIsFloatingButtonVisible] = useState(false);
-  const hasPostedSession = useRef(false);
-  const isGeneratingSession = useRef(false);
   const tFunction = useMemo(
     () => createTFunction(translations, translationI18NextPrefix),
     [translations, translationI18NextPrefix]
@@ -518,6 +517,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
                         }
                       : undefined
                   }
+                  cookieCategories={cookieCategories}
                   detailedConsent={detailedConsent}
                   classNames={props.classNames}
                 />

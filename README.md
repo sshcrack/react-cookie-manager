@@ -542,7 +542,7 @@ The classNames are organized by component type:
 
 ## Cookie Categories
 
-The component manages three categories of cookies:
+The component supports managing consent for three predefined cookie categories:
 
 ```typescript
 interface CookieCategories {
@@ -551,6 +551,32 @@ interface CookieCategories {
   Advertising: boolean;
 }
 ```
+
+You can control which categories appear in the Manage Preferences UI by using the cookieCategories prop. This allows you to selectively hide or show specific categories based on your needs:
+
+```jsx
+<CookieManager
+  cookieCategories={{
+    Analytics: true, // Show Analytics category
+    Social: false, // Hide Social category
+    Advertising: true, // Show Advertising category
+  }}
+>
+  {children}
+</CookieManager>
+```
+
+By default, all categories are shown. When a category is hidden, its initial value is still respected as defined in the initialPreferences prop. The default preferences are:
+
+```typescript
+{
+  Analytics: false,
+  Social: false,
+  Advertising: false,
+}
+```
+
+This means even hidden categories will retain their configured initial values and can still be programmatically accessed.
 
 ## Hook API
 
