@@ -176,6 +176,7 @@ export const blockTrackingScripts = (
   document.querySelectorAll("iframe").forEach((iframe) => {
     if (
       iframe.src &&
+      iframe.src !== "about:blank" &&
       trackingKeywords.some((keyword) => iframe.src.includes(keyword))
     ) {
       createContentPlaceholder(iframe, iframe.src);
@@ -202,6 +203,7 @@ export const blockTrackingScripts = (
           const src = node.getAttribute("src");
           if (
             src &&
+            src !== "about:blank" &&
             trackingKeywords.some((keyword) => src.includes(keyword))
           ) {
             createContentPlaceholder(node as HTMLIFrameElement, src);
