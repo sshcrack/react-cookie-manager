@@ -72,6 +72,7 @@ interface CookieConsentContextValue {
   acceptCookies: () => void;
   declineCookies: () => void;
   updateDetailedConsent: (preferences: CookieCategories) => void;
+  openPreferencesModal: () => void;
 }
 
 const CookieManagerContext = createContext<CookieConsentContextValue | null>(
@@ -420,6 +421,18 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     setIsFloatingButtonVisible(false);
   };
 
+  const openPreferencesModal = () => {
+    if (detailedConsent) {
+      // If user has already made a consent decision, show the manage modal
+      setShowManageConsent(true);
+      setIsFloatingButtonVisible(false);
+      setIsVisible(false);
+    } else {
+      // If no consent decision has been made, show the initial consent banner
+      setIsVisible(true);
+    }
+  };
+
   const handleCancelManage = () => {
     setShowManageConsent(false);
     if (enableFloatingButton && detailedConsent) {
@@ -466,6 +479,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     acceptCookies,
     declineCookies,
     updateDetailedConsent,
+    openPreferencesModal,
   };
 
   return (
