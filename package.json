@@ -1,10 +1,10 @@
 {
   "name": "react-cookie-manager",
-  "version": "3.7.2",
+  "version": "3.7.3",
   "description": "🍪 The ultimate React cookie consent solution. Automatically block trackers, manage consent preferences, and protect user privacy with an elegant UI. Perfect for modern web applications.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hypershiphq/react-cookie-manager.git"
+    "url": "git+https://github.com/hypershiphq/react-cookie-manager.git"
   },
   "bugs": {
     "url": "https://github.com/hypershiphq/react-cookie-manager/issues"
@@ -76,14 +76,26 @@
     "avatar": "https://github.com/hypershiphq.png"
   },
   "techStack": {
-    "languages": ["typescript", "javascript"],
-    "frameworks": ["react"],
+    "languages": [
+      "typescript",
+      "javascript"
+    ],
+    "frameworks": [
+      "react"
+    ],
     "bundler": "vite",
-    "bundleType": ["esm", "cjs"],
+    "bundleType": [
+      "esm",
+      "cjs"
+    ],
     "packageManager": "pnpm",
     "typescript": true
   },
-  "tags": ["open source", "oss", "community"],
+  "tags": [
+    "open source",
+    "oss",
+    "community"
+  ],
   "devDependencies": {
     "@types/node": "^20.17.16",
     "@types/react": "^18.0.0",
