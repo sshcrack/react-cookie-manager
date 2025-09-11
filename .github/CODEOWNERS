@@ -1,0 +1,6 @@
+# CODEOWNERS for react-cookie-manager
+# This file tells GitHub who reviews changes to specific parts of the repo.
+# Docs: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+* @JackHyp
+* @jayhyp

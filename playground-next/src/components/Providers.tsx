@@ -2,16 +2,7 @@
 
 import { I18nextProvider } from "react-i18next";
 import i18n from "../i18n";
-import dynamic from "next/dynamic";
-import "../../../dist/style.css";
-
-const CookieManager = dynamic(
-  () => import("../../../dist").then((mod) => mod.CookieManager),
-  {
-    ssr: false,
-    loading: () => null,
-  }
-);
+import { CookieManager } from "react-cookie-manager";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (

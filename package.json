@@ -1,6 +1,6 @@
 {
   "name": "react-cookie-manager",
-  "version": "3.7.3",
+  "version": "3.8.0",
   "description": "🍪 The ultimate React cookie consent solution. Automatically block trackers, manage consent preferences, and protect user privacy with an elegant UI. Perfect for modern web applications.",
   "repository": {
     "type": "git",
@@ -42,22 +42,19 @@
   ],
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      },
-      "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
     },
-    "./dist/*": "./dist/*",
-    "./style.css": "./dist/style.css"
+    "./style.css": "./dist/style.css",
+    "./dist/*": "./dist/*"
   },
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
     "build": "vite build",
-    "postinstall": "node scripts/postinstall.js",
-    "publish-npm": "node scripts/publish.js"
+    "postinstall": "node scripts/postinstall.js"
   },
   "type": "module",
   "author": "Hypership",
@@ -114,11 +111,13 @@
     "tsup": "^8.3.5",
     "typescript": "^5.5.2",
     "vite": "^6.0.3",
+    "vite-plugin-css-injected-by-js": "^3.5.2",
     "vite-plugin-dts": "^4.3.0",
     "vite-plugin-lib-inject-css": "^2.2.1"
   },
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
-  }
+  },
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
 }

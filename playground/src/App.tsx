@@ -1,4 +1,4 @@
-import { useCookieConsent } from "../../dist";
+import { useCookieConsent } from "react-cookie-manager";
 import "./App.css";
 import reactLogo from "./assets/react.svg";
 import { useState, useEffect } from "react";
