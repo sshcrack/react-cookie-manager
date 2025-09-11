@@ -3,7 +3,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { initReactI18next } from "react-i18next";
 import { CookieManager } from "react-cookie-manager";
-import type { CookieCategories } from "react-cookie-manager";
 import App from "./App.tsx";
 import "./index.css";
 import "./globals.css";
@@ -55,7 +54,7 @@ createRoot(document.getElementById("root")!).render(
       cookieKitId="67b322ffb47f4471855cda97"
       displayType="popup"
       enableFloatingButton={true}
-      onManage={(preferences?: CookieCategories) => {
+      onManage={(preferences) => {
         if (preferences) {
           console.log("Cookie preferences updated:", preferences);
         }
