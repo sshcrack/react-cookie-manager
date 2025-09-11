@@ -1,3 +1,5 @@
+"use client";
+
 import React, {
   createContext,
   useContext,
@@ -16,7 +18,9 @@ import type {
   TranslationObject,
   TranslationFunction,
 } from "../types/types";
-import { ManageConsent } from "../components/ManageConsent";
+const ManageConsent = React.lazy(() =>
+  import("../components/ManageConsent").then((m) => ({ default: m.ManageConsent }))
+);
 import { getBlockedHosts, getBlockedKeywords } from "../utils/tracker-utils";
 import { createTFunction } from "../utils/translations";
 import { CookieBlockingManager } from "../utils/cookie-blocking";
@@ -492,7 +496,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
           }
         />
       )}
-      {showManageConsent &&
+      {showManageConsent && typeof document !== "undefined" &&
         createPortal(
           <div className="cookie-manager">
             <div className="fixed inset-0 z-[99999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
@@ -503,24 +507,26 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
                     : "bg-black/95 ring-1 ring-white/10"
                 }`}
               >
-                <ManageConsent
-                  tFunction={tFunction}
-                  theme={theme}
-                  onSave={updateDetailedConsent}
-                  onCancel={handleCancelManage}
-                  initialPreferences={
-                    detailedConsent
-                      ? {
-                          Analytics: detailedConsent.Analytics.consented,
-                          Social: detailedConsent.Social.consented,
-                          Advertising: detailedConsent.Advertising.consented,
-                        }
-                      : undefined
-                  }
-                  cookieCategories={cookieCategories}
-                  detailedConsent={detailedConsent}
-                  classNames={props.classNames}
-                />
+                <React.Suspense fallback={null}>
+                  <ManageConsent
+                    tFunction={tFunction}
+                    theme={theme}
+                    onSave={updateDetailedConsent}
+                    onCancel={handleCancelManage}
+                    initialPreferences={
+                      detailedConsent
+                        ? {
+                            Analytics: detailedConsent.Analytics.consented,
+                            Social: detailedConsent.Social.consented,
+                            Advertising: detailedConsent.Advertising.consented,
+                          }
+                        : undefined
+                    }
+                    cookieCategories={cookieCategories}
+                    detailedConsent={detailedConsent}
+                    classNames={props.classNames}
+                  />
+                </React.Suspense>
               </div>
             </div>
           </div>,
@@ -529,6 +535,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       {isFloatingButtonVisible &&
         !isVisible &&
         !showManageConsent &&
+        typeof document !== "undefined" &&
         createPortal(
           <div className="cookie-manager">
             <FloatingCookieButton

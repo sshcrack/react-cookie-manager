@@ -1,6 +1,5 @@
 "use client";
 
-import { useCookieConsent } from "../../../dist";
 import Link from "next/link";
 
 export default function Home() {

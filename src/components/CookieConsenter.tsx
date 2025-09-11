@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -270,6 +272,7 @@ const CookieConsenter: React.FC<
 
   // On mobile, always render the MobileModal regardless of displayType
   if (isMobile) {
+    if (typeof document === "undefined") return null;
     return createPortal(
       <MobileModal
         {...{
@@ -654,6 +657,7 @@ const CookieConsenter: React.FC<
     </div>
   );
 
+  if (typeof document === "undefined") return null;
   return createPortal(content, document.body);
 };
 
