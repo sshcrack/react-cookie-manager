@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { CookieConsenterClassNames } from "../types/types";
 import { cn } from "../utils/cn";
