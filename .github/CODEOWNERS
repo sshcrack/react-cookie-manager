@@ -2,29 +2,5 @@
 # This file tells GitHub who reviews changes to specific parts of the repo.
 # Docs: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
 
-# HOW TO USE
-# - Replace the example owners below with your GitHub usernames or org teams.
-# - Users: @username
-# - Teams (in an org): @org/team-name
-# - Multiple owners can be space-separated.
-# - The last matching pattern takes precedence.
-
-# ---------------------------------------------------------------------------
-# Default rule for everything in the repo (uncomment and set owners):
-# * @your-org/reviewers
-
-# Examples for this repo's structure (uncomment and adjust as needed):
-# /src/ @your-org/web-team
-# /src/components/ @your-org/design-system
-# /src/utils/cookie-blocking/ @your-org/privacy-team
-# /src/utils/tracker-utils.ts @your-org/privacy-team @username
-# /playground/ @your-org/sandbox-maintainers
-# /playground-next/ @your-org/nextjs-team
-# *.md @your-org/docs-team
-
-# Notes:
-# - Paths are relative to the repo root.
-# - Use more specific rules below less specific ones; the last match wins.
-# - CODEOWNERS must be in one of: .github/, docs/, or the repo root.
-
-
+* @JackHyp
+* @jayhyp
