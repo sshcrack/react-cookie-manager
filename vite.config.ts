@@ -6,6 +6,15 @@ import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
 export default defineConfig({
   plugins: [react(), dts({ include: ["src"] }), cssInjectedByJsPlugin()],
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: ["./tests/setup.ts"],
+    css: true,
+    coverage: {
+      provider: "v8",
+    },
+  },
   css: {
     modules: {
       generateScopedName: "[name]__[local]___[hash:base64:5]",

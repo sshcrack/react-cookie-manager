@@ -35,3 +35,6 @@ dist-ssr
 
 # Build artifacts
 *.zip
+
+# Test coverage
+coverage

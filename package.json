@@ -1,6 +1,6 @@
 {
   "name": "react-cookie-manager",
-  "version": "3.8.0",
+  "version": "3.8.1",
   "description": "🍪 The ultimate React cookie consent solution. Automatically block trackers, manage consent preferences, and protect user privacy with an elegant UI. Perfect for modern web applications.",
   "repository": {
     "type": "git",
@@ -54,6 +54,9 @@
   ],
   "scripts": {
     "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "postinstall": "node scripts/postinstall.js"
   },
   "type": "module",
@@ -94,13 +97,18 @@
     "community"
   ],
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.8.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.17.16",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^3.2.4",
     "autoprefixer": "^10.4.17",
     "clsx": "^2.1.1",
     "cssnano": "^7.0.6",
+    "jsdom": "^26.1.0",
     "postcss": "^8.4.35",
     "postcss-prefix-selector": "^2.1.0",
     "react": "^18.0.0",
@@ -113,7 +121,8 @@
     "vite": "^6.0.3",
     "vite-plugin-css-injected-by-js": "^3.5.2",
     "vite-plugin-dts": "^4.3.0",
-    "vite-plugin-lib-inject-css": "^2.2.1"
+    "vite-plugin-lib-inject-css": "^2.2.1",
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
     "react": ">=16.8.0",
