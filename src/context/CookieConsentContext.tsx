@@ -492,6 +492,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
           {...props}
           theme={theme}
           tFunction={tFunction}
+          cookieCategories={cookieCategories}
           cookieKey={cookieKey}
           onAccept={acceptCookies}
           onDecline={declineCookies}
