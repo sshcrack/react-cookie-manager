@@ -1,6 +1,13 @@
 # 🍪 React Cookie Manager
 
-A powerful, customizable React component for cookie consent management with built-in tracking prevention. This component provides a modern, user-friendly way to obtain and manage cookie consent from your website visitors.
+Privacy-first, flexible cookie consent for React. Automatically block trackers, manage granular consent, and provide a beautiful UX in a few lines of code.
+
+[![npm version](https://img.shields.io/npm/v/react-cookie-manager.svg)](https://www.npmjs.com/package/react-cookie-manager)
+[![npm downloads](https://img.shields.io/npm/dm/react-cookie-manager.svg)](https://www.npmjs.com/package/react-cookie-manager)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![types: TypeScript](https://img.shields.io/badge/types-TypeScript-blue)](https://www.npmjs.com/package/react-cookie-manager)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/react-cookie-manager)](https://bundlephobia.com/package/react-cookie-manager)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/hypershiphq/react-cookie-manager/issues)
 
 [![React Cookie Manager Hero](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/github-hero-banner.jpg?raw=true)](https://cookiekit.io)
 
@@ -18,7 +25,6 @@ yarn add react-cookie-manager
 
 ```jsx
 import { CookieManager } from "react-cookie-manager";
-import "react-cookie-manager/style.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -30,6 +36,7 @@ createRoot(document.getElementById("root")).render(
 ```
 
 The CookieManager component needs to wrap your entire application to properly manage cookie consent across all components and pages.
+Styles are automatically injected; no manual CSS import is required.
 
 ## Contents
 
@@ -39,11 +46,11 @@ The CookieManager component needs to wrap your entire application to properly ma
 - [CookieKit Integration](#cookiekit-integration)
 - [Automatically Disable Tracking](#automatically-disable-tracking)
 - [Installation](#installation)
-- [Importing Styles](#importing-styles)
 - [Basic Usage](#basic-usage)
 - [Next.js Usage](#nextjs-usage)
 - [Full Usage](#full-usage)
 - [Advanced Usage with Hook](#advanced-usage-with-hook)
+- [Floating Cookie Button](#floating-cookie-button)
 - [Props](#props)
 - [CSS Customization](#css-customization)
   - [Available classNames](#available-classnames)
@@ -53,6 +60,7 @@ The CookieManager component needs to wrap your entire application to properly ma
 - [Hook API](#hook-api)
 - [i18next support](#i18next-support)
 - [Translation Options](#translation-options)
+- [Local Development](#local-development)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -139,29 +147,12 @@ When a user hasn't consented to the required cookies, these embeds are replaced 
 
 This ensures your site remains GDPR-compliant while providing a seamless user experience.
 
-## Installation
-
-```bash
-npm install react-cookie-manager
-# or
-yarn add react-cookie-manager
-```
-
-## Importing Styles
-
-The component requires its CSS file to be imported in your application. Add the following import to your app's entry point (e.g., `App.tsx` or `index.tsx`):
-
-```javascript
-import "react-cookie-manager/style.css";
-```
-
 ![React Cookie Manager Styles](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/banner-styles.jpg?raw=true)
 
 ## Basic Usage
 
 ```jsx
 import { CookieManager } from "react-cookie-manager";
-import "react-cookie-manager/style.css";
 
 function App() {
   return (
@@ -182,51 +173,71 @@ function App() {
 
 ## Next.js Usage
 
-For Next.js applications, you'll need to use dynamic imports to prevent SSR of the cookie manager:
+With Next.js (App Router), render `CookieManager` in a client `Providers` component at the root. No dynamic import is required.
 
 ```tsx
+// app/components/Providers.tsx
 "use client";
 
-import dynamic from "next/dynamic";
+import { CookieManager } from "react-cookie-manager";
 
-const CookieManager = dynamic(
-  () => import("react-cookie-manager").then((mod) => mod.CookieManager),
-  { ssr: false, loading: () => null }
-);
-
-// In your Providers component or layout
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <CookieManager
-      showManageButton={true}
-      translations={{
-        title: "Cookie Preferences",
-        message: "We use cookies to improve your experience.",
-      }}
-      displayType="banner"
+      showManageButton
+      enableFloatingButton
+      displayType="popup"
       theme="light"
     >
       {children}
     </CookieManager>
   );
 }
+```
 
-// In your page component
+```tsx
+// app/layout.tsx
+import type { Metadata } from "next";
+import { Providers } from "@/components/Providers";
+
+export const metadata: Metadata = { title: "App" };
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}
+```
+
+Use the hook in any client component:
+
+```tsx
+// app/page.tsx (client component)
+"use client";
+
 import { useCookieConsent } from "react-cookie-manager";
 
 export default function Home() {
-  const { showConsentBanner, detailedConsent } = useCookieConsent();
+  const { showConsentBanner, detailedConsent, openPreferencesModal } =
+    useCookieConsent();
 
   return (
     <div>
       <button onClick={showConsentBanner}>Manage Cookie Settings</button>
+      <button onClick={openPreferencesModal}>Open Preferences</button>
       {detailedConsent && (
         <div>
-          Analytics:{" "}
-          {detailedConsent.Analytics.consented ? "Enabled" : "Disabled"}
+          Analytics: {detailedConsent.Analytics.consented ? "Enabled" : "Disabled"}
           Social: {detailedConsent.Social.consented ? "Enabled" : "Disabled"}
-          Advertising:{" "}
-          {detailedConsent.Advertising.consented ? "Enabled" : "Disabled"}
+          Advertising: {detailedConsent.Advertising.consented ? "Enabled" : "Disabled"}
         </div>
       )}
     </div>
@@ -238,7 +249,6 @@ export default function Home() {
 
 ```jsx
 import { CookieManager } from "react-cookie-manager";
-import "react-cookie-manager/style.css";
 
 function App() {
   return (
@@ -374,26 +384,30 @@ The floating button is fully accessible:
 
 ## Props
 
+These are the props for the `CookieManager` component (the main component you should use).
+
 | Prop                       | Type                                     | Default          | Description                               |
 | -------------------------- | ---------------------------------------- | ---------------- | ----------------------------------------- |
 | `children`                 | React.ReactNode                          | -                | Your app components                       |
 | `translations`             | TranslationObject \| TranslationFunction | -                | Translation object or i18n TFunction      |
 | `translationI18NextPrefix` | string                                   | -                | i18next key prefix, e.g. "cookies."       |
-| `showManageButton`         | boolean                                  | false            | Whether to show the manage cookies button |
+| `showManageButton`         | boolean                                  | true             | Whether to show the manage cookies button |
 | `enableFloatingButton`     | boolean                                  | false            | Enable floating cookie button             |
 | `privacyPolicyUrl`         | string                                   | -                | URL for the privacy policy                |
 | `cookieKey`                | string                                   | 'cookie-consent' | Name of the cookie to store consent       |
-| `cookieExpiration`         | number                                   | 365              | Days until cookie expires                 |
-| `displayType`              | 'banner' \| 'popup' \| 'modal'           | 'banner'         | How the consent UI is displayed           |
-| `position`                 | 'top' \| 'bottom'                        | 'bottom'         | Position of the banner                    |
+| `expirationDays`           | number                                   | 365              | Days until consent expires                 |
+| `displayType`              | 'banner' \| 'popup' \| 'modal'           | 'popup'          | How the consent UI is displayed           |
 | `theme`                    | 'light' \| 'dark'                        | 'light'          | Color theme                               |
 | `disableAutomaticBlocking` | boolean                                  | false            | Disable automatic tracking prevention     |
-| `blockedDomains`           | string[]                                 | []               | Additional domains to block               |
-| `cookieKitId`              | string                                   | undefined        | Your CookieKit.io integration ID          |
+| `blockedDomains`           | string[]                                 | []               | Additional domains/hosts to block         |
+| `cookieKitId`              | string                                   | -                | Your CookieKit.io integration ID          |
+| `userId`                   | string                                   | -                | Optional user id for CookieKit analytics  |
 | `onManage`                 | (preferences?: CookieCategories) => void | -                | Callback when preferences are updated     |
 | `onAccept`                 | () => void                               | -                | Callback when all cookies are accepted    |
 | `onDecline`                | () => void                               | -                | Callback when all cookies are declined    |
 | `classNames`               | CookieConsenterClassNames                | -                | Custom class names for styling            |
+| `cookieCategories`         | CookieCategories                         | { Analytics: true, Social: true, Advertising: true } | Which categories to show in Manage UI |
+| `initialPreferences`       | CookieCategories                         | { Analytics: false, Social: false, Advertising: false } | Initial values for categories |
 
 ## CSS Customization
 
@@ -588,6 +602,7 @@ interface CookieConsentHook {
   isDeclined: boolean;
   detailedConsent: DetailedCookieConsent | null;
   showConsentBanner: () => void;
+  openPreferencesModal: () => void;
   acceptCookies: () => void;
   declineCookies: () => void;
   updateDetailedConsent: (preferences: CookieCategories) => void;
@@ -772,9 +787,38 @@ function App() {
 }
 ```
 
+## Local Development
+
+Run the example apps locally to test changes:
+
+```bash
+# Clone and install deps at repo root
+pnpm install
+
+# Vite playground
+cd playground
+pnpm install
+pnpm dev
+
+# Next.js playground (App Router)
+cd ../playground-next
+pnpm install
+pnpm dev
+```
+
+Both playgrounds consume the local package via a file dependency so your changes are reflected immediately.
+
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Here’s how to get started:
+
+1. Fork the repo and create a feature branch
+2. Make your changes with tests where applicable
+3. Run the test suite: `pnpm test`
+4. Open a PR and describe your changes
+
+- Issues: [GitHub Issues](https://github.com/hypershiphq/react-cookie-manager/issues)
+- Discussions/ideas: open an issue to start a conversation
 
 ## License
 
