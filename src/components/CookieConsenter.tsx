@@ -60,6 +60,12 @@ const MobileModal: React.FC<
   classNames,
 }) => {
   const title = tFunction("title");
+  const mobileContentOverride =
+    displayType === "modal"
+      ? classNames?.modalContent
+      : displayType === "popup"
+      ? classNames?.popupContent
+      : classNames?.bannerContent;
   return (
     <div className="cookie-manager">
       {displayType === "modal" && (
@@ -82,7 +88,8 @@ const MobileModal: React.FC<
             theme === "light"
               ? "bg-white/95 ring-1 ring-black/10"
               : "bg-black/95 ring-1 ring-white/10",
-            "rounded-2xl backdrop-blur-sm backdrop-saturate-150"
+            "rounded-2xl backdrop-blur-sm backdrop-saturate-150",
+            mobileContentOverride && cn(mobileContentOverride)
           )}
         >
           {isManaging ? (
