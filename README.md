@@ -13,6 +13,14 @@ Privacy-first, flexible cookie consent for React. Automatically block trackers, 
 
 ![React Cookie Manager](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/react-cookie-manager.gif?raw=true)
 
+## Feature highlights
+
+- Geolocation-based auto-display (shows banner only in regulated regions)
+- Automatic blocking of common trackers and third-party embeds
+- Granular categories (Analytics, Social, Advertising)
+- Beautiful, responsive UI (banner, popup, modal) with theming
+- Floating settings button and full preferences UI
+
 ## Quick Start
 
 Get up and running quickly with React Cookie Manager:
@@ -45,6 +53,7 @@ Styles are automatically injected; no manual CSS import is required.
 - [Try it out](#-try-it-out)
 - [CookieKit Integration](#cookiekit-integration)
 - [Automatically Disable Tracking](#automatically-disable-tracking)
+- [Geolocation](#geolocation)
 - [Installation](#installation)
 - [Basic Usage](#basic-usage)
 - [Next.js Usage](#nextjs-usage)
@@ -148,6 +157,25 @@ When a user hasn't consented to the required cookies, these embeds are replaced 
 This ensures your site remains GDPR-compliant while providing a seamless user experience.
 
 ![React Cookie Manager Styles](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/banner-styles.jpg?raw=true)
+
+## Geolocation
+
+React Cookie Manager can automatically decide whether to show the cookie banner based on the user’s region.
+
+- Logic: only shows for regulated jurisdictions (GDPR: EU/EEA/UK, CH, BR, CA/PIPEDA, AU, JP/APPI, KR/PIPA, certain US regions like US-CA).
+- Opt-out: pass `disableGeolocation` to skip the check and always show the banner when no consent is stored.
+
+### Usage
+
+```tsx
+import { CookieManager } from "react-cookie-manager";
+
+// Geolocation enabled by default
+<CookieManager>{children}</CookieManager>
+
+// Opt-out: disable geolocation gating
+<CookieManager disableGeolocation>{children}</CookieManager>
+```
 
 ## Basic Usage
 

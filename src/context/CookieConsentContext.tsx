@@ -28,6 +28,10 @@ import {
   postSessionToAnalytics,
 } from "../utils/session-utils";
 
+const GEO_ENDPOINT = "https://consent-geo.cookiekit.io/";
+const GEO_DECISION_KEY = "rcm_geo_decision_v1";
+const GEO_PROMISE_KEY = "__rcm_geo_promise__";
+
 // Helper function to check if running on localhost
 const isLocalhost = (): boolean => {
   if (typeof window !== "undefined") {
@@ -132,6 +136,11 @@ export interface CookieManagerProps
   translationI18NextPrefix?: string;
   enableFloatingButton?: boolean;
   theme?: "light" | "dark";
+  /**
+   * Disable geolocation gating. When true, the banner will be shown (if no consent) without geo checks.
+   * @default false
+   */
+  disableGeolocation?: boolean;
 }
 
 const createConsentStatus = (consented: boolean) => ({
@@ -161,6 +170,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
   expirationDays = 365,
   enableFloatingButton = false,
   theme = "light",
+  disableGeolocation = false,
   ...props
 }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -253,10 +263,76 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
   }, [cookieKitId, cookieKey, userId]);
 
   useEffect(() => {
-    // Show banner if no consent decision has been made AND manage consent is not shown
-    if (detailedConsent === null && !showManageConsent) {
-      setIsVisible(true);
-    }
+    let cancelled = false;
+    // Show banner only for regulated regions when no consent exists and manage is not shown
+    const maybeShow = async () => {
+      if (detailedConsent !== null || showManageConsent) return;
+      // If explicitly disabled, show banner without geo checks
+      if (disableGeolocation) {
+        if (!cancelled) setIsVisible(true);
+        return;
+      }
+      // Call hardcoded Cloudflare Worker endpoint exactly once per session
+      const fetchWithTimeout = async (url: string, ms: number): Promise<Response> => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), ms);
+        try {
+          const res = await fetch(url, {
+            signal: controller.signal,
+            headers: { accept: 'application/json' },
+          });
+          clearTimeout(timer);
+          return res;
+        } finally {
+          clearTimeout(timer);
+        }
+      };
+
+      const url = `${GEO_ENDPOINT}?t=${Date.now()}`;
+
+      // 1) Check cached decision (6h TTL)
+      try {
+        const cached = sessionStorage.getItem(GEO_DECISION_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached) as { ts: number; show: boolean };
+          if (Date.now() - parsed.ts < 6 * 60 * 60 * 1000) {
+            if (!cancelled && parsed.show) setIsVisible(true);
+            return;
+          }
+        }
+      } catch {}
+
+      // 2) Single-flight across components/StrictMode
+      const w = typeof window !== 'undefined' ? (window as any) : undefined;
+      if (w && w[GEO_PROMISE_KEY]) {
+        try {
+          const show: boolean = await w[GEO_PROMISE_KEY];
+          if (!cancelled && show) setIsVisible(true);
+        } catch {}
+        return;
+      }
+
+      const promise: Promise<boolean> = (async () => {
+        const res = await fetchWithTimeout(url, 5000);
+        if (!res.ok) return false;
+        const data = (await res.json().catch(() => null)) as { showConsentBanner?: boolean } | null;
+        const show = Boolean(data?.showConsentBanner);
+        try {
+          sessionStorage.setItem(GEO_DECISION_KEY, JSON.stringify({ ts: Date.now(), show }));
+        } catch {}
+        return show;
+      })();
+
+      if (w) w[GEO_PROMISE_KEY] = promise;
+
+      try {
+        const show = await promise;
+        if (!cancelled && show) setIsVisible(true);
+      } finally {
+        if (w) w[GEO_PROMISE_KEY] = undefined;
+      }
+    };
+    maybeShow();
 
     // Handle tracking blocking
     if (!disableAutomaticBlocking) {
@@ -309,7 +385,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
         cookieBlockingManager.current.cleanup();
       }
     };
-  }, [detailedConsent, disableAutomaticBlocking, blockedDomains]);
+  }, [detailedConsent, disableAutomaticBlocking, blockedDomains, showManageConsent, disableGeolocation]);
 
   const showConsentBanner = () => {
     if (!showManageConsent) {

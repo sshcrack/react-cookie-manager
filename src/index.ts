@@ -6,3 +6,4 @@ export {
   useCookieConsent,
 } from "./context/CookieConsentContext";
 export type { CookieManagerProps } from "./context/CookieConsentContext";
+export type { GeoOptions } from "./utils/geo";
