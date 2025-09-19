@@ -176,6 +176,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
   const [isVisible, setIsVisible] = useState(false);
   const [showManageConsent, setShowManageConsent] = useState(false);
   const [isFloatingButtonVisible, setIsFloatingButtonVisible] = useState(false);
+  const [geoShowDecision, setGeoShowDecision] = useState<boolean | null>(null);
   const tFunction = useMemo(
     () => createTFunction(translations, translationI18NextPrefix),
     [translations, translationI18NextPrefix]
@@ -269,7 +270,10 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       if (detailedConsent !== null || showManageConsent) return;
       // If explicitly disabled, show banner without geo checks
       if (disableGeolocation) {
-        if (!cancelled) setIsVisible(true);
+        if (!cancelled) {
+          setGeoShowDecision(true);
+          setIsVisible(true);
+        }
         return;
       }
       // Call hardcoded Cloudflare Worker endpoint exactly once per session
@@ -296,7 +300,10 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
         if (cached) {
           const parsed = JSON.parse(cached) as { ts: number; show: boolean };
           if (Date.now() - parsed.ts < 6 * 60 * 60 * 1000) {
-            if (!cancelled && parsed.show) setIsVisible(true);
+            if (!cancelled) {
+              setGeoShowDecision(parsed.show);
+              if (parsed.show) setIsVisible(true);
+            }
             return;
           }
         }
@@ -307,7 +314,10 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       if (w && w[GEO_PROMISE_KEY]) {
         try {
           const show: boolean = await w[GEO_PROMISE_KEY];
-          if (!cancelled && show) setIsVisible(true);
+          if (!cancelled) {
+            setGeoShowDecision(show);
+            if (show) setIsVisible(true);
+          }
         } catch {}
         return;
       }
@@ -327,7 +337,10 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
       try {
         const show = await promise;
-        if (!cancelled && show) setIsVisible(true);
+        if (!cancelled) {
+          setGeoShowDecision(show);
+          if (show) setIsVisible(true);
+        }
       } finally {
         if (w) w[GEO_PROMISE_KEY] = undefined;
       }
@@ -336,6 +349,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
     // Handle tracking blocking
     if (!disableAutomaticBlocking) {
+      const isRegulated = disableGeolocation ? true : geoShowDecision === true;
       // Get current preferences
       const currentPreferences = detailedConsent
         ? {
@@ -343,7 +357,9 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
             Social: detailedConsent.Social.consented,
             Advertising: detailedConsent.Advertising.consented,
           }
-        : null;
+        : isRegulated
+        ? null // regulated: block until explicit consent
+        : { Analytics: true, Social: true, Advertising: true }; // unregulated: allow all
 
       // Get blocked hosts and keywords based on preferences
       const blockedHosts = [
@@ -385,7 +401,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
         cookieBlockingManager.current.cleanup();
       }
     };
-  }, [detailedConsent, disableAutomaticBlocking, blockedDomains, showManageConsent, disableGeolocation]);
+  }, [detailedConsent, disableAutomaticBlocking, blockedDomains, showManageConsent, disableGeolocation, geoShowDecision]);
 
   const showConsentBanner = () => {
     if (!showManageConsent) {
