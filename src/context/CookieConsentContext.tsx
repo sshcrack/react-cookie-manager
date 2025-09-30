@@ -21,7 +21,7 @@ const ManageConsent = React.lazy(() =>
 );
 import { getBlockedHosts, getBlockedKeywords } from "../utils/tracker-utils";
 import { createTFunction } from "../utils/translations";
-import { CookieBlockingManager } from "../utils/cookie-blocking";
+import { CookieBlockingManager, setBlockingEnabled, unblockPreviouslyBlockedContent } from "../utils/cookie-blocking";
 import { setCookie, getCookie, deleteCookie } from "../utils/cookie-utils";
 import {
   generateSessionId,
@@ -374,6 +374,9 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
       // Initialize or update cookie blocking
       if (blockedHosts.length > 0 || blockedKeywords.length > 0) {
+        // Enable blocking and ensure only currently blocked keywords are enforced
+        setBlockingEnabled(true);
+
         // Create a new manager if one doesn't exist
         if (!cookieBlockingManager.current) {
           cookieBlockingManager.current = new CookieBlockingManager();
@@ -381,11 +384,20 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
         // Initialize the manager with current blocked hosts and keywords
         cookieBlockingManager.current.initialize(blockedHosts, blockedKeywords);
+
+        // Proactively restore any previously blocked iframes that are now permitted
+        unblockPreviouslyBlockedContent(blockedKeywords);
       } else {
+        // No blocking necessary: disable to avoid races and restore content
+        setBlockingEnabled(false);
+
         // Clean up if no blocking is needed
         if (cookieBlockingManager.current) {
           cookieBlockingManager.current.cleanup();
         }
+
+        // Ensure any previously blocked content is restored
+        unblockPreviouslyBlockedContent([]);
       }
     } else {
       // Clean up if blocking is disabled
@@ -393,6 +405,8 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
         cookieBlockingManager.current.cleanup();
         cookieBlockingManager.current = null;
       }
+      setBlockingEnabled(false);
+      unblockPreviouslyBlockedContent([]);
     }
 
     return () => {
@@ -418,6 +432,15 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     if (enableFloatingButton) {
       setIsFloatingButtonVisible(true);
     }
+
+    // Immediately disable blocking and restore previously blocked content
+    try {
+      setBlockingEnabled(false);
+      if (cookieBlockingManager.current) {
+        cookieBlockingManager.current.cleanup();
+      }
+      unblockPreviouslyBlockedContent([]);
+    } catch (e) {}
 
     if (cookieKitId) {
       const sessionKey = `${cookieKey}-session`;
@@ -490,19 +513,33 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       setIsFloatingButtonVisible(true);
     }
 
-    if (cookieKitId) {
-      const sessionKey = `${cookieKey}-session`;
-      const sessionId = getCookie(sessionKey);
-      if (sessionId) {
-        await postToAnalyticsIfNotLocalhost(
-          cookieKitId,
-          sessionId,
-          "save_preferences",
-          preferences,
-          userId
-        );
+    // Reconfigure blocking immediately according to explicit preferences
+    try {
+      const blockedHosts = [
+        ...getBlockedHosts(preferences),
+        ...blockedDomains,
+      ];
+      const blockedKeywords = [
+        ...getBlockedKeywords(preferences),
+        ...blockedDomains,
+      ];
+
+      if (blockedHosts.length > 0 || blockedKeywords.length > 0) {
+        setBlockingEnabled(true);
+        if (!cookieBlockingManager.current) {
+          cookieBlockingManager.current = new CookieBlockingManager();
+        }
+        cookieBlockingManager.current.initialize(blockedHosts, blockedKeywords);
+        // Ensure we restore any content that is now permitted
+        unblockPreviouslyBlockedContent(blockedKeywords);
+      } else {
+        setBlockingEnabled(false);
+        if (cookieBlockingManager.current) {
+          cookieBlockingManager.current.cleanup();
+        }
+        unblockPreviouslyBlockedContent([]);
       }
-    }
+    } catch (e) {}
 
     if (onManage) {
       onManage(preferences);
@@ -544,9 +581,6 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
     // Add event listener for custom event to show cookie settings
     const handleShowCookieConsent = () => {
-      console.debug(
-        "[CookieKit] Custom event triggered to show cookie settings"
-      );
       if (detailedConsent) {
         setShowManageConsent(true);
         setIsFloatingButtonVisible(false);
