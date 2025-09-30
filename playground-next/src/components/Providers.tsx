@@ -14,6 +14,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         translations={i18n.t}
         displayType="popup"
         theme="light"
+        initialPreferences={{ Analytics: true, Social: true, Advertising: true }}
         onAccept={() => {
           console.log("accept");
         }}

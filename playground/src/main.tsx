@@ -53,6 +53,7 @@ createRoot(document.getElementById("root")!).render(
       theme="light"
       cookieKitId="67b322ffb47f4471855cda97"
       displayType="popup"
+      initialPreferences={{ Analytics: true, Social: true, Advertising: true }}
       enableFloatingButton={true}
       onManage={(preferences) => {
         if (preferences) {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   CookieCategories,
   DetailedCookieConsent,
@@ -37,6 +37,11 @@ export const ManageConsent: React.FC<ManageConsentProps> = ({
   classNames,
 }) => {
   const [consent, setConsent] = useState<CookieCategories>(initialPreferences);
+
+  // Keep local state in sync if initialPreferences prop changes
+  useEffect(() => {
+    setConsent(initialPreferences);
+  }, [initialPreferences]);
 
   const handleToggle = (category: keyof CookieCategories) => {
     setConsent((prev) => ({

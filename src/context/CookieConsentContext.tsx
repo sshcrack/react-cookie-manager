@@ -218,6 +218,18 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     ? Object.values(detailedConsent).some((status) => status.consented)
     : null;
 
+  // Prefer existing consent. Otherwise use provided initialPreferences from props
+  const derivedInitialPreferences = useMemo(() => {
+    if (detailedConsent) {
+      return {
+        Analytics: detailedConsent.Analytics.consented,
+        Social: detailedConsent.Social.consented,
+        Advertising: detailedConsent.Advertising.consented,
+      };
+    }
+    return props.initialPreferences;
+  }, [detailedConsent, props.initialPreferences]);
+
   // Use the CookieBlockingManager
   const cookieBlockingManager = useRef<CookieBlockingManager | null>(null);
 
@@ -624,15 +636,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
           onDecline={declineCookies}
           onManage={handleManage}
           detailedConsent={detailedConsent}
-          initialPreferences={
-            detailedConsent
-              ? {
-                  Analytics: detailedConsent.Analytics.consented,
-                  Social: detailedConsent.Social.consented,
-                  Advertising: detailedConsent.Advertising.consented,
-                }
-              : undefined
-          }
+          initialPreferences={derivedInitialPreferences}
         />
       )}
       {showManageConsent && typeof document !== "undefined" &&
@@ -652,15 +656,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
                     theme={theme}
                     onSave={updateDetailedConsent}
                     onCancel={handleCancelManage}
-                    initialPreferences={
-                      detailedConsent
-                        ? {
-                            Analytics: detailedConsent.Analytics.consented,
-                            Social: detailedConsent.Social.consented,
-                            Advertising: detailedConsent.Advertising.consented,
-                          }
-                        : undefined
-                    }
+                    initialPreferences={derivedInitialPreferences}
                     cookieCategories={cookieCategories}
                     detailedConsent={detailedConsent}
                     classNames={props.classNames}
