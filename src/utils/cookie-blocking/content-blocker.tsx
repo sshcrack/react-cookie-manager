@@ -2,6 +2,16 @@
  * Handles blocking of tracking scripts and iframes, replacing them with placeholders
  */
 
+// Global toggle to enable/disable blocking logic at runtime
+let blockingEnabled = true;
+
+/**
+ * Enables or disables DOM-level content blocking immediately.
+ */
+export const setBlockingEnabled = (enabled: boolean): void => {
+  blockingEnabled = enabled;
+};
+
 /**
  * Applies common styling to the wrapper element
  * @param wrapper The wrapper element to style
@@ -63,10 +73,10 @@ const addSettingsButtonListeners = (placeholderId: string): void => {
   );
   if (settingsButton) {
     settingsButton.addEventListener("mouseover", () => {
-      settingsButton.style.backgroundColor = "#2563eb";
+      (settingsButton as HTMLElement).style.backgroundColor = "#2563eb";
     });
     settingsButton.addEventListener("mouseout", () => {
-      settingsButton.style.backgroundColor = "#3b82f6";
+      (settingsButton as HTMLElement).style.backgroundColor = "#3b82f6";
     });
     settingsButton.addEventListener("click", () => {
       // Try to show cookie settings
@@ -162,11 +172,15 @@ export const createContentPlaceholder = (
 export const blockTrackingScripts = (
   trackingKeywords: string[]
 ): MutationObserver => {
+  if (!blockingEnabled) {
+    // No-op observer to keep call sites simple
+    return new MutationObserver(() => {});
+  }
   // Remove all script tags that match tracking domains
   document.querySelectorAll("script").forEach((script) => {
     if (
-      script.src &&
-      trackingKeywords.some((keyword) => script.src.includes(keyword))
+      (script as HTMLScriptElement).src &&
+      trackingKeywords.some((keyword) => (script as HTMLScriptElement).src.includes(keyword))
     ) {
       script.remove();
     }
@@ -174,12 +188,14 @@ export const blockTrackingScripts = (
 
   // Also block iframes from tracking domains (especially for YouTube embeds)
   document.querySelectorAll("iframe").forEach((iframe) => {
+    const el = iframe as HTMLIFrameElement;
     if (
-      iframe.src &&
-      iframe.src !== "about:blank" &&
-      trackingKeywords.some((keyword) => iframe.src.includes(keyword))
+      blockingEnabled &&
+      el.src &&
+      el.src !== "about:blank" &&
+      trackingKeywords.some((keyword) => el.src.includes(keyword))
     ) {
-      createContentPlaceholder(iframe, iframe.src);
+      createContentPlaceholder(el, el.src);
     }
   });
 
@@ -191,6 +207,7 @@ export const blockTrackingScripts = (
         if (node instanceof HTMLElement && node.tagName === "SCRIPT") {
           const src = node.getAttribute("src");
           if (
+            blockingEnabled &&
             src &&
             trackingKeywords.some((keyword) => src.includes(keyword))
           ) {
@@ -202,6 +219,7 @@ export const blockTrackingScripts = (
         if (node instanceof HTMLElement && node.tagName === "IFRAME") {
           const src = node.getAttribute("src");
           if (
+            blockingEnabled &&
             src &&
             src !== "about:blank" &&
             trackingKeywords.some((keyword) => src.includes(keyword))
@@ -242,32 +260,32 @@ export const ensurePlaceholdersVisible = (): void => {
         const wrapper = placeholder.parentElement;
         if (wrapper) {
           // Make sure the wrapper is properly positioned
-          applyWrapperStyles(wrapper);
+          applyWrapperStyles(wrapper as HTMLElement);
 
           // Check if we already have content in the wrapper
           const hasContent =
-            wrapper.querySelector(".cookie-consent-wrapper-content") !== null ||
-            wrapper.innerHTML.includes("Content Blocked");
+            (wrapper as HTMLElement).querySelector(".cookie-consent-wrapper-content") !== null ||
+            (wrapper as HTMLElement).innerHTML.includes("Content Blocked");
 
           // If no content exists, add it directly to the wrapper
           if (!hasContent) {
             const placeholderId =
-              placeholder.id ||
+              (placeholder as HTMLElement).id ||
               `cookie-blocked-content-${Math.random()
                 .toString(36)
                 .substring(2, 11)}`;
 
             // Get the blocked source if available
             const blockedSrc =
-              placeholder.getAttribute("data-blocked-src") || "unknown source";
+              (placeholder as HTMLElement).getAttribute("data-blocked-src") || "unknown source";
 
-            wrapper.innerHTML = createPlaceholderContent(placeholderId);
+            (wrapper as HTMLElement).innerHTML = createPlaceholderContent(placeholderId);
 
             // Re-append the placeholder to the wrapper
-            wrapper.appendChild(placeholder);
+            (wrapper as HTMLElement).appendChild(placeholder);
 
             // Find the iframe inside the wrapper
-            const iframe = wrapper.querySelector(
+            const iframe = (wrapper as HTMLElement).querySelector(
               "iframe"
             ) as HTMLIFrameElement | null;
             if (iframe) {
@@ -283,7 +301,7 @@ export const ensurePlaceholdersVisible = (): void => {
               }
 
               // Re-append the iframe to the wrapper
-              wrapper.appendChild(iframe);
+              (wrapper as HTMLElement).appendChild(iframe);
             }
 
             // Add event listener to the button
@@ -291,7 +309,7 @@ export const ensurePlaceholdersVisible = (): void => {
           }
 
           // Find the iframe inside the wrapper
-          const iframe = wrapper.querySelector(
+          const iframe = (wrapper as HTMLElement).querySelector(
             "iframe"
           ) as HTMLIFrameElement | null;
           if (iframe) {
@@ -310,4 +328,104 @@ export const ensurePlaceholdersVisible = (): void => {
       }
     });
   }
+};
+
+/**
+ * Restores previously blocked iframes whose original src no longer matches current blocked keywords.
+ * @param currentBlockedKeywords The keywords that should remain blocked. Others will be restored.
+ */
+export const unblockPreviouslyBlockedContent = (
+  currentBlockedKeywords: string[]
+): void => {
+  // 1) Primary path: restore any iframes flagged as blocked
+  const blockedIframes = document.querySelectorAll(
+    'iframe[data-cookie-blocked="true"][data-original-src]'
+  );
+
+  blockedIframes.forEach((iframeEl) => {
+    const iframe = iframeEl as HTMLIFrameElement;
+    const originalSrc = iframe.getAttribute("data-original-src");
+    if (!originalSrc) return;
+
+    const stillBlocked = currentBlockedKeywords.some((kw) =>
+      originalSrc.includes(kw)
+    );
+
+    if (!stillBlocked) {
+      // Restore src and attributes
+      iframe.src = originalSrc;
+      iframe.removeAttribute("data-cookie-blocked");
+      iframe.removeAttribute("data-original-src");
+
+      // Reset inline styles applied during blocking
+      iframe.style.position = "";
+      iframe.style.top = "";
+      iframe.style.left = "";
+      iframe.style.width = "";
+      iframe.style.height = "";
+      iframe.style.opacity = "";
+      iframe.style.pointerEvents = "";
+      iframe.style.visibility = "";
+      iframe.style.zIndex = "";
+
+      // Replace wrapper with iframe to restore original DOM position
+      const wrapper = iframe.parentElement;
+      if (wrapper && wrapper.parentElement) {
+        try {
+          (wrapper.parentElement as HTMLElement).replaceChild(iframe, wrapper);
+        } catch {}
+      }
+    }
+  });
+
+  // 2) Safety path: if any placeholder wrappers remain, remove them and restore
+  //    their inner iframes based on the placeholder's recorded blocked src.
+  const placeholders = document.querySelectorAll(
+    '[data-cookie-consent-placeholder="true"]'
+  );
+
+  placeholders.forEach((ph) => {
+    const placeholder = ph as HTMLElement;
+    const wrapper = placeholder.parentElement as HTMLElement | null;
+    if (!wrapper) return;
+
+    const iframe = wrapper.querySelector('iframe') as HTMLIFrameElement | null;
+    const blockedSrc = placeholder.getAttribute('data-blocked-src') || undefined;
+
+    const originalSrc =
+      (iframe && iframe.getAttribute('data-original-src')) || blockedSrc;
+
+    if (!originalSrc) return;
+
+    const stillBlocked = currentBlockedKeywords.some((kw) =>
+      originalSrc.includes(kw)
+    );
+    if (stillBlocked) return;
+
+    if (iframe) {
+      iframe.src = originalSrc;
+      iframe.removeAttribute('data-cookie-blocked');
+      iframe.removeAttribute('data-original-src');
+      iframe.style.position = '';
+      iframe.style.top = '';
+      iframe.style.left = '';
+      iframe.style.width = '';
+      iframe.style.height = '';
+      iframe.style.opacity = '';
+      iframe.style.pointerEvents = '';
+      iframe.style.visibility = '';
+      iframe.style.zIndex = '';
+
+      if (wrapper.parentElement) {
+        try {
+          (wrapper.parentElement as HTMLElement).replaceChild(iframe, wrapper);
+        } catch {}
+      }
+    } else {
+      // No iframe found; remove the wrapper entirely as a fallback
+      try {
+        wrapper.remove();
+      } catch {}
+    }
+  });
 };

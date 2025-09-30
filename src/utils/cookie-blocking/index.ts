@@ -6,6 +6,8 @@ import {
   blockTrackingScripts,
   ensurePlaceholdersVisible,
   createContentPlaceholder,
+  setBlockingEnabled,
+  unblockPreviouslyBlockedContent,
 } from "./content-blocker";
 
 /**
@@ -21,6 +23,16 @@ export class CookieBlockingManager {
    * @param blockedKeywords Array of keywords to block in scripts and iframes
    */
   public initialize(blockedHosts: string[], blockedKeywords: string[]): void {
+    // Replace any existing observers/intervals to avoid stale keyword sets
+    if (this.observerRef) {
+      this.observerRef.disconnect();
+      this.observerRef = null;
+    }
+    if (this.intervalId !== null) {
+      window.clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+
     // Block network requests
     if (blockedHosts.length > 0) {
       blockTrackingRequests(blockedHosts);
@@ -74,4 +86,6 @@ export {
   blockTrackingScripts,
   ensurePlaceholdersVisible,
   createContentPlaceholder,
+  setBlockingEnabled,
+  unblockPreviouslyBlockedContent,
 };
