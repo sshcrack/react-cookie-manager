@@ -154,6 +154,34 @@ const createDetailedConsent = (consented: boolean): DetailedCookieConsent => ({
   Advertising: createConsentStatus(consented),
 });
 
+// Normalize possibly partial consent loaded from cookie into a full DetailedCookieConsent
+const normalizeDetailedConsent = (raw: any): DetailedCookieConsent => {
+  const safeStatus = (status: any, fallbackTs: string) => {
+    if (status && typeof status.consented === "boolean" && typeof status.timestamp === "string") {
+      return status as { consented: boolean; timestamp: string };
+    }
+    return { consented: false, timestamp: fallbackTs };
+  };
+
+  const existingTimestamps: number[] = [];
+  try {
+    Object.values(raw || {}).forEach((s: any) => {
+      const t = s?.timestamp ? new Date(s.timestamp).getTime() : NaN;
+      if (!Number.isNaN(t)) existingTimestamps.push(t);
+    });
+  } catch {}
+
+  const baseTimestamp = existingTimestamps.length
+    ? new Date(Math.min(...existingTimestamps)).toISOString()
+    : new Date().toISOString();
+
+  return {
+    Analytics: safeStatus(raw?.Analytics, baseTimestamp),
+    Social: safeStatus(raw?.Social, baseTimestamp),
+    Advertising: safeStatus(raw?.Advertising, baseTimestamp),
+  };
+};
+
 export const CookieManager: React.FC<CookieManagerProps> = ({
   children,
   cookieKey = "cookie-consent",
@@ -189,11 +217,12 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
         try {
           const parsedConsent = JSON.parse(
             storedConsent
-          ) as DetailedCookieConsent;
+          ) as any;
+          const normalized = normalizeDetailedConsent(parsedConsent);
 
           // Check if consent has expired
           const oldestTimestamp = Math.min(
-            ...Object.values(parsedConsent).map((status) =>
+            ...Object.values(normalized).map((status) =>
               new Date(status.timestamp).getTime()
             )
           );
@@ -206,7 +235,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
             return null;
           }
 
-          return parsedConsent;
+          return normalized;
         } catch (e) {
           return null;
         }
@@ -438,7 +467,20 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
   const acceptCookies = async () => {
     const newConsent = createDetailedConsent(true);
-    setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
+    const filterConsentForCookie = (consent: DetailedCookieConsent) => {
+      const allowed = cookieCategories || {
+        Analytics: true,
+        Social: true,
+        Advertising: true,
+      };
+      const payload: Partial<DetailedCookieConsent> = {};
+      if (allowed.Analytics !== false) payload.Analytics = consent.Analytics;
+      if (allowed.Social !== false) payload.Social = consent.Social;
+      if (allowed.Advertising !== false) payload.Advertising = consent.Advertising;
+      return payload;
+    };
+    const cookiePayload = filterConsentForCookie(newConsent);
+    setCookie(cookieKey, JSON.stringify(cookiePayload), expirationDays);
     setDetailedConsent(newConsent);
     setIsVisible(false);
     if (enableFloatingButton) {
@@ -458,15 +500,16 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       const sessionKey = `${cookieKey}-session`;
       const sessionId = getCookie(sessionKey);
       if (sessionId) {
+        const acceptedPrefs = {
+          Analytics: cookieCategories?.Analytics !== false,
+          Social: cookieCategories?.Social !== false,
+          Advertising: cookieCategories?.Advertising !== false,
+        } as CookieCategories;
         await postToAnalyticsIfNotLocalhost(
           cookieKitId,
           sessionId,
           "accept",
-          {
-            Analytics: true,
-            Social: true,
-            Advertising: true,
-          },
+          acceptedPrefs,
           userId
         );
       }
@@ -480,7 +523,20 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
   const declineCookies = async () => {
     const newConsent = createDetailedConsent(false);
-    setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
+    const filterConsentForCookie = (consent: DetailedCookieConsent) => {
+      const allowed = cookieCategories || {
+        Analytics: true,
+        Social: true,
+        Advertising: true,
+      };
+      const payload: Partial<DetailedCookieConsent> = {};
+      if (allowed.Analytics !== false) payload.Analytics = consent.Analytics;
+      if (allowed.Social !== false) payload.Social = consent.Social;
+      if (allowed.Advertising !== false) payload.Advertising = consent.Advertising;
+      return payload;
+    };
+    const cookiePayload = filterConsentForCookie(newConsent);
+    setCookie(cookieKey, JSON.stringify(cookiePayload), expirationDays);
     setDetailedConsent(newConsent);
     setIsVisible(false);
     if (enableFloatingButton) {
@@ -518,7 +574,20 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       Social: { consented: preferences.Social, timestamp },
       Advertising: { consented: preferences.Advertising, timestamp },
     };
-    setCookie(cookieKey, JSON.stringify(newConsent), expirationDays);
+    const filterConsentForCookie = (consent: DetailedCookieConsent) => {
+      const allowed = cookieCategories || {
+        Analytics: true,
+        Social: true,
+        Advertising: true,
+      };
+      const payload: Partial<DetailedCookieConsent> = {};
+      if (allowed.Analytics !== false) payload.Analytics = consent.Analytics;
+      if (allowed.Social !== false) payload.Social = consent.Social;
+      if (allowed.Advertising !== false) payload.Advertising = consent.Advertising;
+      return payload;
+    };
+    const cookiePayload = filterConsentForCookie(newConsent);
+    setCookie(cookieKey, JSON.stringify(cookiePayload), expirationDays);
     setDetailedConsent(newConsent);
     setShowManageConsent(false);
     if (enableFloatingButton) {

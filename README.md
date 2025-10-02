@@ -7,7 +7,6 @@ Privacy-first, flexible cookie consent for React. Automatically block trackers, 
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![types: TypeScript](https://img.shields.io/badge/types-TypeScript-blue)](https://www.npmjs.com/package/react-cookie-manager)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/react-cookie-manager)](https://bundlephobia.com/package/react-cookie-manager)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/hypershiphq/react-cookie-manager/issues)
 
 [![React Cookie Manager Hero](https://github.com/hypershiphq/react-cookie-manager/blob/main/assets/github-hero-banner.jpg?raw=true)](https://cookiekit.io)
 
