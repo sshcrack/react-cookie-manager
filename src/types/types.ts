@@ -300,5 +300,5 @@ export interface CookieConsenterProps {
    * Optional identifier for cookie kit analytics
    * When provided, generates a unique session ID for tracking consent events
    */
-  cookieKitId?: string;
+  fetchUrl?: string;
 }

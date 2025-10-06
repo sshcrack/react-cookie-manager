@@ -48,7 +48,7 @@ const isLocalhost = (): boolean => {
 
 // Helper function to post to analytics if not on localhost
 const postToAnalyticsIfNotLocalhost = async (
-  cookieKitId: string,
+  fetchUrl: string,
   sessionId: string,
   action?: string,
   preferences?: CookieCategories,
@@ -62,7 +62,7 @@ const postToAnalyticsIfNotLocalhost = async (
   }
 
   await postSessionToAnalytics(
-    cookieKitId,
+    fetchUrl,
     sessionId,
     action,
     preferences,
@@ -89,7 +89,7 @@ export interface CookieManagerProps
   extends Omit<CookieConsenterProps, "onAccept" | "onDecline" | "forceShow"> {
   children: React.ReactNode;
   cookieKey?: string;
-  cookieKitId?: string;
+  fetchUrl?: string;
   userId?: string;
   onManage?: (preferences?: CookieCategories) => void;
   onAccept?: () => void;
@@ -185,7 +185,7 @@ const normalizeDetailedConsent = (raw: any): DetailedCookieConsent => {
 export const CookieManager: React.FC<CookieManagerProps> = ({
   children,
   cookieKey = "cookie-consent",
-  cookieKitId,
+  fetchUrl,
   cookieCategories,
   userId,
   translations,
@@ -268,7 +268,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
     let isInitializing = false;
 
     const initializeSessionId = async () => {
-      if (!cookieKitId || isInitializing) return;
+      if (!fetchUrl || isInitializing) return;
 
       isInitializing = true;
       const sessionKey = `${cookieKey}-session`;
@@ -276,13 +276,13 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
 
       if (!sessionId) {
         try {
-          sessionId = await generateSessionId(cookieKitId);
+          sessionId = await generateSessionId(fetchUrl);
           if (!isMounted) return;
           setCookie(sessionKey, sessionId, 1);
           const savedSessionId = getCookie(sessionKey);
           if (savedSessionId && isMounted) {
             await postToAnalyticsIfNotLocalhost(
-              cookieKitId,
+              fetchUrl,
               sessionId,
               undefined,
               undefined,
@@ -302,7 +302,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       isMounted = false;
       isInitializing = false;
     };
-  }, [cookieKitId, cookieKey, userId]);
+  }, [fetchUrl, cookieKey, userId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -496,7 +496,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       unblockPreviouslyBlockedContent([]);
     } catch (e) {}
 
-    if (cookieKitId) {
+    if (fetchUrl) {
       const sessionKey = `${cookieKey}-session`;
       const sessionId = getCookie(sessionKey);
       if (sessionId) {
@@ -506,7 +506,7 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
           Advertising: cookieCategories?.Advertising !== false,
         } as CookieCategories;
         await postToAnalyticsIfNotLocalhost(
-          cookieKitId,
+          fetchUrl,
           sessionId,
           "accept",
           acceptedPrefs,
@@ -543,12 +543,12 @@ export const CookieManager: React.FC<CookieManagerProps> = ({
       setIsFloatingButtonVisible(true);
     }
 
-    if (cookieKitId) {
+    if (fetchUrl) {
       const sessionKey = `${cookieKey}-session`;
       const sessionId = getCookie(sessionKey);
       if (sessionId) {
         await postToAnalyticsIfNotLocalhost(
-          cookieKitId,
+          fetchUrl,
           sessionId,
           "decline",
           {

@@ -96,14 +96,14 @@ export const resolveCountryFromTimezone = (timeZone: string): string => {
 
 /**
  * Posts session data to analytics
- * @param kitId The cookie kit ID
+ * @param fetchUrl The URL to post the data to
  * @param sessionId The session ID
  * @param action The action performed (e.g., "accept", "decline")
  * @param preferences The cookie preferences
  * @param userId Optional user ID
  */
 export const postSessionToAnalytics = async (
-  kitId: string,
+  fetchUrl: string,
   sessionId: string,
   action?: string,
   preferences?: CookieCategories,
@@ -114,13 +114,12 @@ export const postSessionToAnalytics = async (
     const country = resolveCountryFromTimezone(timeZone);
     const domain = window.location.hostname;
 
-    const response = await fetch("https://cookiekit.io/api/consents", {
+    const response = await fetch(fetchUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        website_id: kitId,
         session_id: sessionId,
         user_id: userId,
         analytics: preferences?.Analytics ?? false,
